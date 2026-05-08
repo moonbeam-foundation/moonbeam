@@ -18,7 +18,7 @@
 
 use core::marker::PhantomData;
 use evm::ExitReason;
-use fp_evm::{Context, ExitRevert, PrecompileFailure, PrecompileHandle, Transfer};
+use fp_evm::{Context, PrecompileFailure, PrecompileHandle, Transfer};
 use frame_support::{
 	ensure,
 	storage::types::{StorageMap, ValueQuery},
@@ -232,12 +232,11 @@ where
 		let (reason, output) =
 			handle.call(to, transfer, data, Some(gas_limit), false, &sub_context);
 		match reason {
-			ExitReason::Error(exit_status) => Err(PrecompileFailure::Error { exit_status }),
+			// A valid permit must be consumed even when the dispatched call fails.
+			// Returning a precompile failure here would revert the nonce increment too.
+			ExitReason::Error(_) => Ok(output.into()),
 			ExitReason::Fatal(exit_status) => Err(PrecompileFailure::Fatal { exit_status }),
-			ExitReason::Revert(_) => Err(PrecompileFailure::Revert {
-				exit_status: ExitRevert::Reverted,
-				output,
-			}),
+			ExitReason::Revert(_) => Ok(output.into()),
 			ExitReason::Succeed(_) => Ok(output.into()),
 		}
 	}
