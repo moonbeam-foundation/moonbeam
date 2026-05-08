@@ -63,16 +63,38 @@ on its upstream base, then reconcile with the corresponding table in
 > moonkit), and `upstream` points to the canonical upstream. Use `origin/...`
 > refs in commands.
 
-- [ ] **polkadot-sdk** — in `~/Workspace/polkadot-sdk`: `git log upstream/stable2512..origin/moonbeam-polkadot-stable2512 --no-merges --oneline`. Cross-check every commit against the `polkadot-sdk` table.
-- [ ] **frontier** — in `~/Workspace/frontier`: `git log upstream/stable2512..origin/moonbeam-polkadot-stable2512 --no-merges --oneline`. Cross-check against the `frontier` table.
-- [ ] **evm** — in `~/Workspace/evm`: diff against the upstream 0.43.x base the fork branched from (`git log $(git merge-base upstream/master origin/moonbeam-polkadot-stable2512)..origin/moonbeam-polkadot-stable2512 --no-merges --oneline`). Cross-check against the `evm` table.
-- [ ] **ethereum** — in `~/Workspace/ethereum`: `git log $(git merge-base upstream/master origin/moonbeam-polkadot-stable2512)..origin/moonbeam-polkadot-stable2512 --no-merges --oneline`. Cross-check against the `ethereum` table.
-- [ ] **moonkit** — in `~/Workspace/moonkit`: `git log $(git merge-base upstream/main origin/moonbeam-polkadot-stable2512)..origin/moonbeam-polkadot-stable2512 --no-merges --oneline`. Cross-check against the `moonkit` table. (Note: moonkit's `origin` is `Moonsong-Labs/moonkit` — the moonbeam fork branches live there.)
+- [x] **polkadot-sdk** — in `~/Workspace/polkadot-sdk`: `git log upstream/stable2512..origin/moonbeam-polkadot-stable2512 --no-merges --oneline`. Cross-check every commit against the `polkadot-sdk` table.
+- [x] **frontier** — in `~/Workspace/frontier`: `git log upstream/stable2512..origin/moonbeam-polkadot-stable2512 --no-merges --oneline`. Cross-check against the `frontier` table.
+- [x] **evm** — in `~/Workspace/evm`: diff against the upstream 0.43.x base the fork branched from (`git log $(git merge-base upstream/master origin/moonbeam-polkadot-stable2512)..origin/moonbeam-polkadot-stable2512 --no-merges --oneline`). Cross-check against the `evm` table.
+- [x] **ethereum** — in `~/Workspace/ethereum`: `git log $(git merge-base upstream/master origin/moonbeam-polkadot-stable2512)..origin/moonbeam-polkadot-stable2512 --no-merges --oneline`. Cross-check against the `ethereum` table.
+- [x] **moonkit** — in `~/Workspace/moonkit`: `git log $(git merge-base upstream/main origin/moonbeam-polkadot-stable2512)..origin/moonbeam-polkadot-stable2512 --no-merges --oneline`. Cross-check against the `moonkit` table. (Note: moonkit's `origin` is `Moonsong-Labs/moonkit` — the moonbeam fork branches live there.)
+
+> **Methodology note (learned during this audit):** raw SHA-set-difference is misleading because the same upstream PR can land on both branches with different SHAs (we cherry-picked many backports from upstream master; upstream/stable2512 later got equivalent commits via its own backport workflow). The correct method is **PR-number set-difference**: extract `(#NNNNN)` refs from each side and take the difference. Commits without a PR ref are moonbeam-authored or admin and need manual classification.
 
 For each commit not represented in the tracker:
-- [ ] Add a row to `polkadot-sdk-stable2603.md` matching the existing schema (Applied / Title / Commit / Cherry pick / Status / Upstream PR / Note).
-- [ ] Decide Included vs Dropped using the same rule as Phase 0: search upstream stable2603 (`git log --grep` on PR number, title, or a stable code fragment) for an equivalent merge before deciding.
-- [ ] If Included, add it to the appropriate Phase 1.x re-cherry-pick list below.
+- [x] Add a row to `polkadot-sdk-stable2603.md` matching the existing schema (Applied / Title / Commit / Cherry pick / Status / Upstream PR / Note).
+- [ ] Decide Included vs Dropped using the same rule as Phase 0: search upstream stable2603 (`git log --grep` on PR number, title, or a stable code fragment) for an equivalent merge before deciding. — *Deferred to Phase 2 verification for the rows added with `TBD` status.*
+- [ ] If Included, add it to the appropriate Phase 1.x re-cherry-pick list below. — *Deferred to Phase 2 verification.*
+
+### Phase 0.5 results (2026-05-08)
+
+Diff sizes against `upstream/stable<release>` for each fork (after pruning), then PR-number set-difference vs upstream:
+
+| Fork | Commits ours-only | PRs ours-only (true moonbeam) | Tracker corrections | New tracker rows |
+| --- | --- | --- | --- | --- |
+| polkadot-sdk | 75 | 2 (#7, #8 — both moonbeam-foundation-internal, already tracked) | — | 3 (weight reclaim logs, xcm-emulator BlockProducer, bridges GRANDPA experiment+revert) |
+| frontier | 35 | 21 — many already tracked, plus PR #1881, #247 missing; PR #1794 / #1787 in tracker were typos for #1824 / #1862 | Row 79 (`#1820`) `Applied: No → Yes`; Row 62 PR `#1794 → #1824`; Row 65 PR `#1787 → #1862` | 6 (logs journal #1881, CI triggers #247, canonical hash mapping repair, Saturate U256, configurable tx gas-limit cap, MBF ethereum dep + pin) |
+| evm | 32 (mostly upstream 0.43.x content baked into the fork — the original upstream branch has been deleted from rust-ethereum/evm, so the merge-base diff overstates) | 1 moonbeam-authored (depend on MBF ethereum fork) | — | 1 |
+| ethereum | 1 | 0 — already tracked (#77) | — | 0 |
+| moonkit | 11 (most are Cargo.lock bumps) | 1 (#94 make relay offset dynamic) | — | 1 |
+
+### Phase 0.5 follow-ups (TBD rows)
+
+The new rows added with `Cherry pick: TBD` / `Status: TBD` need a Phase 2 decision (Included vs Dropped) once we can grep `frontier-stable2603` and the new moonkit `main` for equivalent merges:
+
+- frontier `#1824` (block range checks), `#1862` (reorg-out logs), `#1881` (logs journal memory bound) — verify against `frontier-stable2603`.
+- frontier `Fix canonical hash mapping repair`, `Saturate U256 to u64::MAX`, `Make tx gas limit cap configurable` — moonbeam-authored, default Permanent unless an equivalent landed upstream.
+- moonkit `#94` — verify against the moonkit `main` base-bump (Phase 1.4a output); flip to Dropped if inherited.
 
 ## Phase 1 — Fork branches + cherry-pick re-application
 
