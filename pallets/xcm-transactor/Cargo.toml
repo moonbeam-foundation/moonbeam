@@ -57,7 +57,8 @@ std = [
 	"sp-core/std",
 	"xcm-builder/std",
 	"scale-info/std",
-	"serde/std"
+	"serde/std",
+	"moonbeam-tests-primitives/std"
 ]
 runtime-benchmarks = [
 	"frame-benchmarking",
@@ -71,7 +72,8 @@ runtime-benchmarks = [
 	"pallet-timestamp/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 	"xcm-executor/runtime-benchmarks",
-	"xcm/runtime-benchmarks"
+	"xcm/runtime-benchmarks",
+	"moonbeam-tests-primitives/runtime-benchmarks"
 ]
 try-runtime = [
 	"frame-support/try-runtime",

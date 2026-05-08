@@ -81,7 +81,8 @@ std = [
 	"pallet-xcm-bridge/std",
 	"pallet-identity/std",
 	"xcm-builder/std",
-	"log/std"
+	"log/std",
+	"pallet-xcm-transactor/std"
 ]
 runtime-benchmarks = [
 	"cumulus-primitives-core/runtime-benchmarks",
@@ -100,7 +101,8 @@ runtime-benchmarks = [
 	"xcm-builder/runtime-benchmarks",
 	"xcm/runtime-benchmarks",
 	"pallet-moonbeam-foreign-assets/runtime-benchmarks",
-	"pallet-xcm-weight-trader/runtime-benchmarks"
+	"pallet-xcm-weight-trader/runtime-benchmarks",
+	"pallet-xcm-transactor/runtime-benchmarks"
 ]
 try-runtime = [
 	"frame-support/try-runtime",
@@ -116,5 +118,6 @@ try-runtime = [
 	"pallet-xcm/try-runtime",
 	"sp-runtime/try-runtime",
 	"pallet-moonbeam-foreign-assets/try-runtime",
-	"pallet-xcm-weight-trader/try-runtime"
+	"pallet-xcm-weight-trader/try-runtime",
+	"pallet-xcm-transactor/try-runtime"
 ]

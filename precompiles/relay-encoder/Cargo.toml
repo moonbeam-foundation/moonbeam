@@ -73,5 +73,6 @@ std = [
 	"xcm-builder/std",
 	"xcm-executor/std",
 	"xcm/std",
-	"scale-info/std"
+	"scale-info/std",
+	"moonbeam-tests-primitives/std"
 ]

@@ -367,7 +367,8 @@ std = [
 	"num_enum/std",
 	"rlp?/std",
 	"serde/std",
-	"sha3?/std"
+	"sha3?/std",
+	"moonbeam-tests-primitives/std"
 ]
 
 # Must be enabled for tracing runtimes only
@@ -476,7 +477,8 @@ runtime-benchmarks = [
 	"pallet-evm-precompile-xcm-transactor/runtime-benchmarks",
 	"pallet-evm-precompile-xcm-utils/runtime-benchmarks",
 	"pallet-evm-precompile-xtokens/runtime-benchmarks",
-	"xcm-primitives/runtime-benchmarks"
+	"xcm-primitives/runtime-benchmarks",
+	"moonbeam-tests-primitives/runtime-benchmarks"
 ]
 try-runtime = [
 	"cumulus-pallet-parachain-system/try-runtime",

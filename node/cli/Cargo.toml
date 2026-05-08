@@ -69,4 +69,6 @@ try-runtime = [
 	"moonbeam-service/try-runtime",
 	"polkadot-cli/try-runtime",
 	"sp-runtime/try-runtime",
+	"nimbus-primitives/try-runtime",
+	"polkadot-service/try-runtime"
 ]

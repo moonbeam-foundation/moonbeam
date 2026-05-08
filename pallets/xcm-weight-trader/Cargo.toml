@@ -46,7 +46,8 @@ runtime-benchmarks = [
 	"sp-runtime/runtime-benchmarks",
 	"xcm-executor/runtime-benchmarks",
 	"xcm/runtime-benchmarks",
-	"xcm-runtime-apis/runtime-benchmarks"
+	"xcm-runtime-apis/runtime-benchmarks",
+	"xcm-primitives/runtime-benchmarks"
 ]
 std = [
 	"frame-support/std",
@@ -64,7 +65,8 @@ std = [
 	"sp-tracing/std",
 	"log/std",
 	"parity-scale-codec/std",
-	"serde/std"
+	"serde/std",
+	"xcm-primitives/std"
 ]
 try-runtime = [
 	"frame-support/try-runtime",

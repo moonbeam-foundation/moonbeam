@@ -75,7 +75,8 @@ std = [
 	"pallet-xcm-transactor/std",
 	"hex/std",
 	"log/std",
-	"scale-info/std"
+	"scale-info/std",
+	"moonbeam-tests-primitives/std"
 ]
 runtime-benchmarks = [
 	"frame-support/runtime-benchmarks",
@@ -90,5 +91,6 @@ runtime-benchmarks = [
 	"xcm-executor/runtime-benchmarks",
 	"xcm/runtime-benchmarks",
 	"pallet-xcm-transactor/runtime-benchmarks",
-	"xcm-primitives/runtime-benchmarks"
+	"xcm-primitives/runtime-benchmarks",
+	"moonbeam-tests-primitives/runtime-benchmarks"
 ]
