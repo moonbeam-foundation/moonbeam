@@ -102,12 +102,12 @@ Order: **polkadot-sdk → (evm, ethereum) → (moonkit, frontier)**.
 
 ### 1.1 polkadot-sdk ✅
 - [x] Create `moonbeam-polkadot-stable2603` from the `polkadot-stable2603-1` tag, then rebase onto `upstream/stable2603` head (`afb51b7a8c6`, 2026-05-08) to absorb 4 upstream backports (#11964, #11856, #11987, #12017).
-- [x] Re-cherry-pick `Add command PrecompileWasmCmd` → `782834a6e01` (adapted to `BackendRuntimeCode::new(state, TryPendingCode::No)`).
-- [x] Re-cherry-pick `Comment log "Unexpected underflow in reducing consumer"` → `9bd6657821d`.
-- [x] Re-cherry-pick `Bound WildMultiAsset max assets limit to 20` → `ab3fdc2508b`.
-- [x] Re-cherry-pick `Account for pallet-parameters weight in benchmarks` → `7f60ea3867c`.
-- [x] Re-cherry-pick (Phase 0.5) `improve weight reclaim logs (call metadata, warn level)` → `161cd252773`.
-- [x] Re-cherry-pick (Phase 0.5) `xcm-emulator: make slot/digest producer overridable for non-Aura parachains` → `beaf6b6c50a`. Trivial additive conflict with stable2603's `native_total_supply_tracker` macro arm — resolved by keeping both.
+- [x] Re-cherry-pick `Add command PrecompileWasmCmd` → `898357f0b74` (adapted to `BackendRuntimeCode::new(state, TryPendingCode::No)`).
+- [x] Re-cherry-pick `Comment log "Unexpected underflow in reducing consumer"` → `c9cac9e684e`.
+- [x] Re-cherry-pick `Bound WildMultiAsset max assets limit to 20` → `32c83c66988`.
+- [x] Re-cherry-pick `Account for pallet-parameters weight in benchmarks` → `96bdb0d604f`.
+- [x] Re-cherry-pick (Phase 0.5) `improve weight reclaim logs (call metadata, warn level)` → `b0b4fd52a9e`.
+- [x] Re-cherry-pick (Phase 0.5) `xcm-emulator: make slot/digest producer overridable for non-Aura parachains` → `bb5b47f6c66`. Trivial additive conflict with stable2603's `native_total_supply_tracker` macro arm — resolved by keeping both.
 - [x] **Drop** `Add storage benchmark --keys-limit option` — flags ship natively in stable2603's `benchmarking-cli/src/storage/cmd.rs`.
 - [x] **Drop** `Remove pallet-revive from pallet-xcm` — `pallet-xcm/Cargo.toml` no longer depends on `pallet-revive` in stable2603.
 - [x] **Drop** `Fix charge_transaction_payment benchmark` — merged into stable2603 as `4b934d0a252`.
