@@ -138,42 +138,50 @@ Order: **polkadot-sdk → (evm, ethereum) → (moonkit, frontier)**.
 - [ ] Open PR on `Moonsong-Labs/moonkit`; coordinate review with Moonsong-Labs.
 - [ ] Once merged, proceed to Phase 1.4.
 
-### 1.5a frontier upstream base-bump (we own — B1)
-- [ ] In `~/Workspace/frontier`, branch off a chosen `upstream/master` SHA (e.g. `mb/polkadot-sdk-stable2603`). Pick the most recent stable master commit that doesn't introduce unrelated risk.
-- [ ] Bump polkadot-sdk dependencies in frontier's `Cargo.toml` from `stable2512` → `stable2603`.
-- [ ] Compile-fix loop until `cargo check --workspace` is clean.
-- [ ] Push to `moonbeam-foundation/frontier` (this is *our* effective upstream base for Phase 1.5).
-- [ ] When `polkadot-evm/frontier` officially cuts `stable2603`, rebase the work onto the official branch.
+### 1.5a frontier upstream base-bump (we own — B1) ✅ — done by upstream
+- [x] In `~/Workspace/frontier`, branch off a chosen `upstream/master` SHA (e.g. `mb/polkadot-sdk-stable2603`). Pick the most recent stable master commit that doesn't introduce unrelated risk.
+- [x] Bump polkadot-sdk dependencies in frontier's `Cargo.toml` from `stable2512` → `stable2603`.
+- [x] Compile-fix loop until `cargo check --workspace` is clean.
+- [x] Push to `moonbeam-foundation/frontier` (this is *our* effective upstream base for Phase 1.5).
+- [x] When `polkadot-evm/frontier` officially cuts `stable2603`, rebase the work onto the official branch. **Done by upstream:** our DIY base-bump branch was opened upstream as [polkadot-evm/frontier#1892](https://github.com/polkadot-evm/frontier/pull/1892) and squash-merged on 2026-05-08; upstream then cut `stable2603` from the resulting master commit (`baf505d8f`). Local `mb/polkadot-sdk-stable2603` was deleted (redundant), and Phase 1.5 below uses `upstream/stable2603` directly as the base.
 
-### 1.5 frontier (moonbeam fork)
-- [ ] Create `moonbeam-polkadot-stable2603` from the Phase 1.5a base in `moonbeam-foundation/frontier`.
-- [ ] Re-cherry-pick (still required):
-  - [ ] CI branch name (rename `stable2512` → `stable2603` during cherry-pick)
-  - [ ] Do client side check of withdraw-ability (#1546)
-  - [ ] Catch ethereum execution info (#1547)
-  - [ ] Fix dispatch error legacy decoding (Permanent)
-  - [ ] Account eth tx size only once (squashed with #224)
-  - [ ] Expose lru_cache (#1568)
-  - [ ] Address POV Underestimations
-  - [ ] Upgrade frame-metadata
-  - [ ] Validate transaction size (#1807)
-  - [ ] Improve "latest" block resolution on pruned nodes (#1856)
-- [ ] **Verify** each row pre-marked Dropped in the tracker is actually present in `frontier-stable2603` (use `git log --grep` on PR number). If any are missing, re-cherry-pick and flip Dropped → Included in the tracker:
-  - [ ] EIP-7939 (#1795)
-  - [ ] EIP-7883 (#1801)
-  - [ ] EIP-7823 (#1804)
-  - [ ] EIP-7825 (#1799)
-  - [ ] Multi pre-runtime Frontier logs invalid (#1809)
-  - [ ] eth_getTransactionReceipt race (#1802)
-  - [ ] Frontier parity-db migration (#1817)
-  - [ ] Drop lagging pubsub subscribers (#1814)
-  - [ ] Forbid txs without chain ID (#1815)
-  - [ ] eth_getBlockByNumber("latest") null fix (#1816)
-  - [ ] Inconsistent Eth block visibility (#1818)
-  - [ ] Single-writer mapping-sync (#1820)
-  - [ ] Wait for chain head & eth latest in createAndFinalizeBlock (#1855)
-  - [ ] Avoid eth_blockNumber 0x00 lag (#1832)
-- [ ] Push branch and update tracker.
+### 1.5 frontier (moonbeam fork) ✅
+- [x] Create `moonbeam-polkadot-stable2603` from `upstream/stable2603` (`baf505d8feeaaa0ba636a003faa49e4ad897b592`).
+- [x] Cherry-pick the moonbeam-only commits (12 in total):
+  - [x] Update CI triggers (#247) → `1921dd848`
+  - [x] Do client side check of withdraw-ability (#1546) → `4df28dadc`
+  - [x] Catch ethereum execution info (#1547) → `0210cb242`
+  - [x] Fix dispatch error legacy decoding (#203, merge commit) → `3d7eb4665`
+  - [x] Account eth tx size only once (squashed with #224) → `dff25ac36`
+  - [x] Address POV Underestimations (#244) → `75a85bdc9`. Conflict with stable2603's WeightInfo error-handling refactor — resolved by keeping upstream's `match` block + adding `mut`.
+  - [x] Expose lru_cache (#1568) → `6727696bb`
+  - [x] Fix frontier parity-db migration (#252) → `d6a7e3c41`. Trivial conflict on `block_number_u64` syntax — took upstream's `*` deref form.
+  - [x] Upgrade frame-metadata → `fc5e6f75c`
+  - [x] Validate transaction size (#254) → `d6693687f`
+  - [x] Saturate U256 to u64::MAX → `3397496a9`
+  - [x] Fix canonical hash mapping repair → `d6a7e3c41`
+- [x] Manually update `Cargo.toml` to redirect deps (polkadot-sdk → moonbeam-foundation fork, ethereum → MBF, evm → MBF) → `5264e3ae0`. This consolidates the prior cycle's separate "Use moonbeam-polkadot-stable*" CI ref and "Depend on MBF ethereum fork" cherry-picks into one commit.
+- [x] Confirmed inherited from `upstream/stable2603` (rows in tracker now `Dropped, PR Upstream Merged`):
+  - EIP-7939 (#1795), EIP-7883 (#1801), EIP-7823 (#1804), EIP-7825 (#1799)
+  - Multi pre-runtime Frontier logs invalid (#1809)
+  - eth_getTransactionReceipt race (#1802)
+  - Drop lagging pubsub subscribers (#1814)
+  - Forbid txs without chain ID (#1815)
+  - eth_getBlockByNumber("latest") null fix (#1816)
+  - Inconsistent Eth block visibility (#1818)
+  - Single-writer mapping-sync (#1820)
+  - RPC filter range checks (#1824)
+  - Avoid eth_blockNumber 0x00 lag (#1832)
+  - Wait for chain head & eth latest in createAndFinalizeBlock (#1855)
+  - Improve "latest" block resolution on pruned nodes (#1856)
+  - Reorged-out logs (#1862)
+  - Bound logs journal memory (#1881)
+  - Make tx gas limit cap configurable (upstream `b2088f29b`, no PR ref)
+  - Frontier parity-db migration: also has equivalent in upstream — keep our cherry-pick for the additional moonbeam-foundation/frontier#252 fixes.
+- [x] Cargo.lock regenerated; `cargo check --workspace` is clean (one harmless unused-const warning from the dispatch-error cherry-pick).
+- [x] Pushed `moonbeam-polkadot-stable2603` to `moonbeam-foundation/frontier` at `a89b62d5e`.
+- [x] Update tracker (`polkadot-sdk-stable2603.md`).
+- [x] Side effect: bumped `moonbeam-foundation/evm:moonbeam-polkadot-stable2603` to `7dd6ecc6` so its `ethereum` dep points at the stable2603 branch (was stable2512). Required to avoid two-versions-of-`ethereum` cargo conflict in frontier.
 
 ## Phase 2 — Tracking doc finalization
 
