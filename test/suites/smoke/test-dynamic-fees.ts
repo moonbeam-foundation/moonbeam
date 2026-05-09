@@ -527,6 +527,8 @@ describeSuite({
           switch (true) {
             case item.isEip1559:
               return item.asEip1559.usedGas.toBigInt();
+            case (item as any).isEip7702:
+              return (item as any).asEip7702.usedGas.toBigInt();
             case item.isEip2930:
               return item.asEip2930.usedGas.toBigInt();
             case item.isLegacy:

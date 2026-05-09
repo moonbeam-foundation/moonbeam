@@ -59,7 +59,7 @@ export const isMuted = (moonbeamNetworkName: MoonbeamNetworkName, paraId: ParaId
       return false;
     }
 
-    const currentTime = new Date().getTime();
+    const currentTime = Date.now();
     return match.mutedUntil && match.mutedUntil >= currentTime;
   }
   return false;
@@ -125,6 +125,7 @@ export const ForeignChainsEndpoints = [
       {
         name: "Nodle",
         paraId: 2026,
+        mutedUntil: 1778889600000,
       },
       {
         name: "Bifrost",
@@ -133,6 +134,7 @@ export const ForeignChainsEndpoints = [
       {
         name: "Centrifuge",
         paraId: 2031,
+        mutedUntil: 1778889600000,
       },
       {
         name: "Interlay",
@@ -157,6 +159,7 @@ export const ForeignChainsEndpoints = [
       {
         name: "Zeitgeist",
         paraId: 2092,
+        mutedUntil: 1778889600000,
       },
       {
         name: "Pendulum",
