@@ -108,7 +108,6 @@ describeSuite({
     let totalAccounts = 0n;
     let totalIssuance = 0n;
     let symbol: string;
-    let runtimeName: string;
     let paraApi: ApiPromise;
 
     const updateReserveMap = (
@@ -191,12 +190,13 @@ describeSuite({
     beforeAll(async function () {
       paraApi = context.polkadotJs("para");
       const blockHash = process.env.BLOCK_NUMBER
-        ? (await paraApi.rpc.chain.getBlockHash(Number.parseInt(process.env.BLOCK_NUMBER))).toHex()
+        ? (
+            await paraApi.rpc.chain.getBlockHash(Number.parseInt(process.env.BLOCK_NUMBER, 10))
+          ).toHex()
         : (await paraApi.rpc.chain.getFinalizedHead()).toHex();
       atBlockNumber = (await paraApi.rpc.chain.getHeader(blockHash)).number.toNumber();
       apiAt = await paraApi.at(blockHash);
       specVersion = apiAt.consts.system.version.specVersion.toNumber();
-      runtimeName = apiAt.runtimeVersion.specName.toString();
       symbol = (await paraApi.rpc.system.properties()).tokenSymbol.unwrap()[0].toString();
 
       // 1a) Build Expected Results - Reserved Map
@@ -208,7 +208,7 @@ describeSuite({
           .entries()
           .then((proxies) => {
             proxies.forEach((proxy) => {
-              updateReserveMap(proxy[0].toHex().slice(-40), {
+              updateReserveMap(proxy[0].args[0].toHex(), {
                 [ReserveType.Proxy]: proxy[1][1].toBigInt(),
               });
             });

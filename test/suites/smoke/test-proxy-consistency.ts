@@ -12,7 +12,7 @@ describeSuite({
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {
     const proxiesPerAccount: { [account: string]: PalletProxyProxyDefinition[] } = {};
-    const proxyAccList: string[] = [];
+    const proxyAccList = new Set<string>();
     const limiter = rateLimiter();
     let atBlockNumber = 0;
     let apiAt: ApiDecoration<"promise">;
@@ -28,7 +28,7 @@ describeSuite({
       // (to avoid inconsistency querying over multiple block when the test takes a long time to
       // query data and blocks are being produced)
       atBlockNumber = process.env.BLOCK_NUMBER
-        ? Number.parseInt(process.env.BLOCK_NUMBER)
+        ? Number.parseInt(process.env.BLOCK_NUMBER, 10)
         : (await paraApi.rpc.chain.getHeader()).number.toNumber();
       apiAt = await paraApi.at(await paraApi.rpc.chain.getBlockHash(atBlockNumber));
 
@@ -47,10 +47,12 @@ describeSuite({
 
         // TEMPLATE: convert the data into the format you want (usually a dictionary per account)
         for (const proxyData of query) {
-          const accountId = `0x${proxyData[0].toHex().slice(-40)}`;
+          const accountId = proxyData[0].args[0].toHex();
           last_key = proxyData[0].toString();
           proxiesPerAccount[accountId] = proxyData[1][0].toArray();
-          proxyAccList.push(accountId);
+          proxiesPerAccount[accountId].forEach((proxy) => {
+            proxyAccList.add(proxy.delegate.toHex());
+          });
         }
 
         // log logs to make sure it keeps progressing
@@ -146,9 +148,10 @@ describeSuite({
       timeout: 60000,
       test: async function () {
         // For each account with a registered proxy, check whether it is a non-SC address
-        const promises = proxyAccList.map(async (address) => {
+        const promises = Array.from(proxyAccList).map(async (address) => {
           const resp = await limiter.schedule(() => apiAt.query.evm.accountCodes(address));
-          const contract = resp.toJSON() !== "0x";
+          const code = resp.toString();
+          const contract = code !== "0x" && !code.startsWith("0xef0100");
           return { address, contract };
         });
 
