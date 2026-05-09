@@ -125,7 +125,7 @@ export const ForeignChainsEndpoints = [
       {
         name: "Nodle",
         paraId: 2026,
-        mutedUntil: 1778889600000,
+        mutedUntil: 1786233600000,
       },
       {
         name: "Bifrost",
@@ -134,7 +134,7 @@ export const ForeignChainsEndpoints = [
       {
         name: "Centrifuge",
         paraId: 2031,
-        mutedUntil: 1778889600000,
+        mutedUntil: 1786233600000,
       },
       {
         name: "Interlay",
@@ -159,7 +159,7 @@ export const ForeignChainsEndpoints = [
       {
         name: "Zeitgeist",
         paraId: 2092,
-        mutedUntil: 1778889600000,
+        mutedUntil: 1786233600000,
       },
       {
         name: "Pendulum",
