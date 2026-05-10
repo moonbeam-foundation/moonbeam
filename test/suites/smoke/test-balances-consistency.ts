@@ -198,32 +198,31 @@ describeSuite({
       const reserveTypes = Object.keys(expectedReserve);
 
       return (
-        failure.reservedBalance === 0n &&
-        failure.expected > 0n &&
+        failure.expected > failure.reservedBalance &&
         reserveTypes.length === 1 &&
         expectedReserve[ReserveType.Proxy] === failure.expected
       );
     };
 
     const isPureProxyDepositSurplus = (failure: ReservedFailure) => {
-      return failure.expected === 0n && failure.reservedBalance > 0n;
+      return failure.reservedBalance > failure.expected;
     };
 
     const sumPureProxyReserveDelta = (failures: ReservedFailure[]) => {
       return failures.reduce(
         (acc, failure) => {
           if (isPureProxyDepositDeficit(failure)) {
-            acc.expectedOnPureProxy += failure.expected;
+            acc.missingFromPureProxy += failure.expected - failure.reservedBalance;
           } else if (isPureProxyDepositSurplus(failure)) {
-            acc.reservedOnSpawners += failure.reservedBalance;
+            acc.extraReservedOnSpawners += failure.reservedBalance - failure.expected;
           } else {
             acc.unaccountedFailures.push(failure);
           }
           return acc;
         },
         {
-          expectedOnPureProxy: 0n,
-          reservedOnSpawners: 0n,
+          missingFromPureProxy: 0n,
+          extraReservedOnSpawners: 0n,
           unaccountedFailures: [] as ReservedFailure[],
         }
       );
@@ -725,30 +724,30 @@ describeSuite({
       id: "C100",
       title: "should have matching deposit/reserved",
       test: async function () {
-        const { expectedOnPureProxy, reservedOnSpawners, unaccountedFailures } =
+        const { missingFromPureProxy, extraReservedOnSpawners, unaccountedFailures } =
           sumPureProxyReserveDelta(failedReserved);
 
-        if (expectedOnPureProxy > 0n || reservedOnSpawners > 0n) {
+        if (missingFromPureProxy > 0n || extraReservedOnSpawners > 0n) {
           log(
-            `Reconciling pure proxy deposits: expected ${printTokens(
+            `Reconciling pure proxy deposits: missing ${printTokens(
               paraApi,
-              expectedOnPureProxy,
+              missingFromPureProxy,
               1,
               5
-            )} ${symbol} on pure proxy accounts and found ${printTokens(
+            )} ${symbol} from pure proxy accounts and found ${printTokens(
               paraApi,
-              reservedOnSpawners,
+              extraReservedOnSpawners,
               1,
               5
-            )} ${symbol} reserved on spawner accounts`
+            )} ${symbol} extra reserved on spawner accounts`
           );
         }
 
         expect(
-          reservedOnSpawners,
-          `❌ Pure proxy deposit reserves do not balance: expected ${expectedOnPureProxy} ` +
-            `but found ${reservedOnSpawners} reserved on spawner accounts`
-        ).to.equal(expectedOnPureProxy);
+          extraReservedOnSpawners,
+          `❌ Pure proxy deposit reserves do not balance: expected ${missingFromPureProxy} ` +
+            `but found ${extraReservedOnSpawners} reserved on spawner accounts`
+        ).to.equal(missingFromPureProxy);
 
         if (unaccountedFailures.length > 0) {
           log("Failed accounts reserves");
