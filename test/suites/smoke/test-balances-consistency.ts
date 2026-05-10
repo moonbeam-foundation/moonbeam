@@ -50,6 +50,12 @@ const base64ToHex = (base64: string): string => {
 type ReservedInfo = { total?: bigint; reserved?: { [key: string]: bigint } };
 type LocksInfo = { total?: bigint; locks?: { [key: string]: bigint } };
 type FreezesInfo = { total?: bigint; freezes?: { [key: string]: bigint } };
+type ReservedFailure = {
+  reservedBalance: bigint;
+  expected: bigint;
+  expectedReserve?: { [key: string]: bigint };
+  message: string;
+};
 
 async function getLocks(apiAt: ApiDecoration<"promise">): Promise<Map<string, { total: bigint }>> {
   const locksMap = new Map<string, { total: bigint }>();
@@ -100,7 +106,7 @@ describeSuite({
     let locksMap: Map<string, { total: bigint }>;
     let freezesMap: Map<string, { total: bigint }>;
     const failedLocks: any[] = [];
-    const failedReserved: any[] = [];
+    const failedReserved: ReservedFailure[] = [];
     const failedFreezes: any[] = [];
     let atBlockNumber = 0;
     let apiAt: ApiDecoration<"promise">;
@@ -185,6 +191,42 @@ describeSuite({
         }
       }
       return null;
+    };
+
+    const isPureProxyDepositDeficit = (failure: ReservedFailure) => {
+      const expectedReserve = failure.expectedReserve || {};
+      const reserveTypes = Object.keys(expectedReserve);
+
+      return (
+        failure.reservedBalance === 0n &&
+        failure.expected > 0n &&
+        reserveTypes.length === 1 &&
+        expectedReserve[ReserveType.Proxy] === failure.expected
+      );
+    };
+
+    const isPureProxyDepositSurplus = (failure: ReservedFailure) => {
+      return failure.expected === 0n && failure.reservedBalance > 0n;
+    };
+
+    const sumPureProxyReserveDelta = (failures: ReservedFailure[]) => {
+      return failures.reduce(
+        (acc, failure) => {
+          if (isPureProxyDepositDeficit(failure)) {
+            acc.expectedOnPureProxy += failure.expected;
+          } else if (isPureProxyDepositSurplus(failure)) {
+            acc.reservedOnSpawners += failure.reservedBalance;
+          } else {
+            acc.unaccountedFailures.push(failure);
+          }
+          return acc;
+        },
+        {
+          expectedOnPureProxy: 0n,
+          reservedOnSpawners: 0n,
+          unaccountedFailures: [] as ReservedFailure[],
+        }
+      );
     };
 
     beforeAll(async function () {
@@ -596,7 +638,12 @@ describeSuite({
               )
               .join(` - `) +
             `)`;
-          failedReserved.push(errorString);
+          failedReserved.push({
+            reservedBalance,
+            expected,
+            expectedReserve: expectedReserveMap.get(key)?.reserved,
+            message: errorString,
+          });
         }
         expectedReserveMap.delete(key);
       };
@@ -678,13 +725,40 @@ describeSuite({
       id: "C100",
       title: "should have matching deposit/reserved",
       test: async function () {
-        if (failedReserved.length > 0) {
+        const { expectedOnPureProxy, reservedOnSpawners, unaccountedFailures } =
+          sumPureProxyReserveDelta(failedReserved);
+
+        if (expectedOnPureProxy > 0n || reservedOnSpawners > 0n) {
+          log(
+            `Reconciling pure proxy deposits: expected ${printTokens(
+              paraApi,
+              expectedOnPureProxy,
+              1,
+              5
+            )} ${symbol} on pure proxy accounts and found ${printTokens(
+              paraApi,
+              reservedOnSpawners,
+              1,
+              5
+            )} ${symbol} reserved on spawner accounts`
+          );
+        }
+
+        expect(
+          reservedOnSpawners,
+          `❌ Pure proxy deposit reserves do not balance: expected ${expectedOnPureProxy} ` +
+            `but found ${reservedOnSpawners} reserved on spawner accounts`
+        ).to.equal(expectedOnPureProxy);
+
+        if (unaccountedFailures.length > 0) {
           log("Failed accounts reserves");
         }
 
         expect(
-          failedReserved.length,
-          `❌ Mismatched account reserves: \n${failedReserved.join(",\n")}`
+          unaccountedFailures.length,
+          `❌ Mismatched account reserves: \n${unaccountedFailures
+            .map(({ message }) => message)
+            .join(",\n")}`
         ).to.equal(0);
 
         log(`Verified ${totalAccounts} total reserve balances (at #${atBlockNumber})`);
