@@ -25,7 +25,7 @@ describeSuite({
             blockData.block.extrinsics[index].method
               .args[0] as CumulusPrimitivesParachainInherentParachainInherentData
           ).validationData.relayParentNumber.toString()
-        ).to.eq("0");
+        ).to.eq("1");
         const blockResult2 = await context.createBlock();
         const blockData2 = await context.polkadotJs().rpc.chain.getBlock(blockResult2.block.hash);
         expect(
@@ -33,7 +33,7 @@ describeSuite({
             blockData2.block.extrinsics[index].method
               .args[0] as CumulusPrimitivesParachainInherentParachainInherentData
           ).validationData.relayParentNumber.toString()
-        ).to.eq("1");
+        ).to.eq("2");
       },
     });
   },

@@ -25,7 +25,7 @@ use sp_block_builder::BlockBuilder;
 
 use crate::client::RuntimeApiCollection;
 use crate::RELAY_CHAIN_SLOT_DURATION_MILLIS;
-use cumulus_primitives_core::{ParaId, PersistedValidationData};
+use cumulus_primitives_core::{ParaId, PersistedValidationData, RelayParentOffsetApi};
 use cumulus_primitives_parachain_inherent::ParachainInherentData;
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 use fc_mapping_sync::{kv::MappingSyncWorker, SyncStrategy};
@@ -175,7 +175,7 @@ where
 	C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError> + 'static,
 	C: CallApiAt<Block>,
 	C: Send + Sync + 'static,
-	C::Api: RuntimeApiCollection,
+	C::Api: RuntimeApiCollection + RelayParentOffsetApi<Block>,
 	P: TransactionPool<Block = Block, Hash = <Block as BlockT>::Hash> + 'static,
 {
 	use fc_rpc::{
@@ -241,10 +241,12 @@ where
 		);
 
 		let maybe_current_para_head = client_for_cidp.expect_header(block);
+		let maybe_relay_parent_offset = client_for_cidp.runtime_api().relay_parent_offset(block);
 		async move {
 			let current_para_block_head = Some(polkadot_primitives::HeadData(
 				maybe_current_para_head?.encode(),
 			));
+			let relay_parent_offset = maybe_relay_parent_offset?;
 
 			let builder = RelayStateSproofBuilder {
 				para_id,
@@ -262,8 +264,8 @@ where
 			// Create a dummy parachain inherent data provider which is required to pass
 			// the checks by the para chain system. We use dummy values because in the 'pending context'
 			// neither do we have access to the real values nor do we need them.
-			let (relay_parent_storage_root, relay_chain_state) =
-				builder.into_state_root_and_proof();
+			let (relay_parent_storage_root, relay_chain_state, relay_parent_descendants) =
+				builder.into_state_root_proof_and_descendants(u64::from(relay_parent_offset));
 
 			let vfp = PersistedValidationData {
 				// This is a hack to make `cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases`
@@ -277,7 +279,7 @@ where
 				relay_chain_state,
 				downward_messages: Default::default(),
 				horizontal_messages: Default::default(),
-				relay_parent_descendants: Default::default(),
+				relay_parent_descendants,
 				collator_peer_id: None,
 			};
 

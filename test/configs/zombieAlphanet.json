@@ -53,6 +53,7 @@
           "args": [
             "--no-hardware-benchmarks",
             "--force-authoring",
+            "--authoring=slot-based",
             "-lparachain=debug",
             "--database=paritydb",
             "--pool-type=fork-aware"

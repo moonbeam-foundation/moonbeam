@@ -90,7 +90,7 @@ macro_rules! impl_runtime_apis_plus_common {
 
 			impl cumulus_primitives_core::RelayParentOffsetApi<Block> for Runtime {
 				fn relay_parent_offset() -> u32 {
-					crate::RELAY_PARENT_OFFSET
+					crate::AsyncBacking::relay_parent_offset()
 				}
 			}
 

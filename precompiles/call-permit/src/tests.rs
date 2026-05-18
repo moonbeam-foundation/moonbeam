@@ -209,7 +209,7 @@ fn valid_permit_returns() {
 }
 
 #[test]
-fn valid_permit_reverts() {
+fn valid_permit_consumes_nonce_when_subcall_reverts() {
 	ExtBuilder::default()
 		.with_balances(vec![(CryptoAlith.into(), 1000)])
 		.build()
@@ -259,7 +259,7 @@ fn valid_permit_reverts() {
 						from: Address(from),
 						to: Address(to),
 						value,
-						data: data.into(),
+						data: data.clone().into(),
 						gas_limit,
 						deadline,
 						v: v.serialize(),
@@ -302,7 +302,40 @@ fn valid_permit_reverts() {
 				.with_target_gas(Some(call_cost + 100_000 + dispatch_cost()))
 				.expect_cost(call_cost + 13 + dispatch_cost())
 				.expect_no_logs()
-				.execute_reverts(|x| x == b"TEST".to_vec());
+				.execute_returns(UnboundedBytes::from(revert_as_bytes("TEST")));
+
+			precompiles()
+				.prepare_test(
+					CryptoAlith,
+					CallPermit,
+					PCall::nonces {
+						owner: Address(CryptoAlith.into()),
+					},
+				)
+				.expect_cost(0) // TODO: Test db read/write costs
+				.expect_no_logs()
+				.execute_returns(U256::from(1u8));
+
+			precompiles()
+				.prepare_test(
+					Charlie, // can be anyone
+					CallPermit,
+					PCall::dispatch {
+						from: Address(from),
+						to: Address(to),
+						value,
+						data: data.into(),
+						gas_limit,
+						deadline,
+						v: v.serialize(),
+						r: H256::from(rs.r.b32()),
+						s: H256::from(rs.s.b32()),
+					},
+				)
+				.with_subcall_handle(move |_| panic!("should not replay permit"))
+				.with_target_gas(Some(call_cost + 100_000 + dispatch_cost()))
+				.expect_cost(dispatch_cost())
+				.execute_reverts(|x| x == b"Invalid permit");
 		})
 }
 

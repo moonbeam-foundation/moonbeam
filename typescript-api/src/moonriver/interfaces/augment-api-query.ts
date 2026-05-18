@@ -138,6 +138,11 @@ declare module "@polkadot/api-base/types/storage" {
   interface AugmentedQueries<ApiType extends ApiTypes> {
     asyncBacking: {
       /**
+       * Relay parent offset enforced by the parachain-system inherent check.
+       **/
+      relayParentOffset: AugmentedQuery<ApiType, () => Observable<u32>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
        * Current relay chain slot paired with a number of authored blocks.
        *
        * This is updated in [`FixedVelocityConsensusHook::on_state_proof`] with the current relay
