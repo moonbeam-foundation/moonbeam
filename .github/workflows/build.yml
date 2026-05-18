@@ -600,9 +600,16 @@ jobs:
         run: |
           cargo check --profile testnet --workspace --features=runtime-benchmarks
       # Checks are run after uploading artifacts since they are modified by the tests
+      # The xcm-emulator-tests crates are workspace members so the dedicated
+      # `xcm-emulator-test` job can address them with `-p`, but they pull the
+      # heavy Westend + Asset Hub Westend graph. Exclude them here so the
+      # default test job neither builds nor re-runs that suite.
       - name: Unit tests
         run: |
-          cargo test --profile testnet --workspace --features=evm-tracing
+          cargo test --profile testnet --workspace --features=evm-tracing \
+            --exclude moonbeam-xcm-emulator-tests \
+            --exclude moonriver-xcm-emulator-tests \
+            --exclude moonbase-xcm-emulator-tests
 
   # Dedicated job for the xcm-emulator integration tests, which live in
   # their own workspace crates (`runtime/<chain>/xcm-emulator-tests`) so the
@@ -623,7 +630,9 @@ jobs:
         github.event_name == 'push'
         || github.event_name == 'workflow_dispatch'
         || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'XCM'))
-      ) && needs.set-tags.outputs.self_hosted_allowed == 'true'
+      ) &&
+      needs.set-tags.outputs.self_hosted_allowed == 'true' &&
+      needs.set-tags.outputs.any_changed == 'true'
     runs-on:
       labels: bare-metal
     permissions:
