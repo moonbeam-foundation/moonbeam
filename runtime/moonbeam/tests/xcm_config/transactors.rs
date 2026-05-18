@@ -328,9 +328,13 @@ fn transactor_handles_erc20_bridge_asset() {
 			let result =
 				<AssetTransactors as TransactAsset>::deposit_asset(&asset, &destination, None);
 
-			// Either Ok (if the bridge gracefully handles missing contracts)
-			// or Err — the important thing is no panic.
-			let _ = result;
+			// `Erc20XcmBridge::deposit_asset` needs an XCM holding context to
+			// resolve token origins; a direct call has none, so it must return
+			// an error rather than panic.
+			assert!(
+				result.is_err(),
+				"ERC20 bridge deposit must fail without an XCM holding context, not panic"
+			);
 		});
 }
 
