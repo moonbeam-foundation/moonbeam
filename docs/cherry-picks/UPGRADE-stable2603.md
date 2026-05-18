@@ -117,7 +117,7 @@ Order: **polkadot-sdk → (evm, ethereum) → (moonkit, frontier)**.
 
 ### 1.2 evm ✅
 - [x] Create `moonbeam-polkadot-stable2603` from current 0.43.x base. `rust-ethereum/evm` master has moved to v1.0; we stay on the 0.43.x fork. The new branch points at the same SHA as `stable2512` (`bb9cdde4`) — there is no upstream advancement to absorb.
-- [x] Re-cherry-pick `Add support for EIP-7939 (CLZ opcode)` (still needed; upstream merged on v1.0 only). Already on the branch as `a656db90` — inherited as-is.
+- [x] `Add support for EIP-7939 (CLZ opcode)` — **inherited, not a cherry-pick**. PR [#400](https://github.com/rust-ethereum/evm/pull/400) merged into `rust-ethereum/evm:v0.x` on 2026-01-12 as `a656db90`, the upstream-base HEAD the branch is cut from. Tracker row corrected to `Dropped`.
 - [x] Push branch and update tracker.
 
 ### 1.3 ethereum ✅
