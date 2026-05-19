@@ -22,7 +22,7 @@ use crate::{
 	Total,
 };
 use frame_support::pallet_prelude::*;
-use parity_scale_codec::{Decode, Encode};
+use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use sp_runtime::{
 	traits::{Saturating, Zero},
 	Perbill, Percent, RuntimeDebug,
@@ -34,7 +34,8 @@ pub struct CountedDelegations<T: Config> {
 	pub rewardable_delegations: Vec<Bond<T::AccountId, BalanceOf<T>>>,
 }
 
-#[derive(Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
+#[derive(Clone, Encode, Decode, RuntimeDebug, TypeInfo, MaxEncodedLen)]
+#[codec(mel_bound(AccountId: MaxEncodedLen, Balance: MaxEncodedLen))]
 pub struct Bond<AccountId, Balance> {
 	pub owner: AccountId,
 	pub amount: Balance,
@@ -1101,7 +1102,7 @@ pub enum DelegatorAdded<B> {
 }
 
 #[allow(deprecated)]
-#[derive(Clone, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo)]
+#[derive(Clone, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo, MaxEncodedLen)]
 pub enum DelegatorStatus {
 	/// Active with no scheduled exit
 	Active,
