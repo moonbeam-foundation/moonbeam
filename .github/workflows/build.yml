@@ -554,7 +554,8 @@ jobs:
   typescript-tracing-tests:
     if: |
       needs.set-tags.outputs.build_changed == 'true' &&
-      needs.set-tags.outputs.self_hosted_allowed == 'true'
+      needs.set-tags.outputs.self_hosted_allowed == 'true' &&
+      needs.dev-test.result == 'success'
     runs-on:
       labels: bare-metal
     permissions:
@@ -727,10 +728,11 @@ jobs:
   zombie_upgrade_test:
     if: |
       needs.set-tags.outputs.build_changed == 'true' &&
-      needs.set-tags.outputs.self_hosted_allowed == 'true'
+      needs.set-tags.outputs.self_hosted_allowed == 'true' &&
+      needs.dev-test.result == 'success'
     runs-on:
       labels: bare-metal
-    needs: ["set-tags", "build"]
+    needs: ["set-tags", "build", "dev-test"]
     strategy:
       fail-fast: false
       max-parallel: 1
@@ -804,8 +806,10 @@ jobs:
           path: ${{ env.NODE_LOGS_ZIP }}
 
   bridge-integration-tests:
-    if: ${{ needs.set-tags.outputs.rust_changed == 'true' }}
-    needs: ["set-tags", "build"]
+    if: |
+      needs.set-tags.outputs.rust_changed == 'true' &&
+      needs.dev-test.result == 'success'
+    needs: ["set-tags", "build", "dev-test"]
     runs-on: ubuntu-latest
     permissions:
       contents: read
