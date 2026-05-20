@@ -49,6 +49,7 @@ jobs:
           if ! which "rustup" > /dev/null; then
               curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
               export PATH="$HOME/.cargo/bin:$PATH"
+              echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
           fi
           rustup override unset
           rustup show
@@ -78,6 +79,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: master
+          persist-credentials: false
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
         with:
@@ -105,6 +107,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: master
+          persist-credentials: false
       - name: Cargo build
         uses: ./.github/workflow-templates/cargo-build
         with:
@@ -134,6 +137,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: master
+          persist-credentials: false
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
       # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
       - name: Setup Rust toolchain

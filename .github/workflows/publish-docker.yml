@@ -30,7 +30,7 @@ jobs:
           DOCKER_IMAGE=moonbeamfoundation/moonbeam
           VERSION="${{ github.event.inputs.tag }}"
           COMMIT=`git rev-list -n 1 '${{ github.event.inputs.tag }}'`
-          COMMIT_SHA8=sha-${COMMIT::8}
+          COMMIT_SHA8=${COMMIT::8}
 
           mkdir -p build
           wget https://github.com/moonbeam-foundation/moonbeam/releases/download/$VERSION/moonbeam -O build/moonbeam
