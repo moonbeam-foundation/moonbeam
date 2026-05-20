@@ -200,12 +200,12 @@ jobs:
       - uses: pnpm/action-setup@v6
         with:
           version: 9
+          cache: true
+          cache_dependency_path: pnpm-lock.yaml
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version-file: "test/.nvmrc"
-          cache: "pnpm"
-          cache-dependency-path: pnpm-lock.yaml
       - run: pnpm install
       - run: pnpm check
 
@@ -618,11 +618,11 @@ jobs:
   #     - uses: pnpm/action-setup@v6
   #       with:
   #         version: 9
+  #         cache: true
+  #         cache_dependency_path: pnpm-lock.yaml
   #     - uses: actions/setup-node@v6
   #       with:
   #         node-version-file: "test/.nvmrc"
-  #         cache: "pnpm"
-  #         cache-dependency-path: pnpm-lock.yaml
   #     - name: "Download branch built node"
   #       uses: actions/download-artifact@v8
   #       with:
@@ -742,12 +742,12 @@ jobs:
         uses: pnpm/action-setup@v6
         with:
           version: 9
+          cache: true
+          cache_dependency_path: pnpm-lock.yaml
       - name: Use Node.js
         uses: actions/setup-node@v6
         with:
           node-version-file: "test/.nvmrc"
-          cache: "pnpm"
-          cache-dependency-path: pnpm-lock.yaml
       - run: |
           mkdir -p target/release
       - name: "Download branch built node"
@@ -800,6 +800,8 @@ jobs:
       - uses: pnpm/action-setup@v6
         with:
           version: 9
+          cache: true
+          cache_dependency_path: pnpm-lock.yaml
       - uses: actions/setup-node@v6
         with:
           node-version-file: "test/.nvmrc"
@@ -858,11 +860,11 @@ jobs:
       - uses: pnpm/action-setup@v6
         with:
           version: 9.1.4
+          cache: true
+          cache_dependency_path: pnpm-lock.yaml
       - uses: actions/setup-node@v6
         with:
           node-version-file: "test/.nvmrc"
-          cache: "pnpm"
-          cache-dependency-path: pnpm-lock.yaml
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
@@ -912,6 +914,8 @@ jobs:
       - uses: pnpm/action-setup@v6
         with:
           version: 9
+          cache: true
+          cache_dependency_path: pnpm-lock.yaml
       - uses: actions/setup-node@v6
         with:
           node-version-file: "test/.nvmrc"

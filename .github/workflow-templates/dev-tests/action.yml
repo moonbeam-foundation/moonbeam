@@ -19,14 +19,14 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: pnpm/action-setup@v4
+    - uses: pnpm/action-setup@v6
       with:
         version: 9
-    - uses: actions/setup-node@v4
+        cache: true
+        cache_dependency_path: pnpm-lock.yaml
+    - uses: actions/setup-node@v6
       with:
         node-version-file: "test/.nvmrc"
-        cache: "pnpm"
-        cache-dependency-path: pnpm-lock.yaml
 
     - name: "Install and run dev test"
       shell: bash
