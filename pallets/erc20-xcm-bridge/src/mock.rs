@@ -19,6 +19,7 @@ use crate as erc20_xcm_bridge;
 
 use frame_support::traits::Everything;
 use frame_support::{construct_runtime, pallet_prelude::*, parameter_types};
+use frame_system::EnsureRoot;
 use pallet_evm::{
 	AddressMapping, EnsureAddressTruncated, FrameSystemAccountProvider, SubstrateBlockHashMapping,
 };
@@ -37,7 +38,7 @@ construct_runtime!(
 		Balances: pallet_balances,
 		Timestamp: pallet_timestamp,
 		EVM: pallet_evm,
-		Erc20XcmBridge: erc20_xcm_bridge,
+		Erc20XcmBridge: erc20_xcm_bridge::{Pallet, Call, Storage, Event<T>},
 	}
 );
 
@@ -165,10 +166,17 @@ impl pallet_evm::Config for Test {
 
 parameter_types! {
 	pub Erc20XcmBridgeTransferGasLimit: u64 = 200_000;
+	pub Erc20MultilocationPrefix: xcm::latest::Location = xcm::latest::Location {
+		parents: 0,
+		interior: [xcm::latest::Junction::PalletInstance(42u8)].into(),
+	};
+	pub TeleportCheckingAccount: H160 = H160(*b"erc20-teleport-check");
 }
 impl crate::Config for Test {
 	type AccountIdConverter = ();
-	type Erc20MultilocationPrefix = ();
+	type Erc20MultilocationPrefix = Erc20MultilocationPrefix;
 	type Erc20TransferGasLimit = Erc20XcmBridgeTransferGasLimit;
 	type EvmRunner = pallet_evm::runner::stack::Runner<Self>;
+	type TeleportAdminOrigin = EnsureRoot<AccountId32>;
+	type TeleportCheckingAccount = TeleportCheckingAccount;
 }

@@ -957,7 +957,8 @@ macro_rules! impl_runtime_apis_plus_common {
 						}
 
 						fn teleportable_asset_and_dest() -> Option<(Asset, Location)> {
-							None
+							use crate::xcm_pallet_benchmark::XcmPalletTeleportBenchmark;
+							<Runtime as XcmPalletTeleportBenchmark>::teleportable_asset_and_dest()
 						}
 
 						fn reserve_transferable_asset_and_dest() -> Option<(Asset, Location)> {

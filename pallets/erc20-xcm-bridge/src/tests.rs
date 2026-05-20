@@ -15,10 +15,190 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Unit testing
-use sp_runtime::BoundedVec;
-use xcm::latest::Junction;
+use frame_support::traits::{Contains, ContainsPair};
+use frame_support::{assert_noop, assert_ok};
+use sp_core::H160;
+use sp_io::TestExternalities;
+use sp_runtime::{BoundedVec, BuildStorage};
+use xcm::latest::{Asset, Junction, Junctions, Location};
 
-use crate::mock::{Erc20XcmBridge, Erc20XcmBridgeTransferGasLimit};
+use crate::mock::{
+	Erc20XcmBridge, Erc20XcmBridgeTransferGasLimit, RuntimeEvent, RuntimeOrigin, System, Test,
+};
+use crate::{Event, IsTeleportableErc20, TeleportableErc20s};
+
+fn new_test_ext() -> TestExternalities {
+	let storage = frame_system::GenesisConfig::<Test>::default()
+		.build_storage()
+		.expect("genesis storage builds");
+	let mut ext = TestExternalities::new(storage);
+	ext.execute_with(|| System::set_block_number(1));
+	ext
+}
+
+fn erc20_asset(contract: [u8; 20], amount: u128) -> Asset {
+	let location = Location {
+		parents: 0,
+		interior: Junctions::from([
+			Junction::PalletInstance(42u8),
+			Junction::AccountKey20 {
+				key: contract,
+				network: None,
+			},
+		]),
+	};
+	Asset::from((location, amount))
+}
+
+#[test]
+fn add_teleportable_erc20_root_works_and_emits_event() {
+	new_test_ext().execute_with(|| {
+		let contract = H160([1; 20]);
+		assert!(!TeleportableErc20s::<Test>::contains_key(&contract));
+		assert_ok!(Erc20XcmBridge::add_teleportable_erc20(
+			RuntimeOrigin::root(),
+			contract,
+		));
+		assert!(TeleportableErc20s::<Test>::contains_key(&contract));
+		System::assert_has_event(RuntimeEvent::Erc20XcmBridge(
+			Event::TeleportableErc20Added { contract },
+		));
+	});
+}
+
+#[test]
+fn add_teleportable_erc20_requires_root() {
+	new_test_ext().execute_with(|| {
+		let contract = H160([2; 20]);
+		assert_noop!(
+			Erc20XcmBridge::add_teleportable_erc20(RuntimeOrigin::none(), contract),
+			sp_runtime::DispatchError::BadOrigin
+		);
+		assert!(!TeleportableErc20s::<Test>::contains_key(&contract));
+	});
+}
+
+#[test]
+fn add_teleportable_erc20_rejects_duplicate() {
+	new_test_ext().execute_with(|| {
+		let contract = H160([3; 20]);
+		assert_ok!(Erc20XcmBridge::add_teleportable_erc20(
+			RuntimeOrigin::root(),
+			contract,
+		));
+		assert_noop!(
+			Erc20XcmBridge::add_teleportable_erc20(RuntimeOrigin::root(), contract),
+			crate::Error::<Test>::Erc20AlreadyTeleportable
+		);
+	});
+}
+
+#[test]
+fn remove_teleportable_erc20_works_and_emits_event() {
+	new_test_ext().execute_with(|| {
+		let contract = H160([4; 20]);
+		assert_ok!(Erc20XcmBridge::add_teleportable_erc20(
+			RuntimeOrigin::root(),
+			contract,
+		));
+		assert_ok!(Erc20XcmBridge::remove_teleportable_erc20(
+			RuntimeOrigin::root(),
+			contract,
+		));
+		assert!(!TeleportableErc20s::<Test>::contains_key(&contract));
+		System::assert_has_event(RuntimeEvent::Erc20XcmBridge(
+			Event::TeleportableErc20Removed { contract },
+		));
+	});
+}
+
+#[test]
+fn remove_teleportable_erc20_rejects_unknown() {
+	new_test_ext().execute_with(|| {
+		let contract = H160([5; 20]);
+		assert_noop!(
+			Erc20XcmBridge::remove_teleportable_erc20(RuntimeOrigin::root(), contract),
+			crate::Error::<Test>::Erc20NotTeleportable
+		);
+	});
+}
+
+#[test]
+fn is_teleportable_erc20_filter_pair_only_admits_whitelisted() {
+	new_test_ext().execute_with(|| {
+		let contract = H160([6; 20]);
+		let asset = erc20_asset(contract.0, 100);
+		let dest = Location::new(1, [Junction::Parachain(1001)]);
+
+		// Not yet whitelisted: ContainsPair must reject.
+		assert!(!<IsTeleportableErc20<Test> as ContainsPair<
+			Asset,
+			Location,
+		>>::contains(&asset, &dest,));
+
+		assert_ok!(Erc20XcmBridge::add_teleportable_erc20(
+			RuntimeOrigin::root(),
+			contract,
+		));
+
+		// Whitelisted: ContainsPair admits the asset for any destination.
+		assert!(<IsTeleportableErc20<Test> as ContainsPair<
+			Asset,
+			Location,
+		>>::contains(&asset, &dest,));
+
+		// Non-ERC-20 asset (e.g. native) is never admitted.
+		let native = Asset::from((Location::parent(), 1u128));
+		assert!(!<IsTeleportableErc20<Test> as ContainsPair<
+			Asset,
+			Location,
+		>>::contains(&native, &dest,));
+	});
+}
+
+#[test]
+fn is_teleportable_erc20_filter_extrinsic_requires_all_whitelisted() {
+	new_test_ext().execute_with(|| {
+		let whitelisted = H160([7; 20]);
+		let non_whitelisted = H160([8; 20]);
+		let dest = Location::new(1, [Junction::Parachain(1001)]);
+
+		assert_ok!(Erc20XcmBridge::add_teleportable_erc20(
+			RuntimeOrigin::root(),
+			whitelisted,
+		));
+
+		// Empty asset list: rejected.
+		let empty = (dest.clone(), Vec::<Asset>::new());
+		assert!(!<IsTeleportableErc20<Test> as Contains<(
+			Location,
+			Vec<Asset>,
+		)>>::contains(&empty));
+
+		// All whitelisted: admitted.
+		let all_ok = (
+			dest.clone(),
+			vec![erc20_asset(whitelisted.0, 1), erc20_asset(whitelisted.0, 2)],
+		);
+		assert!(<IsTeleportableErc20<Test> as Contains<(
+			Location,
+			Vec<Asset>,
+		)>>::contains(&all_ok));
+
+		// Mixed: rejected.
+		let mixed = (
+			dest,
+			vec![
+				erc20_asset(whitelisted.0, 1),
+				erc20_asset(non_whitelisted.0, 1),
+			],
+		);
+		assert!(!<IsTeleportableErc20<Test> as Contains<(
+			Location,
+			Vec<Asset>,
+		)>>::contains(&mixed));
+	});
+}
 
 #[test]
 fn general_key_data_size_32() {

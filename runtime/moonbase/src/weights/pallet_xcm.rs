@@ -70,14 +70,14 @@ impl<T: frame_system::Config> pallet_xcm::WeightInfo for WeightInfo<T> {
 			.saturating_add(T::DbWeight::get().reads(5_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}
-	/// Storage: `Benchmark::Override` (r:0 w:0)
-	/// Proof: `Benchmark::Override` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// `limited_teleport_assets` shares this weight in upstream `pallet-xcm`.
+	///
+	/// The stock `teleport_assets` benchmark records `Weight::MAX` when
+	/// `teleportable_asset_and_dest` is unset (see `runtime/common/src/apis.rs`).
+	/// ERC-20 teleports on Moonbase perform EVM withdraw + HRMP, same order of magnitude as
+	/// `transfer_assets` — use that measured weight so the pool does not reject the extrinsic.
 	fn teleport_assets() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `0`
-		//  Estimated: `0`
-		// Minimum execution time: 18_446_744_073_709_551_000 picoseconds.
-		Weight::from_parts(18_446_744_073_709_551_000, 0)
+		Self::transfer_assets()
 	}
 	/// Storage: `PolkadotXcm::ShouldRecordXcm` (r:1 w:0)
 	/// Proof: `PolkadotXcm::ShouldRecordXcm` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)

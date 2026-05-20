@@ -151,7 +151,18 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 // Foreign assets
 // We can remove the Old reanchor once
 // we import https://github.com/open-web3-stack/open-runtime-module-library/pull/708
-pub type AssetTransactors = (LocalAssetTransactor, EvmForeignAssets, Erc20XcmBridge);
+//
+// Note: `Erc20TeleportTransactor` is placed BEFORE the legacy `Erc20XcmBridge` adapter so
+// that, for ERC-20 contracts admitted to `pallet_erc20_xcm_bridge::TeleportableErc20s`, the
+// real EVM lock/unlock transactor handles the asset (both for teleport and reserve flows). For
+// every other ERC-20 it returns `AssetNotFound` and the legacy adapter keeps its single-EVM
+// call reserve-mode optimisation.
+pub type AssetTransactors = (
+	LocalAssetTransactor,
+	EvmForeignAssets,
+	pallet_erc20_xcm_bridge::Erc20TeleportTransactor<Runtime>,
+	Erc20XcmBridge,
+);
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
@@ -267,7 +278,11 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	// Whenever the reserve matches the relative or absolute value
 	// of our chain, we always return the relative reserve
 	type IsReserve = Reserves;
-	type IsTeleporter = (); // No teleport
+	// Native assets (DEV / GLMR / MOVR) stay non-teleportable. Only ERC-20 contracts admitted
+	// to `pallet_erc20_xcm_bridge::TeleportableErc20s` are accepted as teleporters; trust on
+	// the receiving chain (e.g. AH-Westend) is enforced there via per-asset
+	// `set_reserves(teleportable: true)`.
+	type IsTeleporter = pallet_erc20_xcm_bridge::IsTeleportableErc20<Runtime>;
 	type UniversalLocation = UniversalLocation;
 	type Barrier = XcmBarrier;
 	type Weigher = XcmWeigher;
@@ -326,7 +341,10 @@ impl pallet_xcm::Config for Runtime {
 	type ExecuteXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
 	type XcmExecuteFilter = Everything;
 	type XcmExecutor = XcmExecutor;
-	type XcmTeleportFilter = Nothing;
+	// User-facing `pallet_xcm::limited_teleport_assets` is admitted only when every asset in
+	// the call is a whitelisted ERC-20 (see `pallet_erc20_xcm_bridge::TeleportableErc20s`).
+	// Native DEV is never teleportable through this path.
+	type XcmTeleportFilter = pallet_erc20_xcm_bridge::IsTeleportableErc20<Runtime>;
 	type XcmReserveTransferFilter = Everything;
 	type Weigher = XcmWeigher;
 	type UniversalLocation = UniversalLocation;
@@ -679,6 +697,12 @@ parameter_types! {
 	// To be able to support almost all erc20 implementations,
 	// we provide a sufficiently hight gas limit.
 	pub Erc20XcmBridgeTransferGasLimit: u64 = 400_000;
+
+	/// EVM checking address used to lock supply of teleportable ERC-20s. The 20-byte payload
+	/// `b"erc20-teleport-check"` was chosen so the address has no preimage from any standard
+	/// derivation (no parachain sovereign, no hashed-description, no AccountId32 alias) and is
+	/// therefore only spendable by this runtime via `pallet_erc20_xcm_bridge`.
+	pub Erc20TeleportCheckingAccount: H160 = H160(*b"erc20-teleport-check");
 }
 
 impl pallet_erc20_xcm_bridge::Config for Runtime {
@@ -686,6 +710,8 @@ impl pallet_erc20_xcm_bridge::Config for Runtime {
 	type Erc20MultilocationPrefix = Erc20XcmBridgePalletLocation;
 	type Erc20TransferGasLimit = Erc20XcmBridgeTransferGasLimit;
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
+	type TeleportAdminOrigin = EnsureRoot<AccountId>;
+	type TeleportCheckingAccount = Erc20TeleportCheckingAccount;
 }
 
 pub struct AccountIdToH160;
@@ -741,6 +767,19 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 pub struct AssetFeesFilter;
 impl frame_support::traits::Contains<Location> for AssetFeesFilter {
 	fn contains(location: &Location) -> bool {
+		// Inbound ERC-20 teleports from Asset Hub pay XCM execution with the teleported asset
+		// at the local multilocation `(0, PalletInstance(Erc20XcmBridge), AccountKey20(..))`.
+		if location.parents == 0 {
+			if let Some(Junction::PalletInstance(idx)) = location.first_interior() {
+				if let Some(Junction::PalletInstance(prefix_idx)) =
+					Erc20XcmBridgePalletLocation::get().first_interior()
+				{
+					if idx == prefix_idx {
+						return true;
+					}
+				}
+			}
+		}
 		location.parent_count() > 0
 			&& location.first_interior() != Erc20XcmBridgePalletLocation::get().first_interior()
 	}
@@ -807,5 +846,40 @@ mod testing {
 
 			CurrencyId::ForeignAsset(asset_id)
 		}
+	}
+}
+
+/// `pallet_xcm::teleport_assets` / `limited_teleport_assets` benchmark hook (Moonbase only).
+#[cfg(feature = "runtime-benchmarks")]
+impl moonbeam_runtime_common::xcm_pallet_benchmark::XcmPalletTeleportBenchmark for Runtime {
+	fn teleportable_asset_and_dest() -> Option<(xcm::latest::Asset, xcm::latest::Location)> {
+		use cumulus_primitives_core::ParaId;
+		use sp_core::H160;
+		use xcm::latest::{AccountKey20, Asset, AssetId, Fungible, Junction, Location, Parachain};
+
+		if let Some(Parachain(para_id)) = AssetHubLocation::get().interior().first() {
+			cumulus_pallet_parachain_system::Pallet::<Runtime>::open_outbound_hrmp_channel_for_benchmarks_or_tests(
+				ParaId::from(*para_id),
+			);
+		}
+
+		// Fixed address for `pallet_xcm` teleport benchmarks — not used on production networks.
+		let contract = H160([0x42; 20]);
+		pallet_erc20_xcm_bridge::TeleportableErc20s::<Runtime>::insert(contract, ());
+
+		let mut asset_location = Erc20XcmBridgePalletLocation::get();
+		let _ = asset_location.append_with(AccountKey20 {
+			key: contract.0,
+			network: None,
+		});
+
+		let amount = 1_000u128;
+		Some((
+			Asset {
+				id: AssetId(asset_location),
+				fun: Fungible(amount),
+			},
+			AssetHubLocation::get(),
+		))
 	}
 }

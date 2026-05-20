@@ -692,6 +692,8 @@ impl pallet_erc20_xcm_bridge::Config for Runtime {
 	type Erc20MultilocationPrefix = Erc20XcmBridgePalletLocation;
 	type Erc20TransferGasLimit = Erc20XcmBridgeTransferGasLimit;
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
+	type TeleportAdminOrigin = EnsureRoot<AccountId>;
+	type TeleportCheckingAccount = ();
 }
 
 pub struct AccountIdToH160;
