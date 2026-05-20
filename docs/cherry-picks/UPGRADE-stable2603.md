@@ -125,17 +125,17 @@ Order: **polkadot-sdk → (evm, ethereum) → (moonkit, frontier)**.
 - [x] Re-cherry-pick `Add encoded length methods to transactions` (rust-ethereum/ethereum#77 still open). Already on the branch as `58a5a8a` — inherited as-is.
 - [x] Push branch and update tracker.
 
-### 1.4 moonkit (blocked on Moonsong-Labs)
-- [ ] Wait for / coordinate the stable2603 base-bump PR into `main`.
+### 1.4 moonkit (blocked on [moonkit#95](https://github.com/Moonsong-Labs/moonkit/pull/95) merge)
+- [ ] Wait for / coordinate the stable2603 base-bump PR into `main` — [#95](https://github.com/Moonsong-Labs/moonkit/pull/95) open, awaiting merge.
 - [ ] Create `moonbeam-polkadot-stable2603` from the merge commit.
 - [ ] Confirm `using_fake_author` (#92) is in `main` — should be no-op.
 - [ ] Push branch and update tracker.
 
-### 1.4a moonkit upstream base-bump PR (we author)
-- [ ] In `~/Workspace/moonkit`, branch off `upstream/main` (e.g. `mb/polkadot-sdk-stable2603`).
-- [ ] Bump polkadot-sdk dependencies in moonkit's `Cargo.toml` from `stable2512` → `stable2603`.
-- [ ] Compile-fix loop until `cargo check --workspace` is clean.
-- [ ] Open PR on `Moonsong-Labs/moonkit`; coordinate review with Moonsong-Labs.
+### 1.4a moonkit upstream base-bump PR (we author) — PR open, awaiting merge
+- [x] In `~/Workspace/moonkit`, branch off `main` as `mb/polkadot-sdk-stable2603`.
+- [x] Bump polkadot-sdk dependencies in moonkit's `Cargo.toml` from `stable2512` → `stable2603`.
+- [x] Compile-fix loop until `cargo check --workspace --all-features` is clean.
+- [x] Open PR on `Moonsong-Labs/moonkit`; coordinate review with Moonsong-Labs → [moonkit#95](https://github.com/Moonsong-Labs/moonkit/pull/95). CI green; reviewed (CodeRabbit + manual). Review feedback applied: `b9c467e` (drop dead `Option` from the vendored `ProposerInterface`, debug-log unfound parent, `test_helpers` TODO) and `56e4a92` (linkspector npmjs ignore).
 - [ ] Once merged, proceed to Phase 1.4.
 
 ### 1.5a frontier upstream base-bump (we own — B1) ✅ — done by upstream
@@ -227,7 +227,7 @@ Order: **polkadot-sdk → (evm, ethereum) → (moonkit, frontier)**.
 
 ## Risks & open questions
 
-- **moonkit dependency** — Phase 1.4 blocks on Moonsong-Labs base bump. Consider opening / nudging the upstream PR early.
+- **moonkit dependency** — Phase 1.4 blocks on [moonkit#95](https://github.com/Moonsong-Labs/moonkit/pull/95) (base bump) merging. PR is open with CI green and review feedback applied; nudge Moonsong-Labs for final review/merge.
 - **EVM divergence** — anything new in upstream v1.0 (new EIPs, gas changes) must be backported manually onto the 0.43.x fork.
 - **Deferred EIPs** — confirm no EIP from stable2603 needs implementation work in our fork (`implementing-eips` skill).
 - **Verification cost** — Phase 1.5 frontier verification has 14 rows; parallelize via sub-agents.
