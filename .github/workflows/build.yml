@@ -53,7 +53,9 @@ jobs:
       latest_rt: ${{ steps.get-sha.outputs.latest_rt }}
       latest_rt_sha8: ${{ steps.get-sha.outputs.latest_rt_sha8 }}
       any_changed: ${{ steps.changed-files.outputs.any_changed == 'true' || steps.changed-files.outputs.any_deleted == 'true' }}
-      rust_changed: ${{ steps.rust-changed.outputs.any_changed == 'true' || steps.rust-changed.outputs.any_deleted == 'true' || steps.test-typescript-changed.outputs.any_changed == 'true' || steps.test-typescript-changed.outputs.any_deleted == 'true' }}
+      rust_changed: ${{ steps.rust-changed.outputs.any_changed == 'true' || steps.rust-changed.outputs.any_deleted == 'true' }}
+      typescript_test_changed: ${{ steps.test-typescript-changed.outputs.any_changed == 'true' || steps.test-typescript-changed.outputs.any_deleted == 'true' }}
+      build_changed: ${{ steps.rust-changed.outputs.any_changed == 'true' || steps.rust-changed.outputs.any_deleted == 'true' || steps.test-typescript-changed.outputs.any_changed == 'true' || steps.test-typescript-changed.outputs.any_deleted == 'true' }}
       self_hosted_allowed: ${{ steps.check-git-ref.outputs.self_hosted_allowed }}
     steps:
       - name: Check git ref
@@ -333,7 +335,7 @@ jobs:
 
   build:
     if: |
-      needs.set-tags.outputs.rust_changed == 'true' &&
+      needs.set-tags.outputs.build_changed == 'true' &&
       needs.set-tags.outputs.self_hosted_allowed == 'true'
     runs-on:
       labels: bare-metal
@@ -459,7 +461,7 @@ jobs:
 
   dev-test:
     if: |
-      needs.set-tags.outputs.rust_changed == 'true' &&
+      needs.set-tags.outputs.build_changed == 'true' &&
       needs.set-tags.outputs.self_hosted_allowed == 'true'
     runs-on:
       labels: bare-metal
@@ -546,7 +548,7 @@ jobs:
 
   typescript-tracing-tests:
     if: |
-      needs.set-tags.outputs.rust_changed == 'true' &&
+      needs.set-tags.outputs.build_changed == 'true' &&
       needs.set-tags.outputs.self_hosted_allowed == 'true'
     runs-on:
       labels: bare-metal
@@ -601,7 +603,7 @@ jobs:
 
   lazy-loading-tests:
     if: |
-      needs.set-tags.outputs.rust_changed == 'true' &&
+      needs.set-tags.outputs.build_changed == 'true' &&
       needs.set-tags.outputs.self_hosted_allowed == 'true'
     runs-on:
       labels: bare-metal
@@ -666,7 +668,7 @@ jobs:
 
   chopsticks-upgrade-test:
     if: |
-      needs.set-tags.outputs.rust_changed == 'true' &&
+      needs.set-tags.outputs.build_changed == 'true' &&
       needs.set-tags.outputs.self_hosted_allowed == 'true'
     runs-on:
       labels: bare-metal
@@ -719,7 +721,7 @@ jobs:
 
   zombie_upgrade_test:
     if: |
-      needs.set-tags.outputs.rust_changed == 'true' &&
+      needs.set-tags.outputs.build_changed == 'true' &&
       needs.set-tags.outputs.self_hosted_allowed == 'true'
     runs-on:
       labels: bare-metal
