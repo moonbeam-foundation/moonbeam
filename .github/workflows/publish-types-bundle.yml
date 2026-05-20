@@ -32,11 +32,13 @@ jobs:
         with:
           version: 9
           run_install: false
+          cache: true
+          cache_dependency_path: pnpm-lock.yaml
       - name: Install Node.js
         uses: actions/setup-node@v6
         with:
           node-version-file: "test/.nvmrc"
-          cache: pnpm
+          package-manager-cache: false
           registry-url: https://registry.npmjs.org/
       - name: Build types-bundle package
         run: |
