@@ -23,13 +23,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
+          ref: ${{ github.event.inputs.tag }}
           fetch-depth: 0
       - name: Prepare
         id: prep
         run: |
           DOCKER_IMAGE=moonbeamfoundation/moonbeam
           VERSION="${{ github.event.inputs.tag }}"
-          COMMIT=`git rev-list -n 1 '${{ github.event.inputs.tag }}'`
+          COMMIT=$(git rev-parse HEAD)
           COMMIT_SHA8=${COMMIT::8}
 
           mkdir -p build
@@ -56,6 +57,7 @@ jobs:
 
           echo "tags=${TAGS}" >> $GITHUB_OUTPUT
           echo "created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+          echo "commit_sha=${COMMIT}" >> $GITHUB_OUTPUT
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
@@ -83,5 +85,5 @@ jobs:
             org.opencontainers.image.url=${{ github.event.repository.html_url }}
             org.opencontainers.image.source=${{ github.event.repository.clone_url }}
             org.opencontainers.image.created=${{ steps.prep.outputs.created }}
-            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.revision=${{ steps.prep.outputs.commit_sha }}
             org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
