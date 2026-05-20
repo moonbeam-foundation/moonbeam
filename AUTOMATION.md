@@ -12,16 +12,16 @@ label bare-metal refers to our CI servers managed by opslayer. Those are dedicat
 
 ## Cancellation
 
-It is possible to cancel actions directly in github action UI or using (replace "coverage.yml" by the desired
+It is possible to cancel actions directly in github action UI or using (replace "build.yml" by the desired
 action and "my-branch" by the desired pr branch):  
-`gh run list --workflow="coverage.yml" --json status,headBranch,databaseId | jq '.[] | select(.headBranch == "my-branch" and (.status == "in_progress" or .status == "queued")) | .databaseId' | xargs -n1 --no-run-if-empty gh run cancel`
+`gh run list --workflow="build.yml" --json status,headBranch,databaseId | jq '.[] | select(.headBranch == "my-branch" and (.status == "in_progress" or .status == "queued")) | .databaseId' | xargs -n1 --no-run-if-empty gh run cancel`
 
 ## Actions
 
 ### Cancel
 
 Cancel allows to cancel previous execution of the same action for the same PR in order to release allocated resources. This is the case of
-[build](#build) and [coverage](#coverage) actions
+[build](#build) action
 
 ### Build
 
@@ -38,16 +38,6 @@ Performs multiple actions to ensure the code provided is high quality:
   - Typescript (mostly dev integrations), including full relay chain & tracing
   - Fork & Dev upgrade tests
 - Build a docker image based on the sha and push to docker.io
-
-### Coverage
-
-[.github/workflows/coverage.yml](.github/workflows/coverage.yml)  
-`gh workflow run coverage -r my-branch-or-tag`
-
-Similar to [build](#build), coverage ensure the quality of our code
-and test by re-building our binary with `grcov` and re-executing our tests.
-
-The output is stored as an artefact and published in the comments of the PR.
 
 ### Publish runtime draft
 

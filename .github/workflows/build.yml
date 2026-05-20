@@ -53,6 +53,9 @@ jobs:
       latest_rt: ${{ steps.get-sha.outputs.latest_rt }}
       latest_rt_sha8: ${{ steps.get-sha.outputs.latest_rt_sha8 }}
       any_changed: ${{ steps.changed-files.outputs.any_changed == 'true' || steps.changed-files.outputs.any_deleted == 'true' }}
+      rust_changed: ${{ steps.rust-changed.outputs.any_changed == 'true' || steps.rust-changed.outputs.any_deleted == 'true' }}
+      typescript_test_changed: ${{ steps.test-typescript-changed.outputs.any_changed == 'true' || steps.test-typescript-changed.outputs.any_deleted == 'true' }}
+      build_changed: ${{ steps.rust-changed.outputs.any_changed == 'true' || steps.rust-changed.outputs.any_deleted == 'true' || steps.test-typescript-changed.outputs.any_changed == 'true' || steps.test-typescript-changed.outputs.any_deleted == 'true' }}
       self_hosted_allowed: ${{ steps.check-git-ref.outputs.self_hosted_allowed }}
     steps:
       - name: Check git ref
@@ -140,13 +143,44 @@ jobs:
           echo polkadot_ver: ${{ steps.get-sha.outputs.polkadot_ver }}
       - name: Get all changed file(s), excluding the docs
         id: changed-files
-        uses: tj-actions/changed-files@v47
+        uses: tj-actions/changed-files@24d32ffd492484c1d75e0c0b894501ddb9d30d62
         with:
           files_ignore: |
             **/**.md
             **/**.txt
             **.md
             **.txt
+      - name: Get Rust-relevant changed file(s)
+        id: rust-changed
+        uses: tj-actions/changed-files@24d32ffd492484c1d75e0c0b894501ddb9d30d62
+        with:
+          files_ignore: |
+            **/**.md
+            **/**.txt
+            **.md
+            **.txt
+            package.json
+            pnpm-lock.yaml
+            pnpm-workspace.yaml
+            biome.json
+            test/.nvmrc
+            test/**/*.js
+            test/**/*.json
+            test/**/*.ts
+            types-bundle/**
+            typescript-api/**
+      - name: Get test and TypeScript API changed file(s)
+        id: test-typescript-changed
+        uses: tj-actions/changed-files@24d32ffd492484c1d75e0c0b894501ddb9d30d62
+        with:
+          files: |
+            package.json
+            pnpm-lock.yaml
+            pnpm-workspace.yaml
+            biome.json
+            test/.nvmrc
+            test/**
+            typescript-api/**
 
   check-copyright:
     if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
@@ -197,13 +231,13 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
         with:
           version: 9
           cache: true
           cache_dependency_path: pnpm-lock.yaml
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
           node-version-file: "test/.nvmrc"
           package-manager-cache: false
@@ -211,7 +245,7 @@ jobs:
       - run: pnpm check
 
   check-cargo-toml-format:
-    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
+    if: ${{ needs.set-tags.outputs.rust_changed == 'true' }}
     name: "Check Cargo.toml files format"
     runs-on:
       labels: ubuntu-latest
@@ -233,7 +267,7 @@ jobs:
         run: ./scripts/check-cargo-toml-files-format.sh
 
   check-forbid-evm-reentrancy:
-    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
+    if: ${{ needs.set-tags.outputs.rust_changed == 'true' }}
     name: "Check 'forbid-evm-reentrancy'"
     runs-on: ubuntu-latest
     permissions:
@@ -252,7 +286,7 @@ jobs:
         run: ./scripts/check-forbid-evm-reentrancy.sh
 
   check-rust-fmt:
-    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
+    if: ${{ needs.set-tags.outputs.rust_changed == 'true' }}
     name: "Check with rustfmt"
     runs-on: ubuntu-latest
     permissions:
@@ -276,7 +310,7 @@ jobs:
 
   cargo-clippy:
     if: |
-      needs.set-tags.outputs.any_changed == 'true' &&
+      needs.set-tags.outputs.rust_changed == 'true' &&
       needs.set-tags.outputs.self_hosted_allowed == 'true'
     runs-on:
       labels: bare-metal
@@ -306,7 +340,7 @@ jobs:
 
   build:
     if: |
-      needs.set-tags.outputs.any_changed == 'true' &&
+      needs.set-tags.outputs.build_changed == 'true' &&
       needs.set-tags.outputs.self_hosted_allowed == 'true'
     runs-on:
       labels: bare-metal
@@ -315,250 +349,32 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
         uses: actions/checkout@v6
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Cargo build
-        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
         uses: ./.github/workflow-templates/cargo-build
         with:
           features: metadata-hash
       - name: Upload runtimes
-        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: runtimes
           path: runtimes
       - name: Upload uncompressed runtimes
-        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: uncompressed-runtimes
           path: uncompressed-runtimes
       - name: Upload binary
-        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: moonbeam
           path: build
 
-  check-wasm-size:
-    if: |
-      needs.set-tags.outputs.any_changed == 'true' &&
-      github.event_name == 'pull_request' &&
-      github.event.pull_request.head.repo.fork != true &&
-      github.actor != 'dependabot[bot]'
-    name: "Check WASM runtimes with Twiggy"
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      pull-requests: write
-    needs: ["set-tags", "build"]
-    env:
-      GH_TOKEN: ${{ github.token }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          ref: ${{ needs.set-tags.outputs.git_ref }}
-      # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
-      # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
-      - name: Setup Rust toolchain
-        run: |
-          rustup override unset
-          rustup show
-      - name: Download Twiggy
-        run: cargo install twiggy --locked
-      - name: Lookup for latest target branch build
-        id: latest-target-build
-        run: |
-          TARGET_BRANCH=${{ github.event.pull_request.base.ref }}
-          LATEST_TARGET_BRANCH_BUILD=$(gh run -R moonbeam-foundation/moonbeam list -w Build --limit=100 --json databaseId,url,headBranch,event,status,conclusion,createdAt --jq "[.[] | select(.headBranch == \"$TARGET_BRANCH\" and .event == \"push\" and .status == \"completed\" and .conclusion == \"success\")] | if length > 0 then .[0].databaseId else empty end")
-          echo "LATEST_TARGET_BRANCH_BUILD=$LATEST_TARGET_BRANCH_BUILD" >> $GITHUB_OUTPUT
-      - name: "Download runtimes from target branch"
-        uses: actions/download-artifact@v8
-        with:
-          name: runtimes
-          path: runtimes-target-branch
-          merge-multiple: true
-          github-token: ${{ github.token }}
-          run-id: ${{ steps.latest-target-build.outputs.LATEST_TARGET_BRANCH_BUILD }}
-      - name: "Download uncompressed-runtimes from target branch"
-        uses: actions/download-artifact@v8
-        with:
-          name: uncompressed-runtimes
-          path: uncompressed-runtimes-target-branch
-          merge-multiple: true
-          github-token: ${{ github.token }}
-          run-id: ${{ steps.latest-target-build.outputs.LATEST_TARGET_BRANCH_BUILD }}
-      - name: Check Runtimes size for target branch
-        run: |
-          PREVIOUS_MOONBASE=$(du -k runtimes-target-branch/* | awk '/moonbase_runtime/ {print $1}')
-          PREVIOUS_MOONBEAM=$(du -k runtimes-target-branch/* | awk '/moonbeam_runtime/ {print $1}')
-          PREVIOUS_MOONRIVER=$(du -k runtimes-target-branch/* | awk '/moonriver_runtime/ {print $1}')
-          echo "PREVIOUS_MOONBASE=$PREVIOUS_MOONBASE" >> $GITHUB_ENV
-          echo "PREVIOUS_MOONBEAM=$PREVIOUS_MOONBEAM" >> $GITHUB_ENV
-          echo "PREVIOUS_MOONRIVER=$PREVIOUS_MOONRIVER" >> $GITHUB_ENV
-      - name: "Download branch built runtime"
-        uses: actions/download-artifact@v8
-        with:
-          name: runtimes
-          path: runtimes-current-branch
-          merge-multiple: true
-      - name: "Download branch built uncompressed-runtimes"
-        uses: actions/download-artifact@v8
-        with:
-          name: uncompressed-runtimes
-          path: uncompressed-runtimes-current-branch
-          merge-multiple: true
-      - name: Check Runtimes size for current branch
-        run: |
-          CURRENT_MOONBASE=$(du -k runtimes-current-branch/* | awk '/moonbase_runtime/ {print $1}')
-          CURRENT_MOONBEAM=$(du -k runtimes-current-branch/* | awk '/moonbeam_runtime/ {print $1}')
-          CURRENT_MOONRIVER=$(du -k runtimes-current-branch/* | awk '/moonriver_runtime/ {print $1}')
-          echo "CURRENT_MOONBASE=$CURRENT_MOONBASE" >> $GITHUB_ENV
-          echo "CURRENT_MOONBEAM=$CURRENT_MOONBEAM" >> $GITHUB_ENV
-          echo "CURRENT_MOONRIVER=$CURRENT_MOONRIVER" >> $GITHUB_ENV
-      - name: Fetch latest release tag
-        id: fetch_latest_release
-        run: |
-          LATEST_RELEASE_TAG=$(gh api repos/moonbeam-foundation/moonbeam/releases --paginate --jq '.[] | select(.tag_name | test("^runtime-\\d+$")) | .tag_name' | sort -V | tail -n 1)
-          echo "LATEST_RELEASE_TAG=$LATEST_RELEASE_TAG" >> $GITHUB_ENV
-          echo $LATEST_RELEASE_TAG
-      - name: Download latest release runtimes
-        run: |
-          gh release download $LATEST_RELEASE_TAG -R moonbeam-foundation/moonbeam -p "moonbeam-runtime-${LATEST_RELEASE_TAG#runtime-}.wasm" -p "moonbase-runtime-${LATEST_RELEASE_TAG#runtime-}.wasm" -p "moonriver-runtime-${LATEST_RELEASE_TAG#runtime-}.wasm" --dir runtimes-latest-release
-      - name: Check Runtimes size for latest release
-        run: |
-          LATEST_MOONBASE=$(du -k runtimes-latest-release/* | awk '/moonbase-runtime/ {print $1}')
-          LATEST_MOONBEAM=$(du -k runtimes-latest-release/* | awk '/moonbeam-runtime/ {print $1}')
-          LATEST_MOONRIVER=$(du -k runtimes-latest-release/* | awk '/moonriver-runtime/ {print $1}')
-          echo "LATEST_MOONBASE=$LATEST_MOONBASE" >> $GITHUB_ENV
-          echo "LATEST_MOONBEAM=$LATEST_MOONBEAM" >> $GITHUB_ENV
-          echo "LATEST_MOONRIVER=$LATEST_MOONRIVER" >> $GITHUB_ENV
-      - name: Create Twiggy diff reports
-        run: |
-          # Install Twiggy if not already installed
-          if ! command -v twiggy &> /dev/null; then
-            cargo install twiggy
-          fi
-
-          # Generate Twiggy diff reports in JSON format with top 100 entries
-          mkdir -p twiggy-diff-reports
-          twiggy diff -n 100 --format json uncompressed-runtimes-target-branch/moonbase_runtime.wasm uncompressed-runtimes-current-branch/moonbase_runtime.wasm > twiggy-diff-reports/twiggy_diff_moonbase.json
-          twiggy diff -n 100 --format json uncompressed-runtimes-target-branch/moonbeam_runtime.wasm uncompressed-runtimes-current-branch/moonbeam_runtime.wasm > twiggy-diff-reports/twiggy_diff_moonbeam.json
-          twiggy diff -n 100 --format json uncompressed-runtimes-target-branch/moonriver_runtime.wasm uncompressed-runtimes-current-branch/moonriver_runtime.wasm > twiggy-diff-reports/twiggy_diff_moonriver.json
-
-      - name: Upload Twiggy diff reports
-        uses: actions/upload-artifact@v7
-        with:
-          name: twiggy-diff-reports
-          path: twiggy-diff-reports
-      - name: Compare Runtimes sizes
-        run: |
-          # Create or truncate the file
-          echo "" > runtime_size_report.md
-
-          MOONBASE_DIFF=$((CURRENT_MOONBASE - PREVIOUS_MOONBASE))
-          MOONBEAM_DIFF=$((CURRENT_MOONBEAM - PREVIOUS_MOONBEAM))
-          MOONRIVER_DIFF=$((CURRENT_MOONRIVER - PREVIOUS_MOONRIVER))
-
-          LATEST_MOONBASE_DIFF=$((CURRENT_MOONBASE - LATEST_MOONBASE))
-          LATEST_MOONBEAM_DIFF=$((CURRENT_MOONBEAM - LATEST_MOONBEAM))
-          LATEST_MOONRIVER_DIFF=$((CURRENT_MOONRIVER - LATEST_MOONRIVER))
-
-          get_status_emoji() {
-            local size=$1
-            local diff=$2
-            if [ $size -gt 3000 ]; then
-              echo "🚨"
-            elif [ $diff -gt 0 ]; then
-              echo "⚠️"
-            else
-              echo "✅"
-            fi
-          }
-
-          MOONBASE_STATUS=$(get_status_emoji $CURRENT_MOONBASE $MOONBASE_DIFF)
-          MOONBEAM_STATUS=$(get_status_emoji $CURRENT_MOONBEAM $MOONBEAM_DIFF)
-          MOONRIVER_STATUS=$(get_status_emoji $CURRENT_MOONRIVER $MOONRIVER_DIFF)
-
-          LATEST_MOONBASE_STATUS=$(get_status_emoji $CURRENT_MOONBASE $LATEST_MOONBASE_DIFF)
-          LATEST_MOONBEAM_STATUS=$(get_status_emoji $CURRENT_MOONBEAM $LATEST_MOONBEAM_DIFF)
-          LATEST_MOONRIVER_STATUS=$(get_status_emoji $CURRENT_MOONRIVER $LATEST_MOONRIVER_DIFF)
-
-          MOONBASE_MSG="Moonbase runtime: ${CURRENT_MOONBASE} KB ($( [ $MOONBASE_DIFF -eq 0 ] && echo "no changes" || echo "$( [ $MOONBASE_DIFF -gt 0 ] && echo "+" )${MOONBASE_DIFF} KB")) ${MOONBASE_STATUS}"
-          MOONBEAM_MSG="Moonbeam runtime: ${CURRENT_MOONBEAM} KB ($( [ $MOONBEAM_DIFF -eq 0 ] && echo "no changes" || echo "$( [ $MOONBEAM_DIFF -gt 0 ] && echo "+" )${MOONBEAM_DIFF} KB")) ${MOONBEAM_STATUS}"
-          MOONRIVER_MSG="Moonriver runtime: ${CURRENT_MOONRIVER} KB ($( [ $MOONRIVER_DIFF -eq 0 ] && echo "no changes" || echo "$( [ $MOONRIVER_DIFF -gt 0 ] && echo "+" )${MOONRIVER_DIFF} KB")) ${MOONRIVER_STATUS}"
-
-          LATEST_MOONBASE_MSG="Moonbase runtime: ${CURRENT_MOONBASE} KB ($( [ $LATEST_MOONBASE_DIFF -eq 0 ] && echo "no changes" || echo "$( [ $LATEST_MOONBASE_DIFF -gt 0 ] && echo "+" )${LATEST_MOONBASE_DIFF} KB compared to latest release")) ${LATEST_MOONBASE_STATUS}"
-          LATEST_MOONBEAM_MSG="Moonbeam runtime: ${CURRENT_MOONBEAM} KB ($( [ $LATEST_MOONBEAM_DIFF -eq 0 ] && echo "no changes" || echo "$( [ $LATEST_MOONBEAM_DIFF -gt 0 ] && echo "+" )${LATEST_MOONBEAM_DIFF} KB compared to latest release")) ${LATEST_MOONBEAM_STATUS}"
-          LATEST_MOONRIVER_MSG="Moonriver runtime: ${CURRENT_MOONRIVER} KB ($( [ $LATEST_MOONRIVER_DIFF -eq 0 ] && echo "no changes" || echo "$( [ $LATEST_MOONRIVER_DIFF -gt 0 ] && echo "+" )${LATEST_MOONRIVER_DIFF} KB compared to latest release")) ${LATEST_MOONRIVER_STATUS}"
-
-          echo "### WASM runtime size check:" > runtime_size_report.md
-          echo "" >> runtime_size_report.md
-          echo "#### Compared to target branch" >> runtime_size_report.md
-          echo "" >> runtime_size_report.md
-          echo "$MOONBASE_MSG" >> runtime_size_report.md
-          echo "" >> runtime_size_report.md
-          echo "$MOONBEAM_MSG" >> runtime_size_report.md
-          echo "" >> runtime_size_report.md
-          echo "$MOONRIVER_MSG" >> runtime_size_report.md
-          echo "" >> runtime_size_report.md
-          echo "#### Compared to latest release (${LATEST_RELEASE_TAG})" >> runtime_size_report.md
-          echo "" >> runtime_size_report.md
-          echo "$LATEST_MOONBASE_MSG" >> runtime_size_report.md
-          echo "" >> runtime_size_report.md
-          echo "$LATEST_MOONBEAM_MSG" >> runtime_size_report.md
-          echo "" >> runtime_size_report.md
-          echo "$LATEST_MOONRIVER_MSG" >> runtime_size_report.md
-          cat runtime_size_report.md
-      - name: Find Comment
-        uses: peter-evans/find-comment@v4
-        id: fc
-        with:
-          issue-number: ${{ github.event.pull_request.number }}
-          comment-author: "github-actions[bot]"
-          body-includes: "WASM runtime size check"
-      - name: Create or update comment
-        uses: peter-evans/create-or-update-comment@v5
-        with:
-          comment-id: ${{ steps.fc.outputs.comment-id }}
-          issue-number: ${{ github.event.pull_request.number }}
-          body-path: runtime_size_report.md
-          edit-mode: replace
-
-  check-unused-dependencies:
-    needs: ["set-tags"]
-    if: |
-      needs.set-tags.outputs.any_changed == 'true' &&
-      needs.set-tags.outputs.self_hosted_allowed == 'true'
-    runs-on: moonbeam-release-medium
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v6
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
-        with:
-          toolchain: nightly-2026-04-01
-          components: rust-src
-          targets: wasm32v1-none, wasm32-unknown-unknown
-      - name: Install required dependencies
-        run: |
-          sudo apt-get install -y libprotobuf-dev protobuf-compiler libclang-dev
-          cargo +nightly-2026-04-01 install cargo-udeps
-      - name: Check for unused dependencies
-        run: |
-          # There may be false negatives/positives
-          # In case of false positives, check https://github.com/est31/cargo-udeps?tab=readme-ov-file#ignoring-some-of-the-dependencies
-          cargo +nightly-2026-04-01 udeps --workspace --features runtime-benchmarks,evm-tracing,try-runtime --all-targets
-
   rust-test:
     if: |
-      needs.set-tags.outputs.any_changed == 'true' &&
+      needs.set-tags.outputs.rust_changed == 'true' &&
       needs.set-tags.outputs.self_hosted_allowed == 'true'
     runs-on:
       labels: bare-metal
@@ -650,7 +466,7 @@ jobs:
 
   dev-test:
     if: |
-      needs.set-tags.outputs.any_changed == 'true' &&
+      needs.set-tags.outputs.build_changed == 'true' &&
       needs.set-tags.outputs.self_hosted_allowed == 'true'
     runs-on:
       labels: bare-metal
@@ -668,36 +484,49 @@ jobs:
       DEBUG_COLORS: 1
     steps:
       - name: Checkout
-        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
         uses: actions/checkout@v6
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Create local folders
-        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
         run: |
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built runtime"
-        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
         uses: actions/download-artifact@v8
         with:
           name: runtimes
           path: target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built node"
-        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
         uses: actions/download-artifact@v8
         with:
           name: moonbeam
           path: target/release
-      - name: "Run Moonwall Dev Tests"
-        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
-        uses: ./.github/workflow-templates/dev-tests
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
         with:
-          moonwall_environment: dev_${{ matrix.chain }}
-          shard: ${{ matrix.shard }}
-          shard-count: 4
+          version: 9
+          cache: true
+          cache_dependency_path: pnpm-lock.yaml
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version-file: "test/.nvmrc"
+          package-manager-cache: false
+      - name: "Run Moonwall Dev Tests"
+        env:
+          DEBUG_COLOURS: "1"
+          NODE_OPTIONS: "--max-old-space-size=12288"
+        run: |
+          chmod uog+x target/release/moonbeam
+          cd test
+          pnpm install
+          pnpm compile-solidity
+          pnpm moonwall test dev_${{ matrix.chain }} --ts ${{ matrix.shard }}/4
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: dev-test-report-dev_${{ matrix.chain }}-${{ matrix.shard }}-of-4
+          path: test/html
       - name: Upload HTML report to s3
         if: |
-          needs.set-tags.outputs.any_changed == 'true' &&
           github.event.pull_request.head.repo.fork != true &&
           github.actor != 'dependabot[bot]'
         uses: opslayertech/upload-s3-action@v1.1.0
@@ -724,7 +553,7 @@ jobs:
 
   typescript-tracing-tests:
     if: |
-      needs.set-tags.outputs.any_changed == 'true' &&
+      needs.set-tags.outputs.build_changed == 'true' &&
       needs.set-tags.outputs.self_hosted_allowed == 'true'
     runs-on:
       labels: bare-metal
@@ -741,13 +570,13 @@ jobs:
           name: moonbeam
           path: build
       - name: Use pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
         with:
           version: 9
           cache: true
           cache_dependency_path: pnpm-lock.yaml
       - name: Use Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
           node-version-file: "test/.nvmrc"
           package-manager-cache: false
@@ -779,7 +608,7 @@ jobs:
 
   lazy-loading-tests:
     if: |
-      needs.set-tags.outputs.any_changed == 'true' &&
+      needs.set-tags.outputs.build_changed == 'true' &&
       needs.set-tags.outputs.self_hosted_allowed == 'true'
     runs-on:
       labels: bare-metal
@@ -800,12 +629,12 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
         with:
           version: 9
           cache: true
           cache_dependency_path: pnpm-lock.yaml
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
           node-version-file: "test/.nvmrc"
           package-manager-cache: false
@@ -836,7 +665,7 @@ jobs:
           export NODE_LOGS_ZIP="node_logs_$TIMESTAMP.zip"
           find test/tmp/node_logs -maxdepth 1 -type f -name '*.log' -exec zip -r $NODE_LOGS_ZIP {} \;
           echo "NODE_LOGS_ZIP=${NODE_LOGS_ZIP}" >> $GITHUB_ENV
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: failure()
         with:
           name: failed-node-logs-lazy-loading-${{ matrix.chain }}
@@ -844,7 +673,7 @@ jobs:
 
   chopsticks-upgrade-test:
     if: |
-      needs.set-tags.outputs.any_changed == 'true' &&
+      needs.set-tags.outputs.build_changed == 'true' &&
       needs.set-tags.outputs.self_hosted_allowed == 'true'
     runs-on:
       labels: bare-metal
@@ -861,12 +690,12 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
         with:
           version: 9
           cache: true
           cache_dependency_path: pnpm-lock.yaml
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
           node-version-file: "test/.nvmrc"
           package-manager-cache: false
@@ -897,7 +726,7 @@ jobs:
 
   zombie_upgrade_test:
     if: |
-      needs.set-tags.outputs.any_changed == 'true' &&
+      needs.set-tags.outputs.build_changed == 'true' &&
       needs.set-tags.outputs.self_hosted_allowed == 'true'
     runs-on:
       labels: bare-metal
@@ -916,12 +745,12 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
         with:
           version: 9
           cache: true
           cache_dependency_path: pnpm-lock.yaml
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
           node-version-file: "test/.nvmrc"
           package-manager-cache: false
@@ -968,14 +797,14 @@ jobs:
           MOST_RECENT_ZOMBIE_DIR=$(ls -td /tmp/zombie-* | head -n 1)
           find $MOST_RECENT_ZOMBIE_DIR -maxdepth 1 -type f -name '*.log' -exec zip -r $NODE_LOGS_ZIP {} \;
           echo "NODE_LOGS_ZIP=${NODE_LOGS_ZIP}" >> $GITHUB_ENV
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: failure()
         with:
           name: failed-node-logs-zombie-${{ matrix.chain }}
           path: ${{ env.NODE_LOGS_ZIP }}
 
   bridge-integration-tests:
-    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
+    if: ${{ needs.set-tags.outputs.rust_changed == 'true' }}
     needs: ["set-tags", "build"]
     runs-on: ubuntu-latest
     permissions:
@@ -1008,7 +837,7 @@ jobs:
           export LOGS_ZIP="bridge_integration_tests_$TIMESTAMP.zip"
           find /tmp/bridge-integration-tests -maxdepth 3 -type f -name '*.log' -exec zip -r $LOGS_ZIP {} \;
           echo "LOGS_ZIP=${LOGS_ZIP}" >> $GITHUB_ENV
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: failure()
         with:
           name: bridge-integration-tests-logs
