@@ -375,6 +375,41 @@ pub mod pallet {
 
 			Ok(Default::default())
 		}
+
+		/// Permissionless settle-and-drain of any remaining unclaimed reward for `target`.
+		///
+		/// Pays the full outstanding `total_reward - claimed_reward` regardless of the vesting
+		/// schedule, transfers it to `target`, and removes the entry from `AccountsPayable`.
+		/// Intended as a one-shot migration step before the pallet is removed.
+		#[pallet::call_index(4)]
+		#[pallet::weight(T::WeightInfo::complete_unclaimed_rewards())]
+		pub fn complete_unclaimed_rewards(
+			origin: OriginFor<T>,
+			target: T::AccountId,
+		) -> DispatchResultWithPostInfo {
+			ensure_signed(origin)?;
+
+			let info =
+				AccountsPayable::<T>::get(&target).ok_or(Error::<T>::NoAssociatedClaim)?;
+			ensure!(
+				info.claimed_reward < info.total_reward,
+				Error::<T>::RewardsAlreadyClaimed
+			);
+
+			let payable_amount = info.total_reward.saturating_sub(info.claimed_reward);
+
+			T::RewardCurrency::transfer(
+				&PALLET_ID.into_account_truncating(),
+				&target,
+				payable_amount,
+				AllowDeath,
+			)?;
+
+			AccountsPayable::<T>::remove(&target);
+
+			Self::deposit_event(Event::RewardsPaid(target, payable_amount));
+			Ok((None, Pays::No).into())
+		}
 	}
 
 	impl<T: Config> Pallet<T> {

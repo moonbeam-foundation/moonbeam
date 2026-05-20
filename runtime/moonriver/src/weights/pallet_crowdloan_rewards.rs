@@ -115,4 +115,14 @@ impl<T: frame_system::Config> pallet_crowdloan_rewards::WeightInfo for WeightInf
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 			.saturating_add(Weight::from_parts(0, 32).saturating_mul(x.into()))
 	}
+	/// Storage: `CrowdloanRewards::AccountsPayable` (r:1 w:1)
+	/// Proof: `CrowdloanRewards::AccountsPayable` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `System::Account` (r:2 w:2)
+	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
+	fn complete_unclaimed_rewards() -> Weight {
+		// Placeholder weight, must be regenerated via `frame-omni-bencher` before release.
+		Weight::from_parts(80_000_000, 6172)
+			.saturating_add(T::DbWeight::get().reads(3_u64))
+			.saturating_add(T::DbWeight::get().writes(3_u64))
+	}
 }

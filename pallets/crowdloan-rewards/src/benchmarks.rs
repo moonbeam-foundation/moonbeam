@@ -288,6 +288,33 @@ benchmarks! {
 		assert_eq!(Pallet::<T>::accounts_payable(&caller).unwrap().total_reward, (100u32.into()));
 	}
 
+	complete_unclaimed_rewards {
+		// Fund pallet account
+		let total_pot = 100u32;
+		fund_specific_account::<T>(Pallet::<T>::account_id(), total_pot.into());
+
+		// The caller of the permissionless extrinsic (can be anyone)
+		let caller: T::AccountId = create_funded_user::<T>("caller", SEED, 100u32.into());
+
+		// The target whose unclaimed rewards will be settled
+		let target: T::AccountId = create_funded_user::<T>("target", SEED - 1, 0u32.into());
+
+		// Insert one contributor associated to `target`
+		let contributors: Vec<ContributorData<T>> =
+			vec![(AccountId32::from([1u8;32]).into(), Some(target.clone()), total_pot.into())];
+		insert_contributors::<T>(contributors)?;
+
+		// Close initialization
+		close_initialization::<T>(10u32.into())?;
+
+		// Advance to first vesting block
+		T::VestingBlockProvider::set_block_number(1u32.into());
+		Pallet::<T>::on_finalize(BlockNumberFor::<T>::one());
+	}: _(RawOrigin::Signed(caller), target.clone())
+	verify {
+		assert!(Pallet::<T>::accounts_payable(&target).is_none());
+	}
+
 	change_association_with_relay_keys {
 
 		// The weight will depend on the number of proofs provided
