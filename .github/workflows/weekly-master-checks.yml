@@ -96,7 +96,7 @@ jobs:
           # In case of false positives, check https://github.com/est31/cargo-udeps?tab=readme-ov-file#ignoring-some-of-the-dependencies
           cargo +nightly-2026-04-01 udeps --workspace --features runtime-benchmarks,evm-tracing,try-runtime --all-targets
 
-  build-runtimes-for-twiggy:
+  build-runtimes-for-size-check:
     if: github.ref == 'refs/heads/master'
     runs-on:
       labels: bare-metal
@@ -125,11 +125,11 @@ jobs:
 
   check-wasm-size:
     if: github.ref == 'refs/heads/master'
-    name: Check WASM runtimes with Twiggy
+    name: Check WASM runtime sizes
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    needs: ["build-runtimes-for-twiggy"]
+    needs: ["build-runtimes-for-size-check"]
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
@@ -138,25 +138,11 @@ jobs:
         with:
           ref: master
           persist-credentials: false
-      # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
-      # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
-      - name: Setup Rust toolchain
-        run: |
-          rustup override unset
-          rustup show
-      - name: Download Twiggy
-        run: cargo install twiggy --locked
       - name: Download current master runtimes
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: runtimes
           path: runtimes-current-master
-          merge-multiple: true
-      - name: Download current master uncompressed runtimes
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
-        with:
-          name: uncompressed-runtimes
-          path: uncompressed-runtimes-current-master
           merge-multiple: true
       - name: Check current master runtimes size
         run: |
@@ -186,17 +172,6 @@ jobs:
             echo "LATEST_MOONBEAM=$LATEST_MOONBEAM"
             echo "LATEST_MOONRIVER=$LATEST_MOONRIVER"
           } >> "$GITHUB_ENV"
-      - name: Create Twiggy diff reports
-        run: |
-          mkdir -p twiggy-diff-reports
-          twiggy diff -n 100 --format json "runtimes-latest-release/moonbase-runtime-${LATEST_RELEASE_TAG#runtime-}.wasm" "uncompressed-runtimes-current-master/moonbase_runtime.wasm" > twiggy-diff-reports/twiggy_diff_moonbase.json
-          twiggy diff -n 100 --format json "runtimes-latest-release/moonbeam-runtime-${LATEST_RELEASE_TAG#runtime-}.wasm" "uncompressed-runtimes-current-master/moonbeam_runtime.wasm" > twiggy-diff-reports/twiggy_diff_moonbeam.json
-          twiggy diff -n 100 --format json "runtimes-latest-release/moonriver-runtime-${LATEST_RELEASE_TAG#runtime-}.wasm" "uncompressed-runtimes-current-master/moonriver_runtime.wasm" > twiggy-diff-reports/twiggy_diff_moonriver.json
-      - name: Upload Twiggy diff reports
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: twiggy-diff-reports
-          path: twiggy-diff-reports
       - name: Compare runtime sizes
         run: |
           MOONBASE_DIFF=$((CURRENT_MOONBASE - LATEST_MOONBASE))
