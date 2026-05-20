@@ -32,11 +32,38 @@ jobs:
         with:
           ref: ${{ github.event.inputs.to }}
           fetch-depth: 0
-      - name: Cargo build
-        uses: ./.github/workflow-templates/build-prod-binary
+      - name: Build production moonbeam
+        run: |
+          docker build \
+            --tag prod --no-cache \
+            --build-arg="COMMIT=${{ github.event.inputs.to }}" \
+            --build-arg="RUSTFLAGS=-C target-cpu=${{ matrix.cpu }}" \
+            - < docker/moonbeam-production.Dockerfile
+
+          docker rm -f dummy 2> /dev/null | true
+          docker create -ti --name dummy prod bash
+          docker cp dummy:/moonbeam/moonbeam moonbeam
+          docker rm -f dummy
+
+          GLIBC_VERSION="$(objdump -T moonbeam | grep "GLIBC_" | sed 's/.*GLIBC_\([.0-9]*\).*/\1/g' | sort -Vu | tail -1)"
+
+          if [[ $GLIBC_VERSION == "2.34" ]]; then
+            echo "Using expected GLIBC version: ${GLIBC_VERSION}"
+          else
+            echo "Unexpected GLIBC version: ${GLIBC_VERSION}"
+            exit 1
+          fi
+
+          docker rmi prod
+      - name: Save parachain binary
+        run: |
+          mkdir -p build
+          cp moonbeam build/moonbeam-${{ matrix.cpu }}
+      - name: Upload binary
+        uses: actions/upload-artifact@v7
         with:
-          target: ${{ matrix.cpu }}
-          ref: ${{ github.event.inputs.to }}
+          name: binaries-${{ matrix.cpu }}
+          path: build/moonbeam-${{ matrix.cpu }}
 
   ####### Prepare and publish the release draft #######
 
@@ -142,16 +169,32 @@ jobs:
 
           echo "tags=${DOCKER_IMAGE}:${TAG}" >> $GITHUB_OUTPUT
           echo "created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
-      - name: Cargo build
-        uses: ./.github/workflow-templates/publish-docker
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.8.0
         with:
-          dockerhub_username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
-          dockerhub_password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
-          image_tags: ${{ steps.prep.outputs.tags }}
-          image_title: ${{ github.event.repository.name }}
-          image_description: ${{ github.event.repository.description }}
-          image_url: ${{ github.event.repository.html_url }}
-          image_source: ${{ github.event.repository.clone_url }}
-          image_created: ${{ steps.prep.outputs.created }}
-          image_revision: ${{ github.sha }}
-          image_licenses: ${{ github.event.repository.license.spdx_id }}
+          version: latest
+          driver-opts: |
+            image=moby/buildkit:master
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
+          password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
+      - name: Build and push moonbeam
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./docker/moonbeam.Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.prep.outputs.tags }}
+          labels: |
+            org.opencontainers.image.title=${{ github.event.repository.name }}
+            org.opencontainers.image.description=${{ github.event.repository.description }}
+            org.opencontainers.image.url=${{ github.event.repository.html_url }}
+            org.opencontainers.image.source=${{ github.event.repository.clone_url }}
+            org.opencontainers.image.created=${{ steps.prep.outputs.created }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
