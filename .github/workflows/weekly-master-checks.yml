@@ -28,7 +28,7 @@ jobs:
         runtime: [moonbeam, moonbase, moonriver]
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: master
           persist-credentials: false
@@ -48,6 +48,7 @@ jobs:
         run: |
           if ! which "rustup" > /dev/null; then
               curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+              export PATH="$HOME/.cargo/bin:$PATH"
           fi
           rustup override unset
           rustup show
@@ -74,7 +75,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: master
       - name: Install Rust toolchain
@@ -101,7 +102,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: master
       - name: Cargo build
@@ -109,12 +110,12 @@ jobs:
         with:
           features: metadata-hash
       - name: Upload runtimes
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: runtimes
           path: runtimes
       - name: Upload uncompressed runtimes
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: uncompressed-runtimes
           path: uncompressed-runtimes
@@ -130,7 +131,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: master
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
@@ -142,13 +143,13 @@ jobs:
       - name: Download Twiggy
         run: cargo install twiggy --locked
       - name: Download current master runtimes
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: runtimes
           path: runtimes-current-master
           merge-multiple: true
       - name: Download current master uncompressed runtimes
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: uncompressed-runtimes
           path: uncompressed-runtimes-current-master
@@ -188,7 +189,7 @@ jobs:
           twiggy diff -n 100 --format json "runtimes-latest-release/moonbeam-runtime-${LATEST_RELEASE_TAG#runtime-}.wasm" "uncompressed-runtimes-current-master/moonbeam_runtime.wasm" > twiggy-diff-reports/twiggy_diff_moonbeam.json
           twiggy diff -n 100 --format json "runtimes-latest-release/moonriver-runtime-${LATEST_RELEASE_TAG#runtime-}.wasm" "uncompressed-runtimes-current-master/moonriver_runtime.wasm" > twiggy-diff-reports/twiggy_diff_moonriver.json
       - name: Upload Twiggy diff reports
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: twiggy-diff-reports
           path: twiggy-diff-reports
