@@ -43,7 +43,6 @@ jobs:
     outputs:
       git_branch: ${{ steps.check-git-ref.outputs.git_branch }}
       git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
-      test_s3_dir: ${{ steps.check-git-ref.outputs.test_s3_dir }}
       image_exists: ${{ steps.check-docker-image.outputs.image_exists }}
       sha: ${{ steps.get-sha.outputs.sha }}
       sha8: ${{ steps.get-sha.outputs.sha8 }}
@@ -54,7 +53,7 @@ jobs:
       latest_rt_sha8: ${{ steps.get-sha.outputs.latest_rt_sha8 }}
       any_changed: ${{ steps.changed-files.outputs.any_changed == 'true' || steps.changed-files.outputs.any_deleted == 'true' }}
       rust_changed: ${{ steps.rust-changed.outputs.any_changed == 'true' || steps.rust-changed.outputs.any_deleted == 'true' }}
-      typescript_test_changed: ${{ steps.test-typescript-changed.outputs.any_changed == 'true' || steps.test-typescript-changed.outputs.any_deleted == 'true' }}
+      ts_tests_changed: ${{ steps.test-typescript-changed.outputs.any_changed == 'true' || steps.test-typescript-changed.outputs.any_deleted == 'true' }}
       build_changed: ${{ steps.rust-changed.outputs.any_changed == 'true' || steps.rust-changed.outputs.any_deleted == 'true' || steps.test-typescript-changed.outputs.any_changed == 'true' || steps.test-typescript-changed.outputs.any_deleted == 'true' }}
       self_hosted_allowed: ${{ steps.check-git-ref.outputs.self_hosted_allowed }}
     steps:
@@ -67,7 +66,6 @@ jobs:
           if [[ -n "${{ github.event.pull_request.head.sha }}" ]]; then
             echo "git_branch=$(echo ${GITHUB_HEAD_REF})" >> $GITHUB_OUTPUT
             echo "git_ref=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
-            echo "test_s3_dir=test-pulls/${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
             if [[ "${{ github.event.pull_request.head.repo.fork }}" == "true" ]]; then
               echo "self_hosted_allowed=false" >> $GITHUB_OUTPUT
             else
@@ -75,11 +73,9 @@ jobs:
             fi
           elif [[ -n "${{ github.event.inputs.pull_request }}" ]]; then
             echo "git_branch=$(echo ${GITHUB_HEAD_REF})" >> $GITHUB_OUTPUT
-            echo "test_s3_dir=test-pulls/${{ github.event.inputs.pull_request }}" >> $GITHUB_OUTPUT
             echo "git_ref=refs/pull/${{ github.event.inputs.pull_request }}/head" >> $GITHUB_OUTPUT
             echo "self_hosted_allowed=false" >> $GITHUB_OUTPUT
           else
-            echo "test_s3_dir=test-branches/master" >> $GITHUB_OUTPUT
             echo "git_branch=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_OUTPUT
             echo "git_ref=$GITHUB_REF" >> $GITHUB_OUTPUT
             echo "self_hosted_allowed=true" >> $GITHUB_OUTPUT
@@ -309,14 +305,28 @@ jobs:
   ####### Building and Testing binaries #######
 
   cargo-clippy:
+    # Keep expensive bare-metal clippy behind the cheap Rust checks so formatting or
+    # repository-rule failures stop the PR before it consumes larger runners.
+    # always() is required on jobs with needs: otherwise GitHub skips the job before
+    # evaluating this condition when any dependency was skipped.
     if: |
+      always() &&
       needs.set-tags.outputs.rust_changed == 'true' &&
-      needs.set-tags.outputs.self_hosted_allowed == 'true'
+      needs.set-tags.outputs.self_hosted_allowed == 'true' &&
+      needs.check-cargo-toml-format.result == 'success' &&
+      needs.check-forbid-evm-reentrancy.result == 'success' &&
+      needs.check-rust-fmt.result == 'success'
     runs-on:
       labels: bare-metal
     permissions:
       contents: read
-    needs: ["set-tags"]
+    needs:
+      [
+        "set-tags",
+        "check-cargo-toml-format",
+        "check-forbid-evm-reentrancy",
+        "check-rust-fmt",
+      ]
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -339,14 +349,35 @@ jobs:
         run: SKIP_WASM_BUILD=1 env -u RUSTFLAGS cargo clippy --features try-runtime,runtime-benchmarks -- -Dclippy::todo
 
   build:
+    # The build is needed for Rust changes or TS/Moonwall test changes. Rust and
+    # mixed Rust+TS changes must first pass the quick Rust checks; TS-only test
+    # changes can build directly.
     if: |
-      needs.set-tags.outputs.build_changed == 'true' &&
-      needs.set-tags.outputs.self_hosted_allowed == 'true'
+      always() &&
+      needs.set-tags.outputs.self_hosted_allowed == 'true' &&
+      (
+        (
+          needs.set-tags.outputs.rust_changed == 'true' &&
+          needs.check-cargo-toml-format.result == 'success' &&
+          needs.check-forbid-evm-reentrancy.result == 'success' &&
+          needs.check-rust-fmt.result == 'success'
+        ) ||
+        (
+          needs.set-tags.outputs.ts_tests_changed == 'true' &&
+          needs.set-tags.outputs.rust_changed == 'false'
+        )
+      )
     runs-on:
       labels: bare-metal
     permissions:
       contents: read
-    needs: ["set-tags"]
+    needs:
+      [
+        "set-tags",
+        "check-cargo-toml-format",
+        "check-forbid-evm-reentrancy",
+        "check-rust-fmt",
+      ]
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -373,14 +404,28 @@ jobs:
           path: build
 
   rust-test:
+    # Rust tests are one of the most expensive PR jobs, so only run them after the
+    # quick Rust checks and the moonbase dev-test gate have passed.
     if: |
+      always() &&
       needs.set-tags.outputs.rust_changed == 'true' &&
-      needs.set-tags.outputs.self_hosted_allowed == 'true'
+      needs.set-tags.outputs.self_hosted_allowed == 'true' &&
+      needs.check-cargo-toml-format.result == 'success' &&
+      needs.check-forbid-evm-reentrancy.result == 'success' &&
+      needs.check-rust-fmt.result == 'success' &&
+      needs.dev-test.result == 'success'
     runs-on:
       labels: bare-metal
     permissions:
       contents: read
-    needs: ["set-tags"]
+    needs:
+      [
+        "set-tags",
+        "check-cargo-toml-format",
+        "check-forbid-evm-reentrancy",
+        "check-rust-fmt",
+        "dev-test",
+      ]
     env:
       RUSTC_WRAPPER: "sccache"
       CARGO_INCREMENTAL: "0"
@@ -465,17 +510,20 @@ jobs:
   #         fi
 
   dev-test:
+    # Moonbase dev tests are the required fast gate. Moonriver and moonbeam still
+    # run for signal, but their failures are tolerated because they are flakier.
     if: |
-      needs.set-tags.outputs.build_changed == 'true' &&
+      (needs.set-tags.outputs.rust_changed == 'true' || needs.set-tags.outputs.ts_tests_changed == 'true') &&
       needs.set-tags.outputs.self_hosted_allowed == 'true'
     runs-on:
       labels: bare-metal
     permissions:
       contents: read
     needs: ["set-tags", "build"]
+    continue-on-error: ${{ matrix.chain == 'moonriver' || matrix.chain == 'moonbeam' }}
     timeout-minutes: 20
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         chain: ["moonbase", "moonriver", "moonbeam"]
         shard: [1, 2, 3, 4]
@@ -519,41 +567,12 @@ jobs:
           pnpm install
           pnpm compile-solidity
           pnpm moonwall test dev_${{ matrix.chain }} --ts ${{ matrix.shard }}/4
-      - name: Upload HTML report
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: dev-test-report-dev_${{ matrix.chain }}-${{ matrix.shard }}-of-4
-          path: test/html
-      - name: Upload HTML report to s3
-        if: |
-          github.event.pull_request.head.repo.fork != true &&
-          github.actor != 'dependabot[bot]'
-        uses: opslayertech/upload-s3-action@v1.1.0
-        id: S3
-        with:
-          aws_key_id: ${{ secrets.S3_COVERAGE_ID }}
-          aws_secret_access_key: ${{ secrets.S3_COVERAGE_KEY }}
-          aws_bucket: ${{ vars.S3_COVERAGE_BUCKET }}
-          destination_dir: "${{ needs.set-tags.outputs.test_s3_dir }}"
-          source_dir: "test/html"
-          acl: "none"
-      # - name: Upload to Moonscope
-      #   if: github.event.pull_request.head.repo.full_name == github.repository
-      #   run: |
-      #     curl --location 'https://api.moonscope.kaki.dev/insert' \
-      #     -X POST \
-      #     --header 'moonwallenv: dev_${{ matrix.chain }}' \
-      #     --header 'Authorization: Bearer ${{ secrets.MOONSCOPE_TOKEN }}' \
-      #     --header 'table: dev_reports' \
-      #     --header 'branch: ${{ needs.set-tags.outputs.git_branch }}' \
-      #     --header 'Content-Type: application/json' \
-      #     --max-time 30 \
-      #     -d@test/tmp/testResults.json || echo "Curl command failed but continuing"
 
   typescript-tracing-tests:
+    # Tracing tests are expensive, so skip them when the required moonbase dev-test
+    # gate has already failed.
     if: |
-      needs.set-tags.outputs.build_changed == 'true' &&
+      (needs.set-tags.outputs.rust_changed == 'true' || needs.set-tags.outputs.ts_tests_changed == 'true') &&
       needs.set-tags.outputs.self_hosted_allowed == 'true' &&
       needs.dev-test.result == 'success'
     runs-on:
@@ -608,14 +627,17 @@ jobs:
           pnpm moonwall test dev_moonbase_tracing
 
   lazy-loading-tests:
+    # Lazy-loading tests are expensive, so skip them when the required moonbase
+    # dev-test gate has already failed.
     if: |
-      needs.set-tags.outputs.build_changed == 'true' &&
-      needs.set-tags.outputs.self_hosted_allowed == 'true'
+      (needs.set-tags.outputs.rust_changed == 'true' || needs.set-tags.outputs.ts_tests_changed == 'true') &&
+      needs.set-tags.outputs.self_hosted_allowed == 'true' &&
+      needs.dev-test.result == 'success'
     runs-on:
       labels: bare-metal
     permissions:
       contents: read
-    needs: ["set-tags", "build"]
+    needs: ["set-tags", "build", "dev-test"]
     strategy:
       fail-fast: false
       max-parallel: 1
@@ -673,12 +695,15 @@ jobs:
           path: ${{ env.NODE_LOGS_ZIP }}
 
   chopsticks-upgrade-test:
+    # Upgrade tests consume bare-metal runners, so only start them after moonbase
+    # dev tests prove the PR is worth the heavier checks.
     if: |
-      needs.set-tags.outputs.build_changed == 'true' &&
-      needs.set-tags.outputs.self_hosted_allowed == 'true'
+      (needs.set-tags.outputs.rust_changed == 'true' || needs.set-tags.outputs.ts_tests_changed == 'true') &&
+      needs.set-tags.outputs.self_hosted_allowed == 'true' &&
+      needs.dev-test.result == 'success'
     runs-on:
       labels: bare-metal
-    needs: ["set-tags", "build"]
+    needs: ["set-tags", "build", "dev-test"]
     strategy:
       fail-fast: false
       matrix:
@@ -726,8 +751,10 @@ jobs:
             bun moonwall test upgrade_${{matrix.chain}}
 
   zombie_upgrade_test:
+    # Zombie upgrade tests are expensive and run serially; use moonbase dev-test as
+    # the fast gate before reserving those runners.
     if: |
-      needs.set-tags.outputs.build_changed == 'true' &&
+      (needs.set-tags.outputs.rust_changed == 'true' || needs.set-tags.outputs.ts_tests_changed == 'true') &&
       needs.set-tags.outputs.self_hosted_allowed == 'true' &&
       needs.dev-test.result == 'success'
     runs-on:
@@ -806,6 +833,8 @@ jobs:
           path: ${{ env.NODE_LOGS_ZIP }}
 
   bridge-integration-tests:
+    # Bridge integration tests are expensive and only relevant to Rust changes, so
+    # require the moonbase dev-test gate before running them.
     if: |
       needs.set-tags.outputs.rust_changed == 'true' &&
       needs.dev-test.result == 'success'
