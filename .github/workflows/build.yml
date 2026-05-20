@@ -206,6 +206,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version-file: "test/.nvmrc"
+          package-manager-cache: false
       - run: pnpm install
       - run: pnpm check
 
@@ -623,6 +624,7 @@ jobs:
   #     - uses: actions/setup-node@v6
   #       with:
   #         node-version-file: "test/.nvmrc"
+  #         package-manager-cache: false
   #     - name: "Download branch built node"
   #       uses: actions/download-artifact@v8
   #       with:
@@ -748,6 +750,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version-file: "test/.nvmrc"
+          package-manager-cache: false
       - run: |
           mkdir -p target/release
       - name: "Download branch built node"
@@ -805,6 +808,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version-file: "test/.nvmrc"
+          package-manager-cache: false
       - name: Create local folders
         run: |
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
@@ -859,12 +863,13 @@ jobs:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v6
         with:
-          version: 9.1.4
+          version: 9
           cache: true
           cache_dependency_path: pnpm-lock.yaml
       - uses: actions/setup-node@v6
         with:
           node-version-file: "test/.nvmrc"
+          package-manager-cache: false
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
@@ -919,6 +924,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version-file: "test/.nvmrc"
+          package-manager-cache: false
       - name: Create local folders
         run: |
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
