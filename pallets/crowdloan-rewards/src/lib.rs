@@ -389,8 +389,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			ensure_signed(origin)?;
 
-			let info =
-				AccountsPayable::<T>::get(&target).ok_or(Error::<T>::NoAssociatedClaim)?;
+			let info = AccountsPayable::<T>::get(&target).ok_or(Error::<T>::NoAssociatedClaim)?;
 			ensure!(
 				info.claimed_reward < info.total_reward,
 				Error::<T>::RewardsAlreadyClaimed
