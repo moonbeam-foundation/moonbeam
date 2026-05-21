@@ -38,24 +38,15 @@ jobs:
   ####### Check files and formatting #######
   set-tags:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: read
     outputs:
       git_branch: ${{ steps.check-git-ref.outputs.git_branch }}
       git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
-      test_s3_dir: ${{ steps.check-git-ref.outputs.test_s3_dir }}
-      image_exists: ${{ steps.check-docker-image.outputs.image_exists }}
-      sha: ${{ steps.get-sha.outputs.sha }}
-      sha8: ${{ steps.get-sha.outputs.sha8 }}
-      polkadot_repo: ${{ steps.get-sha.outputs.polkadot_repo }}
-      polkadot_commit: ${{ steps.get-sha.outputs.polkadot_commit }}
-      polkadot_ver: ${{ steps.get-sha.outputs.polkadot_ver}}
-      latest_rt: ${{ steps.get-sha.outputs.latest_rt }}
-      latest_rt_sha8: ${{ steps.get-sha.outputs.latest_rt_sha8 }}
       any_changed: ${{ steps.changed-files.outputs.any_changed == 'true' || steps.changed-files.outputs.any_deleted == 'true' }}
       rust_changed: ${{ steps.rust-changed.outputs.any_changed == 'true' || steps.rust-changed.outputs.any_deleted == 'true' }}
-      typescript_test_changed: ${{ steps.test-typescript-changed.outputs.any_changed == 'true' || steps.test-typescript-changed.outputs.any_deleted == 'true' }}
-      build_changed: ${{ steps.rust-changed.outputs.any_changed == 'true' || steps.rust-changed.outputs.any_deleted == 'true' || steps.test-typescript-changed.outputs.any_changed == 'true' || steps.test-typescript-changed.outputs.any_deleted == 'true' }}
+      ts_tests_changed: ${{ steps.test-typescript-changed.outputs.any_changed == 'true' || steps.test-typescript-changed.outputs.any_deleted == 'true' }}
       self_hosted_allowed: ${{ steps.check-git-ref.outputs.self_hosted_allowed }}
     steps:
       - name: Check git ref
@@ -67,7 +58,6 @@ jobs:
           if [[ -n "${{ github.event.pull_request.head.sha }}" ]]; then
             echo "git_branch=$(echo ${GITHUB_HEAD_REF})" >> $GITHUB_OUTPUT
             echo "git_ref=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
-            echo "test_s3_dir=test-pulls/${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
             if [[ "${{ github.event.pull_request.head.repo.fork }}" == "true" ]]; then
               echo "self_hosted_allowed=false" >> $GITHUB_OUTPUT
             else
@@ -75,11 +65,9 @@ jobs:
             fi
           elif [[ -n "${{ github.event.inputs.pull_request }}" ]]; then
             echo "git_branch=$(echo ${GITHUB_HEAD_REF})" >> $GITHUB_OUTPUT
-            echo "test_s3_dir=test-pulls/${{ github.event.inputs.pull_request }}" >> $GITHUB_OUTPUT
             echo "git_ref=refs/pull/${{ github.event.inputs.pull_request }}/head" >> $GITHUB_OUTPUT
             echo "self_hosted_allowed=false" >> $GITHUB_OUTPUT
           else
-            echo "test_s3_dir=test-branches/master" >> $GITHUB_OUTPUT
             echo "git_branch=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_OUTPUT
             echo "git_ref=$GITHUB_REF" >> $GITHUB_OUTPUT
             echo "self_hosted_allowed=true" >> $GITHUB_OUTPUT
@@ -90,57 +78,10 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: ${{ steps.check-git-ref.outputs.git_ref }}
-      - name: Get Latest RT Release
-        id: get-latest-rt
-        run: |
-          LATEST_RUNTIME_RELEASE=$(curl -s https://api.github.com/repos/moonbeam-foundation/moonbeam/releases | jq -r '.[] | select(.name | test("runtime";"i")) | .tag_name' | sort -rs | head -n 1 | tr -d '[:blank:]') && [[ ! -z "${LATEST_RUNTIME_RELEASE}" ]]
-          echo $LATEST_RUNTIME_RELEASE
-          echo "latest_rt=$LATEST_RUNTIME_RELEASE" >> $GITHUB_OUTPUT
-      - name: Get Sha
-        id: get-sha
-        run: |
-          echo "sha=$(git log -1 --format='%H')" >> $GITHUB_OUTPUT
-          echo "sha8=$(git log -1 --format='%H' | cut -c1-8)" >> $GITHUB_OUTPUT
-          echo "polkadot_repo=$(egrep -o 'https.*/polkadot' Cargo.lock | head -1)" >> $GITHUB_OUTPUT
-          echo "polkadot_commit=$(egrep -o '/polkadot.*#([^\"]*)' Cargo.lock | \
-          head -1 | sed 's/.*#//' |  cut -c1-8)" >> $GITHUB_OUTPUT
-          echo "polkadot_ver=$(grep 'frame-system' Cargo.toml | sed -nE 's/.*moonbeam-polkadot-v([0-9]+\.[0-9]+\.[0-9]+).*/\1/p' | head -1)" >> $GITHUB_OUTPUT
-
-          ENDPOINT="https://api.github.com/repos/moonbeam-foundation/moonbeam/git/refs/tags/${{ steps.get-latest-rt.outputs.latest_rt }}"
-          RESPONSE=$(curl -s -H "Accept: application/vnd.github.v3+json" $ENDPOINT)
-          TYPE=$(echo $RESPONSE | jq -r '.object.type')
-
-          if [[ $TYPE == "commit" ]]
-          then
-            LATEST_RT_SHA8=$(echo $RESPONSE | jq -r '.object.sha' | cut -c -8)
-          elif [[ $TYPE == "tag" ]]
-          then
-            URL=$(echo $RESPONSE | jq -r '.object.url')
-            TAG_RESPONSE=$(curl -s -H "Accept: application/vnd.github.v3+json" $URL)
-            TAG_RESPONSE_CLEAN=$(echo $TAG_RESPONSE | tr -d '\000-\037')
-            LATEST_RT_SHA8=$(echo $TAG_RESPONSE_CLEAN | jq -r '.object.sha' | cut -c -8)
-          fi
-
-          echo $LATEST_RT_SHA8
-          echo "latest_rt_sha8=$LATEST_RT_SHA8" >> $GITHUB_OUTPUT
-
-      - name: Check existing docker image
-        id: check-docker-image
-        run: |
-          TAG=sha-${{ steps.get-sha.outputs.sha8 }}
-          echo "image_exists=$(docker image inspect moonbeamfoundation/moonbeam:$TAG > /dev/null && echo "true" || echo "false")" >> $GITHUB_OUTPUT
       - name: Display variables
         run: |
           echo git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
-          echo sha: ${{ steps.get-sha.outputs.sha }}
-          echo sha8: ${{ steps.get-sha.outputs.sha8 }}
-          echo image_exists: ${{ steps.check-docker-image.outputs.image_exists }}
           echo self_hosted_allowed: ${{ steps.check-git-ref.outputs.self_hosted_allowed }}
-          echo latest_rt: ${{ steps.get-latest-rt.outputs.latest_rt }}
-          echo latest_rt_sha8: ${{ steps.get-sha.outputs.latest_rt_sha8 }}
-          echo polkadot_repo: ${{ steps.get-sha.outputs.polkadot_repo }}
-          echo polkadot_commit: ${{ steps.get-sha.outputs.polkadot_commit }}
-          echo polkadot_ver: ${{ steps.get-sha.outputs.polkadot_ver }}
       - name: Get all changed file(s), excluding the docs
         id: changed-files
         uses: tj-actions/changed-files@24d32ffd492484c1d75e0c0b894501ddb9d30d62
@@ -185,6 +126,7 @@ jobs:
   check-copyright:
     if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: read
     needs: ["set-tags"]
@@ -205,6 +147,7 @@ jobs:
 
   check-links:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
     needs: ["set-tags"]
@@ -223,6 +166,7 @@ jobs:
     if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
     name: "Check with Biome"
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
     needs: ["set-tags"]
@@ -249,6 +193,7 @@ jobs:
     name: "Check Cargo.toml files format"
     runs-on:
       labels: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: read
     needs: ["set-tags"]
@@ -270,6 +215,7 @@ jobs:
     if: ${{ needs.set-tags.outputs.rust_changed == 'true' }}
     name: "Check 'forbid-evm-reentrancy'"
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: read
     needs: ["set-tags"]
@@ -289,6 +235,7 @@ jobs:
     if: ${{ needs.set-tags.outputs.rust_changed == 'true' }}
     name: "Check with rustfmt"
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: read
     needs: ["set-tags"]
@@ -309,14 +256,29 @@ jobs:
   ####### Building and Testing binaries #######
 
   cargo-clippy:
+    # Keep expensive bare-metal clippy behind the cheap Rust checks so formatting or
+    # repository-rule failures stop the PR before it consumes larger runners.
+    # always() is required on jobs with needs: otherwise GitHub skips the job before
+    # evaluating this condition when any dependency was skipped.
     if: |
+      always() &&
       needs.set-tags.outputs.rust_changed == 'true' &&
-      needs.set-tags.outputs.self_hosted_allowed == 'true'
+      needs.set-tags.outputs.self_hosted_allowed == 'true' &&
+      needs.check-cargo-toml-format.result == 'success' &&
+      needs.check-forbid-evm-reentrancy.result == 'success' &&
+      needs.check-rust-fmt.result == 'success'
     runs-on:
       labels: bare-metal
+    timeout-minutes: 30
     permissions:
       contents: read
-    needs: ["set-tags"]
+    needs:
+      [
+        "set-tags",
+        "check-cargo-toml-format",
+        "check-forbid-evm-reentrancy",
+        "check-rust-fmt",
+      ]
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -339,14 +301,36 @@ jobs:
         run: SKIP_WASM_BUILD=1 env -u RUSTFLAGS cargo clippy --features try-runtime,runtime-benchmarks -- -Dclippy::todo
 
   build:
+    # The build is needed for Rust changes or TS/Moonwall test changes. Rust and
+    # mixed Rust+TS changes must first pass the quick Rust checks; TS-only test
+    # changes can build directly.
     if: |
-      needs.set-tags.outputs.build_changed == 'true' &&
-      needs.set-tags.outputs.self_hosted_allowed == 'true'
+      always() &&
+      needs.set-tags.outputs.self_hosted_allowed == 'true' &&
+      (
+        (
+          needs.set-tags.outputs.rust_changed == 'true' &&
+          needs.check-cargo-toml-format.result == 'success' &&
+          needs.check-forbid-evm-reentrancy.result == 'success' &&
+          needs.check-rust-fmt.result == 'success'
+        ) ||
+        (
+          needs.set-tags.outputs.ts_tests_changed == 'true' &&
+          needs.set-tags.outputs.rust_changed == 'false'
+        )
+      )
     runs-on:
       labels: bare-metal
+    timeout-minutes: 30
     permissions:
       contents: read
-    needs: ["set-tags"]
+    needs:
+      [
+        "set-tags",
+        "check-cargo-toml-format",
+        "check-forbid-evm-reentrancy",
+        "check-rust-fmt",
+      ]
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -373,14 +357,29 @@ jobs:
           path: build
 
   rust-test:
+    # Rust tests are one of the most expensive PR jobs, so only run them after the
+    # quick Rust checks and the moonbase dev-test gate have passed.
     if: |
+      always() &&
       needs.set-tags.outputs.rust_changed == 'true' &&
-      needs.set-tags.outputs.self_hosted_allowed == 'true'
+      needs.set-tags.outputs.self_hosted_allowed == 'true' &&
+      needs.check-cargo-toml-format.result == 'success' &&
+      needs.check-forbid-evm-reentrancy.result == 'success' &&
+      needs.check-rust-fmt.result == 'success' &&
+      needs.dev-test.result == 'success'
     runs-on:
       labels: bare-metal
+    timeout-minutes: 30
     permissions:
       contents: read
-    needs: ["set-tags"]
+    needs:
+      [
+        "set-tags",
+        "check-cargo-toml-format",
+        "check-forbid-evm-reentrancy",
+        "check-rust-fmt",
+        "dev-test",
+      ]
     env:
       RUSTC_WRAPPER: "sccache"
       CARGO_INCREMENTAL: "0"
@@ -465,17 +464,20 @@ jobs:
   #         fi
 
   dev-test:
+    # Moonbase dev tests are the required fast gate. Moonriver and moonbeam still
+    # run for signal, but their failures are tolerated because they are flakier.
     if: |
-      needs.set-tags.outputs.build_changed == 'true' &&
+      (needs.set-tags.outputs.rust_changed == 'true' || needs.set-tags.outputs.ts_tests_changed == 'true') &&
       needs.set-tags.outputs.self_hosted_allowed == 'true'
     runs-on:
       labels: bare-metal
     permissions:
       contents: read
     needs: ["set-tags", "build"]
-    timeout-minutes: 20
+    continue-on-error: ${{ matrix.chain == 'moonriver' || matrix.chain == 'moonbeam' }}
+    timeout-minutes: 30
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         chain: ["moonbase", "moonriver", "moonbeam"]
         shard: [1, 2, 3, 4]
@@ -519,44 +521,17 @@ jobs:
           pnpm install
           pnpm compile-solidity
           pnpm moonwall test dev_${{ matrix.chain }} --ts ${{ matrix.shard }}/4
-      - name: Upload HTML report
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: dev-test-report-dev_${{ matrix.chain }}-${{ matrix.shard }}-of-4
-          path: test/html
-      - name: Upload HTML report to s3
-        if: |
-          github.event.pull_request.head.repo.fork != true &&
-          github.actor != 'dependabot[bot]'
-        uses: opslayertech/upload-s3-action@v1.1.0
-        id: S3
-        with:
-          aws_key_id: ${{ secrets.S3_COVERAGE_ID }}
-          aws_secret_access_key: ${{ secrets.S3_COVERAGE_KEY }}
-          aws_bucket: ${{ vars.S3_COVERAGE_BUCKET }}
-          destination_dir: "${{ needs.set-tags.outputs.test_s3_dir }}"
-          source_dir: "test/html"
-          acl: "none"
-      # - name: Upload to Moonscope
-      #   if: github.event.pull_request.head.repo.full_name == github.repository
-      #   run: |
-      #     curl --location 'https://api.moonscope.kaki.dev/insert' \
-      #     -X POST \
-      #     --header 'moonwallenv: dev_${{ matrix.chain }}' \
-      #     --header 'Authorization: Bearer ${{ secrets.MOONSCOPE_TOKEN }}' \
-      #     --header 'table: dev_reports' \
-      #     --header 'branch: ${{ needs.set-tags.outputs.git_branch }}' \
-      #     --header 'Content-Type: application/json' \
-      #     --max-time 30 \
-      #     -d@test/tmp/testResults.json || echo "Curl command failed but continuing"
 
   typescript-tracing-tests:
+    # Tracing tests are expensive, so skip them when the required moonbase dev-test
+    # gate has already failed.
     if: |
-      needs.set-tags.outputs.build_changed == 'true' &&
-      needs.set-tags.outputs.self_hosted_allowed == 'true'
+      (needs.set-tags.outputs.rust_changed == 'true' || needs.set-tags.outputs.ts_tests_changed == 'true') &&
+      needs.set-tags.outputs.self_hosted_allowed == 'true' &&
+      needs.dev-test.result == 'success'
     runs-on:
       labels: bare-metal
+    timeout-minutes: 30
     permissions:
       contents: read
     needs: ["set-tags", "build", "dev-test"]
@@ -607,14 +582,18 @@ jobs:
           pnpm moonwall test dev_moonbase_tracing
 
   lazy-loading-tests:
+    # Lazy-loading tests are expensive, so skip them when the required moonbase
+    # dev-test gate has already failed.
     if: |
-      needs.set-tags.outputs.build_changed == 'true' &&
-      needs.set-tags.outputs.self_hosted_allowed == 'true'
+      (needs.set-tags.outputs.rust_changed == 'true' || needs.set-tags.outputs.ts_tests_changed == 'true') &&
+      needs.set-tags.outputs.self_hosted_allowed == 'true' &&
+      needs.dev-test.result == 'success'
     runs-on:
       labels: bare-metal
+    timeout-minutes: 30
     permissions:
       contents: read
-    needs: ["set-tags", "build"]
+    needs: ["set-tags", "build", "dev-test"]
     strategy:
       fail-fast: false
       max-parallel: 1
@@ -672,12 +651,16 @@ jobs:
           path: ${{ env.NODE_LOGS_ZIP }}
 
   chopsticks-upgrade-test:
+    # Upgrade tests consume bare-metal runners, so only start them after moonbase
+    # dev tests prove the PR is worth the heavier checks.
     if: |
-      needs.set-tags.outputs.build_changed == 'true' &&
-      needs.set-tags.outputs.self_hosted_allowed == 'true'
+      (needs.set-tags.outputs.rust_changed == 'true' || needs.set-tags.outputs.ts_tests_changed == 'true') &&
+      needs.set-tags.outputs.self_hosted_allowed == 'true' &&
+      needs.dev-test.result == 'success'
     runs-on:
       labels: bare-metal
-    needs: ["set-tags", "build"]
+    timeout-minutes: 60
+    needs: ["set-tags", "build", "dev-test"]
     strategy:
       fail-fast: false
       matrix:
@@ -725,12 +708,16 @@ jobs:
             bun moonwall test upgrade_${{matrix.chain}}
 
   zombie_upgrade_test:
+    # Zombie upgrade tests are expensive and run serially; use moonbase dev-test as
+    # the fast gate before reserving those runners.
     if: |
-      needs.set-tags.outputs.build_changed == 'true' &&
-      needs.set-tags.outputs.self_hosted_allowed == 'true'
+      (needs.set-tags.outputs.rust_changed == 'true' || needs.set-tags.outputs.ts_tests_changed == 'true') &&
+      needs.set-tags.outputs.self_hosted_allowed == 'true' &&
+      needs.dev-test.result == 'success'
     runs-on:
       labels: bare-metal
-    needs: ["set-tags", "build"]
+    timeout-minutes: 30
+    needs: ["set-tags", "build", "dev-test"]
     strategy:
       fail-fast: false
       max-parallel: 1
@@ -804,9 +791,14 @@ jobs:
           path: ${{ env.NODE_LOGS_ZIP }}
 
   bridge-integration-tests:
-    if: ${{ needs.set-tags.outputs.rust_changed == 'true' }}
-    needs: ["set-tags", "build"]
+    # Bridge integration tests are expensive and only relevant to Rust changes, so
+    # require the moonbase dev-test gate before running them.
+    if: |
+      needs.set-tags.outputs.rust_changed == 'true' &&
+      needs.dev-test.result == 'success'
+    needs: ["set-tags", "build", "dev-test"]
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
     steps:
