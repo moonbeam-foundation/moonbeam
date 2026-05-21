@@ -38,6 +38,7 @@ jobs:
   ####### Check files and formatting #######
   set-tags:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: read
     outputs:
@@ -125,6 +126,7 @@ jobs:
   check-copyright:
     if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: read
     needs: ["set-tags"]
@@ -145,6 +147,7 @@ jobs:
 
   check-links:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
     needs: ["set-tags"]
@@ -163,6 +166,7 @@ jobs:
     if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
     name: "Check with Biome"
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
     needs: ["set-tags"]
@@ -189,6 +193,7 @@ jobs:
     name: "Check Cargo.toml files format"
     runs-on:
       labels: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: read
     needs: ["set-tags"]
@@ -210,6 +215,7 @@ jobs:
     if: ${{ needs.set-tags.outputs.rust_changed == 'true' }}
     name: "Check 'forbid-evm-reentrancy'"
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: read
     needs: ["set-tags"]
@@ -229,6 +235,7 @@ jobs:
     if: ${{ needs.set-tags.outputs.rust_changed == 'true' }}
     name: "Check with rustfmt"
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: read
     needs: ["set-tags"]
@@ -262,6 +269,7 @@ jobs:
       needs.check-rust-fmt.result == 'success'
     runs-on:
       labels: bare-metal
+    timeout-minutes: 30
     permissions:
       contents: read
     needs:
@@ -313,6 +321,7 @@ jobs:
       )
     runs-on:
       labels: bare-metal
+    timeout-minutes: 30
     permissions:
       contents: read
     needs:
@@ -360,6 +369,7 @@ jobs:
       needs.dev-test.result == 'success'
     runs-on:
       labels: bare-metal
+    timeout-minutes: 30
     permissions:
       contents: read
     needs:
@@ -521,6 +531,7 @@ jobs:
       needs.dev-test.result == 'success'
     runs-on:
       labels: bare-metal
+    timeout-minutes: 30
     permissions:
       contents: read
     needs: ["set-tags", "build", "dev-test"]
@@ -579,6 +590,7 @@ jobs:
       needs.dev-test.result == 'success'
     runs-on:
       labels: bare-metal
+    timeout-minutes: 30
     permissions:
       contents: read
     needs: ["set-tags", "build", "dev-test"]
@@ -647,6 +659,7 @@ jobs:
       needs.dev-test.result == 'success'
     runs-on:
       labels: bare-metal
+    timeout-minutes: 60
     needs: ["set-tags", "build", "dev-test"]
     strategy:
       fail-fast: false
@@ -703,6 +716,7 @@ jobs:
       needs.dev-test.result == 'success'
     runs-on:
       labels: bare-metal
+    timeout-minutes: 30
     needs: ["set-tags", "build", "dev-test"]
     strategy:
       fail-fast: false
@@ -784,6 +798,7 @@ jobs:
       needs.dev-test.result == 'success'
     needs: ["set-tags", "build", "dev-test"]
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
     steps:
