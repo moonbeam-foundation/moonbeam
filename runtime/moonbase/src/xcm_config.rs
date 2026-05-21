@@ -770,7 +770,10 @@ impl frame_support::traits::Contains<Location> for AssetFeesFilter {
 		// Inbound ERC-20 teleports from Asset Hub pay XCM execution with the teleported asset
 		// at the local multilocation `(0, PalletInstance(Erc20XcmBridge), AccountKey20(..))`.
 		if location.parents == 0 {
-			if let Some(Junction::PalletInstance(idx)) = location.first_interior() {
+			let interior = location.interior();
+			if let [Junction::PalletInstance(idx), Junction::AccountKey20 { .. }] =
+				interior.as_slice()
+			{
 				if let Some(Junction::PalletInstance(prefix_idx)) =
 					Erc20XcmBridgePalletLocation::get().first_interior()
 				{
@@ -855,7 +858,7 @@ impl moonbeam_runtime_common::xcm_pallet_benchmark::XcmPalletTeleportBenchmark f
 	fn teleportable_asset_and_dest() -> Option<(xcm::latest::Asset, xcm::latest::Location)> {
 		use cumulus_primitives_core::ParaId;
 		use sp_core::H160;
-		use xcm::latest::{AccountKey20, Asset, AssetId, Fungible, Junction, Location, Parachain};
+		use xcm::latest::prelude::{AccountKey20, Asset, AssetId, Fungible, Parachain};
 
 		if let Some(Parachain(para_id)) = AssetHubLocation::get().interior().first() {
 			cumulus_pallet_parachain_system::Pallet::<Runtime>::open_outbound_hrmp_channel_for_benchmarks_or_tests(

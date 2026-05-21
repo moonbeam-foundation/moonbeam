@@ -366,8 +366,6 @@ pub mod pallet {
 	///   teleport-out and (incidentally) reserve-out of whitelisted contracts.
 	/// - `deposit_asset(holding, beneficiary)` → `ERC20.transfer(checking → beneficiary)`. Used
 	///   both for teleport-in and reserve-in of whitelisted contracts.
-	/// - `mint_asset(asset)` → no EVM call, just records the asset in holding so that the
-	///   subsequent `DepositAsset` does the actual unlock.
 	/// - `internal_transfer_asset(asset, from, to)` → `ERC20.transfer(from → to)` (same as
 	///   the legacy reserve adapter; same-chain transfer never touches the checking address).
 	///

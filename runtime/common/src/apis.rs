@@ -956,8 +956,8 @@ macro_rules! impl_runtime_apis_plus_common {
 							Some(Parent.into())
 						}
 
-						fn teleportable_asset_and_dest() -> Option<(Asset, Location)> {
-							use crate::xcm_pallet_benchmark::XcmPalletTeleportBenchmark;
+						fn teleportable_asset_and_dest() -> Option<(Asset, Location)> {;
+							use moonbeam_runtime_common::xcm_pallet_benchmark::XcmPalletTeleportBenchmark;
 							<Runtime as XcmPalletTeleportBenchmark>::teleportable_asset_and_dest()
 						}
 
