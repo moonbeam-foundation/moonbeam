@@ -465,7 +465,7 @@ jobs:
       contents: read
     needs: ["set-tags", "build"]
     continue-on-error: ${{ matrix.chain == 'moonriver' || matrix.chain == 'moonbeam' }}
-    timeout-minutes: 20
+    timeout-minutes: 30
     strategy:
       fail-fast: true
       matrix:
