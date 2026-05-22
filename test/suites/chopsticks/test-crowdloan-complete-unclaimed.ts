@@ -63,19 +63,30 @@ describeSuite({
     let target: string;
     let owed: bigint;
 
+    // Scan every AccountsPayable entry, paging until the map is exhausted, for one that still
+    // has an outstanding balance. Returns on the first hit, so a fork whose first page already
+    // holds an outstanding entry stays cheap; a fully-claimed prefix just pages further rather
+    // than producing a false-negative skip.
     const findOutstanding = async () => {
-      const keys = await api.query.crowdloanRewards.accountsPayable.keysPaged({
-        args: [],
-        pageSize: 50,
-      });
-      for (const key of keys) {
-        const candidate = key.args[0].toString();
-        const info = (await api.query.crowdloanRewards.accountsPayable(candidate)).unwrapOr(null);
-        if (!info) continue;
-        const outstanding = info.totalReward.toBigInt() - info.claimedReward.toBigInt();
-        if (outstanding > 0n) return { candidate, outstanding };
+      const pageSize = 100;
+      let startKey: string | undefined;
+      for (;;) {
+        const keys = await api.query.crowdloanRewards.accountsPayable.keysPaged({
+          args: [],
+          pageSize,
+          startKey,
+        });
+        if (keys.length === 0) return null;
+        for (const key of keys) {
+          const candidate = key.args[0].toString();
+          const info = (await api.query.crowdloanRewards.accountsPayable(candidate)).unwrapOr(null);
+          if (!info) continue;
+          const outstanding = info.totalReward.toBigInt() - info.claimedReward.toBigInt();
+          if (outstanding > 0n) return { candidate, outstanding };
+        }
+        if (keys.length < pageSize) return null;
+        startKey = keys[keys.length - 1].toHex();
       }
-      return null;
     };
 
     // Submit `completeUnclaimedRewards(target)` from Alith and build blocks (via moonwall's

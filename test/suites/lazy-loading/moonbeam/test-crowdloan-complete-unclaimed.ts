@@ -82,24 +82,44 @@ describeSuite({
         "completeUnclaimedRewards must exist after the upgrade"
       ).to.be.true;
 
-      // Find a real account that still has outstanding rewards. We only scan a small
-      // page of keys (enumerating the whole map over lazy loading would be far too many
-      // remote reads); a large fraction of entries are outstanding, so a small sample
-      // reliably contains one.
-      const keys = await api.query.crowdloanRewards.accountsPayable.keysPaged({
-        args: [],
-        pageSize: 50,
-      });
-      for (const key of keys) {
-        const candidate = key.args[0].toString();
-        const info = (await api.query.crowdloanRewards.accountsPayable(candidate)).unwrapOr(null);
-        if (!info) continue;
-        const outstanding = info.totalReward.toBigInt() - info.claimedReward.toBigInt();
-        if (outstanding > 0n) {
-          target = candidate;
-          owed = outstanding;
-          break;
+      // Find a real account that still has outstanding rewards. Page through AccountsPayable
+      // and stop at the first outstanding entry, so the common case (a large fraction of
+      // entries are outstanding) still resolves on the first page. A scan cap bounds the
+      // remote reads if an unexpectedly long fully-claimed prefix is hit — fully enumerating
+      // the map over lazy loading would be far too many remote reads.
+      const findOutstanding = async () => {
+        const pageSize = 50;
+        const maxKeysToScan = 500;
+        let startKey: string | undefined;
+        let scanned = 0;
+        for (;;) {
+          const keys = await api.query.crowdloanRewards.accountsPayable.keysPaged({
+            args: [],
+            pageSize,
+            startKey,
+          });
+          if (keys.length === 0) return null;
+          for (const key of keys) {
+            const candidate = key.args[0].toString();
+            const info = (await api.query.crowdloanRewards.accountsPayable(candidate)).unwrapOr(
+              null
+            );
+            scanned++;
+            if (info) {
+              const outstanding = info.totalReward.toBigInt() - info.claimedReward.toBigInt();
+              if (outstanding > 0n) return { candidate, outstanding };
+            }
+            if (scanned >= maxKeysToScan) return null;
+          }
+          if (keys.length < pageSize) return null;
+          startKey = keys[keys.length - 1].toHex();
         }
+      };
+
+      const found = await findOutstanding();
+      if (found) {
+        target = found.candidate;
+        owed = found.outstanding;
       }
       expect(target, "expected at least one account with outstanding rewards").toBeDefined();
       log(`Target ${target} has ${owed} outstanding (will be settled by Alith)`);
