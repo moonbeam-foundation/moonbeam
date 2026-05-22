@@ -868,12 +868,13 @@ impl moonbeam_runtime_common::xcm_pallet_benchmark::XcmPalletTeleportBenchmark f
 		}
 
 		// Fixed address for `pallet_xcm` teleport benchmarks — not used on production networks.
-		// Insert as `Active` so all gates (including the user-facing `XcmTeleportFilter`) admit
-		// it; the benchmark exercises the full outbound path.
+		// Insert as `Registered` so all gates (including the user-facing
+		// `XcmTeleportFilter`) admit it; the benchmark exercises the full outbound path
+		// (which would auto-promote to `Active` after the first leg in real flows).
 		let contract = H160([0x42; 20]);
 		pallet_erc20_xcm_bridge::TeleportableErc20s::<Runtime>::insert(
 			contract,
-			pallet_erc20_xcm_bridge::TeleportableErc20Status::Active,
+			pallet_erc20_xcm_bridge::TeleportableErc20Status::Registered,
 		);
 
 		let mut asset_location = Erc20XcmBridgePalletLocation::get();

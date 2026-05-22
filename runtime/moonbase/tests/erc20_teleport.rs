@@ -17,19 +17,26 @@
 //! Integration tests for the ERC-20 teleport feature exposed by
 //! `pallet_erc20_xcm_bridge`.
 //!
-//! These tests exercise the actual `moonbase-runtime` (not the simulator mock) and verify
-//! that:
+//! - **Filter (`XcmTeleportFilter`).** Native DEV is rejected (regression guard
+//!   against accidentally enabling native teleport); a non-whitelisted ERC-20 is
+//!   rejected; a whitelisted ERC-20 passes both filter forms.
+//! - **Location bind (`IsTeleporter`).** Whitelisted ERC-20s are admitted only
+//!   from `TeleportTrustedLocation = AssetHubLocation`; sibling parachains, the
+//!   relay, and `Here` are all rejected.
+//! - **Outbound destination.** `pallet_xcm::limited_teleport_assets` rejects
+//!   non-AH destinations with `Filtered` before any EVM state mutation.
+//! - **Whitelist lifecycle.** End-to-end exercise of the three-state state
+//!   machine (`Registered → Active → Deregistered`) and the dual-purpose
+//!   `remove_teleportable_erc20` (admin-only purge from `Registered`,
+//!   permissionless purge from `Active`/`Deregistered` once `LockedSupply == 0`,
+//!   admin flip to `Deregistered` while `LockedSupply > 0`, revival via
+//!   `add_teleportable_erc20`).
+//! - **Admin escape hatch.** `force_remove_teleportable_erc20` purges any state
+//!   regardless of `LockedSupply`.
+//! - **Deregistered semantics.** A `Deregistered` contract still admits inbound
+//!   teleports from AH (so users can recover supply still locked in the
+//!   `TeleportCheckingAccount`) while every outbound gate refuses new locks.
 //!
-//! 1. `pallet_xcm::limited_teleport_assets` is rejected by `XcmTeleportFilter` when carrying
-//!    native DEV (regression guard against accidentally enabling native teleport).
-//! 2. `pallet_xcm::limited_teleport_assets` is rejected when carrying a non-whitelisted
-//!    ERC-20 location.
-//! 3. Root can whitelist a contract via `pallet_erc20_xcm_bridge::add_teleportable_erc20`,
-//!    and after that the `IsTeleportableErc20` filter accepts it (so the same call would no
-//!    longer be filtered by `XcmTeleportFilter`).
-//!
-//! Actual cross-chain delivery and EVM checking-account accounting are exercised by the
-//! zombienet smoke test under `tools/zombienet/`.
 
 mod common;
 use common::*;
@@ -131,79 +138,217 @@ fn teleport_filter_rejects_non_whitelisted_erc20() {
 		});
 }
 
+/// Integration coverage of the three-state lifecycle and the dual-purpose
+/// `remove_teleportable_erc20` semantics. Pinning at the runtime layer because
+/// signed-vs-root origin handling is runtime-defined (the `EnsureRoot` config of
+/// `pallet_erc20_xcm_bridge`'s `TeleportAdminOrigin`).
 #[test]
-fn whitelist_admin_extrinsics_are_root_only() {
+fn whitelist_admin_extrinsics_lifecycle() {
 	ExtBuilder::default()
 		.with_balances(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
 		.build()
 		.execute_with(|| {
+			use pallet_erc20_xcm_bridge::TeleportableErc20Status;
+
 			let contract = H160([0xcd; 20]);
+			let signed = origin_of(AccountId::from(ALICE));
 
-			// Both extrinsics reject signed origins.
+			// `add` requires admin; signed user is rejected.
 			assert_noop!(
-				Erc20XcmBridge::add_teleportable_erc20(origin_of(AccountId::from(ALICE)), contract,),
-				DispatchError::BadOrigin,
-			);
-			assert_noop!(
-				Erc20XcmBridge::remove_teleportable_erc20(
-					origin_of(AccountId::from(ALICE)),
-					contract,
-				),
+				Erc20XcmBridge::add_teleportable_erc20(signed.clone(), contract),
 				DispatchError::BadOrigin,
 			);
 
-			// Root adds → contract is Active. Adding again while `Active` is the
-			// duplicate no-op case.
+			// `add` on an unknown contract: `(none) → Registered`. `LockedSupply` stays
+			// at zero because no flow has happened yet.
 			assert_ok!(Erc20XcmBridge::add_teleportable_erc20(
 				root_origin(),
 				contract
 			));
+			assert_eq!(
+				pallet_erc20_xcm_bridge::TeleportableErc20s::<Runtime>::get(&contract),
+				Some(TeleportableErc20Status::Registered),
+			);
+			assert!(pallet_erc20_xcm_bridge::LockedSupply::<Runtime>::get(&contract).is_zero());
+
+			// Calling `add` again on `Registered` is the duplicate-no-op case.
 			assert_noop!(
 				Erc20XcmBridge::add_teleportable_erc20(root_origin(), contract),
 				pallet_erc20_xcm_bridge::Error::<Runtime>::Erc20AlreadyTeleportable,
 			);
 
-			// Active → InboundOnly via a single `remove_teleportable_erc20`. The entry
-			// stays in storage; it just flips state so the inbound (return) path keeps
-			// admitting users that still hold a foreign-asset twin on Asset Hub.
+			// `remove` on `Registered + count == 0` is admin-only and PURGES the entry
+			// (no `Deregistered` intermediate state because there's no obligation).
+			// Signed user gets `BadOrigin`; admin sweeps it cleanly.
+			assert_noop!(
+				Erc20XcmBridge::remove_teleportable_erc20(signed.clone(), contract),
+				DispatchError::BadOrigin,
+			);
 			assert_ok!(Erc20XcmBridge::remove_teleportable_erc20(
 				root_origin(),
 				contract
 			));
+			assert!(
+				!pallet_erc20_xcm_bridge::TeleportableErc20s::<Runtime>::contains_key(&contract),
+				"Registered + zero count must purge cleanly",
+			);
 
-			// Removing again is rejected: `InboundOnly` is the terminal `remove` state.
+			// Subsequent `remove` returns `NotTeleportable`.
+			assert_noop!(
+				Erc20XcmBridge::remove_teleportable_erc20(root_origin(), contract),
+				pallet_erc20_xcm_bridge::Error::<Runtime>::Erc20NotTeleportable,
+			);
+
+			// Re-add (fresh, no leftover state) lands at `Registered` again.
+			assert_ok!(Erc20XcmBridge::add_teleportable_erc20(
+				root_origin(),
+				contract
+			));
+
+			// Simulate an outstanding obligation: pre-set `Active + count > 0` so the
+			// other `remove` branch fires. (The promotion + counter increment is
+			// covered end-to-end by the pallet unit tests; here we only need the
+			// state machine integrated against the runtime's `EnsureRoot` origin.)
+			pallet_erc20_xcm_bridge::TeleportableErc20s::<Runtime>::insert(
+				&contract,
+				TeleportableErc20Status::Active,
+			);
+			pallet_erc20_xcm_bridge::LockedSupply::<Runtime>::insert(
+				&contract,
+				sp_core::U256::from(500u128),
+			);
+
+			// `remove` on `Active + count > 0` is admin-only and FLIPS to `Deregistered`,
+			// preserving the counter so users can keep teleporting their twin home.
+			assert_noop!(
+				Erc20XcmBridge::remove_teleportable_erc20(signed.clone(), contract),
+				DispatchError::BadOrigin,
+			);
+			assert_ok!(Erc20XcmBridge::remove_teleportable_erc20(
+				root_origin(),
+				contract
+			));
+			assert_eq!(
+				pallet_erc20_xcm_bridge::TeleportableErc20s::<Runtime>::get(&contract),
+				Some(TeleportableErc20Status::Deregistered),
+			);
+			assert_eq!(
+				pallet_erc20_xcm_bridge::LockedSupply::<Runtime>::get(&contract),
+				sp_core::U256::from(500u128),
+			);
+
+			// Calling `remove` again while still `Deregistered + count > 0` yields the
+			// no-op error.
 			assert_noop!(
 				Erc20XcmBridge::remove_teleportable_erc20(root_origin(), contract),
 				pallet_erc20_xcm_bridge::Error::<Runtime>::Erc20AlreadyRemoved,
 			);
 
-			// But `add_teleportable_erc20` revives an `InboundOnly` entry back to
-			// `Active`. This is the operator escape hatch from a removal that should be
-			// reversed.
+			// Revive: `Deregistered → Registered` via `add`. The counter survives the
+			// round-trip so subsequent inbound legs unwind it normally.
 			assert_ok!(Erc20XcmBridge::add_teleportable_erc20(
 				root_origin(),
 				contract
 			));
-
-			// And once `Active` again, calling `add` is a no-op as before.
-			assert_noop!(
-				Erc20XcmBridge::add_teleportable_erc20(root_origin(), contract),
-				pallet_erc20_xcm_bridge::Error::<Runtime>::Erc20AlreadyTeleportable,
+			assert_eq!(
+				pallet_erc20_xcm_bridge::TeleportableErc20s::<Runtime>::get(&contract),
+				Some(TeleportableErc20Status::Registered),
 			);
+			assert_eq!(
+				pallet_erc20_xcm_bridge::LockedSupply::<Runtime>::get(&contract),
+				sp_core::U256::from(500u128),
+			);
+
+			// Drain the counter (simulating the inbound teleport-back unwinding it),
+			// then prove the permissionless purge from `Active`. We pre-set `Active`
+			// because the actual auto-promotion fires from the asset transactor; a
+			// pure-Substrate `remove` test isolates the lifecycle logic.
+			pallet_erc20_xcm_bridge::TeleportableErc20s::<Runtime>::insert(
+				&contract,
+				TeleportableErc20Status::Active,
+			);
+			pallet_erc20_xcm_bridge::LockedSupply::<Runtime>::insert(
+				&contract,
+				sp_core::U256::zero(),
+			);
+
+			// Now `Active + count == 0` is the permissionless purge case — any signed
+			// user (including ALICE, not admin) can sweep the entry.
+			assert_ok!(Erc20XcmBridge::remove_teleportable_erc20(signed, contract));
+			assert!(
+				!pallet_erc20_xcm_bridge::TeleportableErc20s::<Runtime>::contains_key(&contract)
+			);
+			assert!(!pallet_erc20_xcm_bridge::LockedSupply::<Runtime>::contains_key(&contract));
 		});
 }
 
-/// Pinning the core invariant of the simplified lifecycle: after
-/// `remove_teleportable_erc20`, the whitelist entry is **kept** in `InboundOnly` state
-/// so the inbound teleport-back path that returns supply from
-/// `Erc20TeleportCheckingAccount` to users stays open indefinitely, while new outbound
-/// teleports are refused immediately by both runtime filter forms.
+/// Cover the admin escape hatch: `force_remove_teleportable_erc20` purges any state
+/// regardless of `LockedSupply`, and is admin-only at the runtime layer too.
 #[test]
-fn inbound_only_contract_keeps_inbound_open_and_blocks_outbound_via_runtime_filters() {
+fn force_remove_teleportable_erc20_admin_escape_hatch() {
 	ExtBuilder::default()
 		.with_balances(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
 		.build()
 		.execute_with(|| {
+			use pallet_erc20_xcm_bridge::TeleportableErc20Status;
+
+			let contract = H160([0xfe; 20]);
+
+			// Pre-seed an outstanding obligation: `Deregistered + count > 0` (the
+			// scenario where regular `remove` would refuse with `Erc20AlreadyRemoved`).
+			pallet_erc20_xcm_bridge::TeleportableErc20s::<Runtime>::insert(
+				&contract,
+				TeleportableErc20Status::Deregistered,
+			);
+			pallet_erc20_xcm_bridge::LockedSupply::<Runtime>::insert(
+				&contract,
+				sp_core::U256::from(1_000u128),
+			);
+
+			// Signed user can't force-remove.
+			assert_noop!(
+				Erc20XcmBridge::force_remove_teleportable_erc20(
+					origin_of(AccountId::from(ALICE)),
+					contract,
+				),
+				DispatchError::BadOrigin,
+			);
+			// Storage untouched.
+			assert!(
+				pallet_erc20_xcm_bridge::TeleportableErc20s::<Runtime>::contains_key(&contract)
+			);
+
+			// Admin can. Both maps are removed.
+			assert_ok!(Erc20XcmBridge::force_remove_teleportable_erc20(
+				root_origin(),
+				contract
+			));
+			assert!(
+				!pallet_erc20_xcm_bridge::TeleportableErc20s::<Runtime>::contains_key(&contract),
+			);
+			assert!(!pallet_erc20_xcm_bridge::LockedSupply::<Runtime>::contains_key(&contract));
+
+			// Force-remove on an unknown contract errors.
+			assert_noop!(
+				Erc20XcmBridge::force_remove_teleportable_erc20(root_origin(), contract),
+				pallet_erc20_xcm_bridge::Error::<Runtime>::Erc20NotTeleportable,
+			);
+		});
+}
+
+/// Pinning the core invariant of the lifecycle: after `remove_teleportable_erc20`
+/// while `LockedSupply > 0`, the whitelist entry is **kept** in `Deregistered` state
+/// so the inbound teleport-back path that returns supply from
+/// `Erc20TeleportCheckingAccount` to users stays open indefinitely, while new outbound
+/// teleports are refused immediately by both runtime filter forms.
+#[test]
+fn deregistered_contract_keeps_inbound_open_and_blocks_outbound_via_runtime_filters() {
+	ExtBuilder::default()
+		.with_balances(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
+		.build()
+		.execute_with(|| {
+			use pallet_erc20_xcm_bridge::TeleportableErc20Status;
+
 			let contract = H160([0xdd; 20]);
 			let asset: Asset = (erc20_location(contract), 1_000u128).into();
 			let ah = dest_assethub();
@@ -216,15 +361,17 @@ fn inbound_only_contract_keeps_inbound_open_and_blocks_outbound_via_runtime_filt
 			);
 			type Filter = pallet_erc20_xcm_bridge::IsTeleportableErc20<Runtime>;
 
-			assert_ok!(Erc20XcmBridge::add_teleportable_erc20(
-				root_origin(),
-				contract
-			));
-			// One-step transition: Active → InboundOnly.
-			assert_ok!(Erc20XcmBridge::remove_teleportable_erc20(
-				root_origin(),
-				contract
-			));
+			// Pre-seed `Deregistered + count > 0`. (The full lifecycle that gets us
+			// here — add → flow → admin remove — is exercised in
+			// `whitelist_admin_extrinsics_lifecycle` and the pallet unit tests.)
+			pallet_erc20_xcm_bridge::TeleportableErc20s::<Runtime>::insert(
+				&contract,
+				TeleportableErc20Status::Deregistered,
+			);
+			pallet_erc20_xcm_bridge::LockedSupply::<Runtime>::insert(
+				&contract,
+				sp_core::U256::from(1_000u128),
+			);
 
 			// Inbound trust gate (`IsTeleporter`): still accepts AH-originated teleports
 			// for this contract so `Erc20TeleportCheckingAccount` can keep returning
@@ -242,7 +389,7 @@ fn inbound_only_contract_keeps_inbound_open_and_blocks_outbound_via_runtime_filt
 			)));
 
 			// And the actual user extrinsic is filtered: `limited_teleport_assets` for
-			// an `InboundOnly` contract returns `Filtered` cleanly, before any EVM
+			// a `Deregistered` contract returns `Filtered` cleanly, before any EVM
 			// state is touched.
 			assert_noop!(
 				PolkadotXcm::limited_teleport_assets(

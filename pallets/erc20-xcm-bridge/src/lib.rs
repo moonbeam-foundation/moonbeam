@@ -30,6 +30,36 @@
 //!
 //! Native assets (DEV / GLMR / MOVR) are intentionally not handled here and remain
 //! non-teleportable.
+//!
+//! ## Whitelist lifecycle
+//!
+//! Each whitelisted contract has a [`TeleportableErc20Status`] and a [`LockedSupply`]
+//! counter. The counter is the canonical "outstanding obligation" the runtime owes
+//! holders of the foreign-asset twin on the trusted counterparty
+//! ([`Config::TeleportTrustedLocation`]); it is maintained in lockstep with every
+//! teleport leg, so it never requires querying the contract.
+//!
+//! - **`Registered`**: admin just inserted the contract; no teleport leg has executed
+//!   yet in the current lifecycle. Outbound is open so the first user teleport-out can
+//!   actually run; the first successful leg auto-promotes to `Active`.
+//! - **`Active`**: at least one teleport leg has executed. `LockedSupply` may be zero
+//!   or positive.
+//! - **`Deregistered`**: admin closed outbound while supply was still locked. New
+//!   outbound teleports are refused; inbound teleports keep unwinding the counter so
+//!   users can pull their tokens home.
+//!
+//! [`Pallet::remove_teleportable_erc20`] is dual-purpose:
+//!
+//! - When `LockedSupply == 0`, it deletes the entry outright. The call is
+//!   **permissionless** for `Active`/`Deregistered` (anyone can sweep an entry whose
+//!   obligation has been fully discharged) and **admin-only** for `Registered` (so a
+//!   freshly added entry can't be erased by someone other than admin before any flow
+//!   has happened).
+//! - When `LockedSupply > 0`, it requires admin and flips the entry to `Deregistered`.
+//!
+//! [`Pallet::force_remove_teleportable_erc20`] is the admin escape hatch that deletes
+//! the entry regardless of state and counter, emitting an event that records both for
+//! auditability.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -105,30 +135,23 @@ pub mod pallet {
 		type TeleportTrustedLocation: Get<Location>;
 	}
 
-	/// Lifecycle status of a contract in the teleport whitelist.
+	/// Lifecycle status of a contract in the teleport whitelist. See the module-level
+	/// docs for the state diagram.
 	///
-	/// The whitelist entry is **never** deleted from storage. That is what makes the
-	/// design safe: even after "removal", any supply locked in `TeleportCheckingAccount`
-	/// can still find its way home, because the inbound gates keep admitting the
-	/// contract.
-	///
-	/// Legal admin transitions (all gated by [`Config::TeleportAdminOrigin`]):
-	/// - `(none) → Active` via [`Pallet::add_teleportable_erc20`].
-	/// - `Active → InboundOnly` via [`Pallet::remove_teleportable_erc20`].
-	/// - `InboundOnly → Active` via [`Pallet::add_teleportable_erc20`] (re-activation —
-	///   root can revive a previously removed contract without losing the inbound
-	///   history, because the entry is still in storage).
-	///
-	/// - `Active`: fully whitelisted for both directions. Users can send the contract
-	///   out via `pallet_xcm::limited_teleport_assets` (locking supply in the checking
-	///   account) and inbound teleports from [`Config::TeleportTrustedLocation`] unwind
-	///   locked supply back to beneficiaries.
-	/// - `InboundOnly`: outbound (lock) is disabled — new outbound teleports for this
-	///   contract are rejected by every outbound gate. Inbound (unlock) stays open from
-	///   `TeleportTrustedLocation`, so any supply still parked in
-	///   `TeleportCheckingAccount` can be pulled back via legitimate XCM teleport-back
-	///   messages. Root can flip the contract back to `Active` at any time via
-	///   `add_teleportable_erc20`.
+	/// - `Registered`: admin just inserted the contract via
+	///   [`Pallet::add_teleportable_erc20`]. No teleport leg has executed yet in this
+	///   lifecycle; [`LockedSupply`] is `0`. Both directions are admitted by the gates
+	///   so the first leg can actually run.
+	/// - `Active`: at least one teleport leg (in or out) has executed. The transition
+	///   from `Registered` is automatic and happens inside the asset transactor when
+	///   the EVM transfer succeeds. `LockedSupply` may be `0` (e.g. inbound legs
+	///   unwound everything) or positive.
+	/// - `Deregistered`: admin called [`Pallet::remove_teleportable_erc20`] while
+	///   `LockedSupply > 0`. Outbound is closed in every gate, but inbound stays open
+	///   so users can teleport their twin back from
+	///   [`Config::TeleportTrustedLocation`] and decrement the counter. When the
+	///   counter reaches `0`, anyone can sweep the entry by calling
+	///   `remove_teleportable_erc20` again.
 	#[derive(
 		Encode,
 		Decode,
@@ -142,127 +165,254 @@ pub mod pallet {
 		Debug,
 	)]
 	pub enum TeleportableErc20Status {
+		Registered,
 		Active,
-		InboundOnly,
+		Deregistered,
 	}
 
 	/// Whitelist of ERC-20 contracts that are eligible for teleport semantics, keyed by
 	/// EVM address. The stored variant decides what the per-message gates admit; see
-	/// [`TeleportableErc20Status`].
+	/// [`TeleportableErc20Status`] and the module-level state diagram.
 	///
-	/// Adding a contract to this map (`Active`) signals that:
-	/// - this runtime locks its supply in `TeleportCheckingAccount` whenever it is sent
-	///   cross-chain via XCM, and
-	/// - any sibling chain that registered the asset's foreign-asset twin with
-	///   `teleportable: true` and `reserve = (1, [Parachain(<this para>)])` will accept
-	///   teleport semantics for it.
+	/// Storage entries are removed under exactly two paths:
+	/// - [`Pallet::remove_teleportable_erc20`] when [`LockedSupply`] is zero (admin for
+	///   `Registered`, permissionless for `Active`/`Deregistered`), and
+	/// - [`Pallet::force_remove_teleportable_erc20`] (admin escape hatch).
+	///
+	/// While the entry is present, this runtime locks the contract's supply in
+	/// `TeleportCheckingAccount` whenever it is sent cross-chain via XCM, and any
+	/// counterparty that registered the asset's foreign-asset twin with
+	/// `teleportable: true` and `reserve = (1, [Parachain(<this para>)])` will accept
+	/// teleport semantics for it.
 	#[pallet::storage]
 	pub type TeleportableErc20s<T: Config> =
 		StorageMap<_, Twox64Concat, H160, TeleportableErc20Status, OptionQuery>;
 
+	/// Per-contract counter of ERC-20 supply currently locked in
+	/// [`Config::TeleportCheckingAccount`] as a result of teleport-out legs handled by
+	/// [`Erc20TeleportTransactor`]. Maintained in lockstep with every teleport leg:
+	///
+	/// - `withdraw_asset` (outbound lock leg): saturating-add `amount`.
+	/// - `deposit_asset` (inbound unlock leg): saturating-sub `amount`.
+	/// - `internal_transfer_asset`: untouched (same-chain hop, never moves the checking
+	///   account).
+	///
+	/// The counter is **the** authoritative signal for "any outstanding obligation?".
+	/// When it is zero, [`Pallet::remove_teleportable_erc20`] purges the storage entry
+	/// outright; when it is non-zero, removal flips the contract to `Deregistered` so
+	/// users on the trusted counterparty can keep teleporting their twin back and
+	/// decrementing the counter.
+	///
+	/// Drift modes:
+	/// - **Donations.** A direct `ERC20.transfer(checking, amount)` outside XCM raises
+	///   the on-chain balance without changing this counter. Such donated supply has
+	///   no foreign-asset twin to match, so ignoring it is correct: the counter
+	///   intentionally tracks the obligation, not the wallet balance.
+	/// - **Off-pallet drains.** A contract that drains the checking account behind our
+	///   back lowers the on-chain balance without changing this counter. The counter
+	///   then over-reports the obligation, which conservatively keeps the entry
+	///   non-purgeable until [`Pallet::force_remove_teleportable_erc20`].
+	/// - **Inbound on a fresh `Registered` entry.** If the counterparty already had a
+	///   twin balance before the first outbound leg (e.g. seeded externally), an
+	///   inbound leg saturating-subs against `0`. The deposit still proceeds — the
+	///   counter is a lower bound on the obligation, never a hard cap on inbound.
+	#[pallet::storage]
+	pub type LockedSupply<T: Config> = StorageMap<_, Twox64Concat, H160, U256, ValueQuery>;
+
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
-		/// An ERC-20 contract is now `Active` in the teleport whitelist. Emitted both on
-		/// the fresh insert (`(none) → Active`) and on the re-activation transition
-		/// (`InboundOnly → Active`); both go through [`Pallet::add_teleportable_erc20`].
+		/// An ERC-20 contract was inserted into the teleport whitelist as `Registered`.
+		/// Emitted both on a fresh add (`(none) → Registered`) and on revival from
+		/// `Deregistered → Registered`; both go through
+		/// [`Pallet::add_teleportable_erc20`].
 		TeleportableErc20Added { contract: H160 },
-		/// An ERC-20 contract was moved from `Active` to `InboundOnly`. New outbound
-		/// teleports for it are now refused, but inbound teleports from
-		/// `TeleportTrustedLocation` continue to unwind any supply still locked in
-		/// `TeleportCheckingAccount`.
+		/// An ERC-20 contract was promoted `Registered → Active` by the asset
+		/// transactor after its first successful teleport leg in this lifecycle. Not an
+		/// admin event; it fires from inside `withdraw_asset`/`deposit_asset`/
+		/// `internal_transfer_asset`.
+		TeleportableErc20Activated { contract: H160 },
+		/// An ERC-20 contract was moved from `Registered`/`Active` to `Deregistered`
+		/// because [`LockedSupply`] was non-zero when
+		/// [`Pallet::remove_teleportable_erc20`] was called. New outbound teleports for
+		/// it are now refused, but inbound teleports from
+		/// [`Config::TeleportTrustedLocation`] continue to unwind the counter back to
+		/// zero.
 		TeleportableErc20Removed { contract: H160 },
+		/// The whitelist entry for the given contract was deleted from storage via
+		/// [`Pallet::remove_teleportable_erc20`] because [`LockedSupply`] reached zero.
+		/// The contract no longer participates in teleport semantics.
+		TeleportableErc20Purged { contract: H160 },
+		/// [`Pallet::force_remove_teleportable_erc20`] deleted the entry regardless of
+		/// state. Emits the state and the `LockedSupply` counter at the time of the
+		/// call so any orphaned obligation is auditable from chain events.
+		TeleportableErc20ForceRemoved {
+			contract: H160,
+			status_before: TeleportableErc20Status,
+			locked_supply: U256,
+		},
 	}
 
 	#[pallet::error]
 	pub enum Error<T> {
-		/// The contract is already in the teleport whitelist as `Active`. (An
-		/// `InboundOnly` contract is **not** considered duplicate by
-		/// [`Pallet::add_teleportable_erc20`] — calling `add` on it re-activates it.)
+		/// The contract is already in the teleport whitelist as `Registered` or
+		/// `Active`. ([`Pallet::add_teleportable_erc20`] on a `Deregistered` contract
+		/// is the legal revival path and is **not** considered duplicate.)
 		Erc20AlreadyTeleportable,
-		/// The contract is not in the teleport whitelist.
+		/// The contract is not in the teleport whitelist (either it was never added or
+		/// it was already purged via [`Pallet::remove_teleportable_erc20`] /
+		/// [`Pallet::force_remove_teleportable_erc20`]).
 		Erc20NotTeleportable,
-		/// The contract is already in `InboundOnly` state — `remove_teleportable_erc20`
-		/// is a no-op here. To re-enable outbound, call
-		/// [`Pallet::add_teleportable_erc20`], which is the legal `InboundOnly → Active`
-		/// transition.
+		/// The contract is already `Deregistered` and [`LockedSupply`] is still
+		/// non-zero, so [`Pallet::remove_teleportable_erc20`] is a no-op. Wait for
+		/// users to teleport supply back (which will eventually drive the counter to
+		/// zero, allowing the entry to be swept), or use
+		/// [`Pallet::force_remove_teleportable_erc20`] to forfeit the obligation.
 		Erc20AlreadyRemoved,
 	}
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		/// Set an ERC-20 contract's whitelist entry to `Active`. Callable only by
-		/// `TeleportAdminOrigin`.
+		/// Insert (or revive) an ERC-20 contract in the teleport whitelist as
+		/// `Registered`. Callable only by [`Config::TeleportAdminOrigin`].
 		///
 		/// Behaviour by current state:
-		/// - **No entry** (`(none) → Active`): inserts a fresh whitelist entry. This is
-		///   the normal "add" path.
-		/// - **`InboundOnly` → `Active`**: re-activates a previously removed contract.
-		///   Root can use this to revive a contract whose `remove_teleportable_erc20`
-		///   was issued in error or whose retirement should be reversed. The whitelist
-		///   entry was preserved in storage precisely so this transition is lossless
-		///   (in particular, any supply still parked in `TeleportCheckingAccount` keeps
-		///   its inbound path open the whole time).
-		/// - **`Active`**: rejected with [`Error::Erc20AlreadyTeleportable`] — already a
-		///   no-op.
+		/// - **No entry** (`(none) → Registered`): fresh add. The first subsequent
+		///   teleport leg auto-promotes to `Active`.
+		/// - **`Deregistered` → `Registered`**: revival. Any [`LockedSupply`] from the
+		///   pre-deregistration lifetime is preserved verbatim; the next teleport leg
+		///   auto-promotes to `Active`. Use this to undo an in-error
+		///   `remove_teleportable_erc20`, or to reopen outbound after a planned
+		///   maintenance window.
+		/// - **`Registered`**: rejected with [`Error::Erc20AlreadyTeleportable`] — the
+		///   entry is already in the pre-flow state, no-op.
+		/// - **`Active`**: rejected with [`Error::Erc20AlreadyTeleportable`] — the
+		///   entry is already fully whitelisted, no-op.
 		///
-		/// The whitelist is checked by [`Erc20TeleportTransactor`] and by the
-		/// [`IsTeleportableErc20`] filter, so setting a contract `Active` both:
-		/// - admits user-facing `pallet_xcm::limited_teleport_assets` calls carrying
-		///   that contract, and
-		/// - enables true lock/unlock semantics for it on cross-chain XCM flows.
-		///
-		/// Both the fresh add and the re-activation paths emit
-		/// [`Event::TeleportableErc20Added`].
+		/// Emits [`Event::TeleportableErc20Added`] on success.
 		#[pallet::call_index(0)]
 		#[pallet::weight(Weight::from_parts(15_000_000, 0).saturating_add(T::DbWeight::get().reads_writes(1, 1)))]
 		pub fn add_teleportable_erc20(origin: OriginFor<T>, contract: H160) -> DispatchResult {
 			T::TeleportAdminOrigin::ensure_origin(origin)?;
 			match TeleportableErc20s::<T>::get(&contract) {
-				Some(TeleportableErc20Status::Active) => {
+				Some(TeleportableErc20Status::Registered)
+				| Some(TeleportableErc20Status::Active) => {
 					return Err(Error::<T>::Erc20AlreadyTeleportable.into())
 				}
-				_ => {
-					TeleportableErc20s::<T>::insert(&contract, TeleportableErc20Status::Active);
+				// `(none)` → fresh add, `Deregistered` → revival. Both land on
+				// `Registered`; the next teleport leg auto-promotes to `Active`.
+				None | Some(TeleportableErc20Status::Deregistered) => {
+					TeleportableErc20s::<T>::insert(&contract, TeleportableErc20Status::Registered);
 					Self::deposit_event(Event::TeleportableErc20Added { contract });
 					Ok(())
 				}
 			}
 		}
 
-		/// Move an `Active` whitelisted ERC-20 to `InboundOnly`. Callable only by
-		/// `TeleportAdminOrigin`.
+		/// Dual-purpose retirement extrinsic for a whitelisted ERC-20.
 		///
-		/// After this call:
-		/// - new outbound `pallet_xcm::limited_teleport_assets` calls for this contract
-		///   are rejected by [`IsTeleportableErc20`] (`XcmTeleportFilter`) and by
-		///   `Erc20TeleportTransactor::{can_check_out, withdraw_asset, internal_transfer_asset}`;
-		/// - inbound teleports from [`Config::TeleportTrustedLocation`] continue to
-		///   unwind any supply still locked in `TeleportCheckingAccount` back to
-		///   beneficiaries — `IsTeleporter`, `can_check_in`, and `deposit_asset` all
-		///   keep admitting the contract.
+		/// Behaviour depends on [`LockedSupply`] at call time:
 		///
-		/// The whitelist entry is **not** deleted: it just flips state. That's what
-		/// keeps the inbound path open. Operators don't need to track or pre-drain the
-		/// EVM checking account before calling this; users that still hold
-		/// `pallet_assets` foreign-asset balances on the trusted counterparty can
-		/// teleport them back at any later point and the unlock will succeed.
+		/// - **`LockedSupply == 0`** (no outstanding obligation): the entry is purged
+		///   from storage outright. `LockedSupply` is also removed.
+		///   - Origin: [`Config::TeleportAdminOrigin`] is required when the current
+		///     status is `Registered` (a freshly added entry should only be erased by
+		///     admin, never by a third party racing the admin's intent).
+		///   - Origin: any **signed** origin is accepted when the current status is
+		///     `Active` or `Deregistered` — anyone may sweep an entry whose obligation
+		///     has been fully discharged. This is the "permissionless purge" path and
+		///     is what gives the lifecycle a natural terminus.
+		///   - Emits [`Event::TeleportableErc20Purged`].
 		///
-		/// `InboundOnly` is reversible: root can call
-		/// [`Pallet::add_teleportable_erc20`] to flip the contract back to `Active`.
+		/// - **`LockedSupply > 0`** (outstanding obligation): the entry is flipped to
+		///   `Deregistered`. New outbound teleports are refused; inbound teleports keep
+		///   unwinding the counter. Once the counter reaches zero, the entry can be
+		///   swept by anyone via this same extrinsic.
+		///   - Origin: [`Config::TeleportAdminOrigin`] is required.
+		///   - Already-`Deregistered` entries return [`Error::Erc20AlreadyRemoved`].
+		///   - Emits [`Event::TeleportableErc20Removed`].
+		///
+		/// Errors:
+		/// - [`Error::Erc20NotTeleportable`] when the contract has no whitelist entry.
+		/// - [`Error::Erc20AlreadyRemoved`] when the contract is already
+		///   `Deregistered` and `LockedSupply > 0`.
 		#[pallet::call_index(1)]
-		#[pallet::weight(Weight::from_parts(15_000_000, 0).saturating_add(T::DbWeight::get().reads_writes(1, 1)))]
+		#[pallet::weight(Weight::from_parts(15_000_000, 0).saturating_add(T::DbWeight::get().reads_writes(2, 2)))]
 		pub fn remove_teleportable_erc20(origin: OriginFor<T>, contract: H160) -> DispatchResult {
+			let status =
+				TeleportableErc20s::<T>::get(&contract).ok_or(Error::<T>::Erc20NotTeleportable)?;
+			let count = LockedSupply::<T>::get(&contract);
+
+			if count.is_zero() {
+				// Purge path. Permissionless for `Active`/`Deregistered`, admin-only
+				// for `Registered` so a fresh add can't be undone by a third party.
+				match status {
+					TeleportableErc20Status::Registered => {
+						T::TeleportAdminOrigin::ensure_origin(origin)?;
+					}
+					TeleportableErc20Status::Active | TeleportableErc20Status::Deregistered => {
+						// Permissionless: any signed origin passes, and admin (root)
+						// is the strict superset. Unsigned (`None`) is rejected with
+						// `BadOrigin` to prevent free unsigned calls.
+						let _ = ensure_signed_or_root(origin)?;
+					}
+				}
+				TeleportableErc20s::<T>::remove(&contract);
+				LockedSupply::<T>::remove(&contract);
+				Self::deposit_event(Event::TeleportableErc20Purged { contract });
+				return Ok(());
+			}
+
+			// `count > 0`: state-change path. Always admin.
 			T::TeleportAdminOrigin::ensure_origin(origin)?;
-			match TeleportableErc20s::<T>::get(&contract) {
-				None => return Err(Error::<T>::Erc20NotTeleportable.into()),
-				Some(TeleportableErc20Status::InboundOnly) => {
+			match status {
+				TeleportableErc20Status::Deregistered => {
 					return Err(Error::<T>::Erc20AlreadyRemoved.into())
 				}
-				Some(TeleportableErc20Status::Active) => {}
+				// `Registered + count > 0` is unreachable in practice (the first leg
+				// promotes to `Active`), but treat it like `Active` for defensive
+				// correctness.
+				TeleportableErc20Status::Registered | TeleportableErc20Status::Active => {}
 			}
-			TeleportableErc20s::<T>::insert(&contract, TeleportableErc20Status::InboundOnly);
+			TeleportableErc20s::<T>::insert(&contract, TeleportableErc20Status::Deregistered);
 			Self::deposit_event(Event::TeleportableErc20Removed { contract });
+			Ok(())
+		}
+
+		/// Admin escape hatch: delete the whitelist entry and its [`LockedSupply`]
+		/// counter regardless of state and counter value. Callable only by
+		/// [`Config::TeleportAdminOrigin`].
+		///
+		/// This is a destructive operation. If `LockedSupply > 0` at call time, any
+		/// supply still parked in [`Config::TeleportCheckingAccount`] is effectively
+		/// stranded from this pallet's bookkeeping perspective — inbound teleport-back
+		/// messages will be rejected by the gates as the entry is gone, and users that
+		/// still hold the foreign-asset twin on the trusted counterparty cannot redeem
+		/// it through this pallet without a subsequent
+		/// [`Pallet::add_teleportable_erc20`] revival.
+		///
+		/// Emits [`Event::TeleportableErc20ForceRemoved`] with `status_before` and
+		/// `locked_supply` so the act is auditable on-chain.
+		///
+		/// Errors:
+		/// - [`Error::Erc20NotTeleportable`] when the contract has no whitelist entry.
+		#[pallet::call_index(2)]
+		#[pallet::weight(Weight::from_parts(15_000_000, 0).saturating_add(T::DbWeight::get().reads_writes(2, 2)))]
+		pub fn force_remove_teleportable_erc20(
+			origin: OriginFor<T>,
+			contract: H160,
+		) -> DispatchResult {
+			T::TeleportAdminOrigin::ensure_origin(origin)?;
+			let status =
+				TeleportableErc20s::<T>::get(&contract).ok_or(Error::<T>::Erc20NotTeleportable)?;
+			let locked_supply = LockedSupply::<T>::get(&contract);
+			TeleportableErc20s::<T>::remove(&contract);
+			LockedSupply::<T>::remove(&contract);
+			Self::deposit_event(Event::TeleportableErc20ForceRemoved {
+				contract,
+				status_before: status,
+				locked_supply,
+			});
 			Ok(())
 		}
 	}
@@ -271,23 +421,40 @@ pub mod pallet {
 		pub fn is_erc20_asset(asset: &Asset) -> bool {
 			Erc20Matcher::<T::Erc20MultilocationPrefix>::is_erc20_asset(asset)
 		}
-		/// Whether the given ERC-20 contract is currently admitted by the teleport
-		/// whitelist in any state (`Active` or `InboundOnly`). Used by inbound gates
-		/// (`IsTeleporter`, `can_check_in`, `deposit_asset`) so that supply locked in
+		/// Whether the given ERC-20 contract has any whitelist entry — `Registered`,
+		/// `Active`, or `Deregistered`. Used by inbound gates (`IsTeleporter`,
+		/// `can_check_in`, `deposit_asset`) so that supply locked in
 		/// `TeleportCheckingAccount` can always come home, even after the contract has
-		/// been "removed" (i.e. flipped to `InboundOnly`).
+		/// been moved to `Deregistered`.
 		pub fn is_teleportable_erc20(contract: &H160) -> bool {
 			TeleportableErc20s::<T>::contains_key(contract)
 		}
-		/// Whether the given ERC-20 contract is currently admitted as `Active`. Used by
-		/// outbound gates (`withdraw_asset`, `can_check_out`, `internal_transfer_asset`,
-		/// `XcmTeleportFilter`). `InboundOnly` returns false here — that's what disables
-		/// new outbound locks while keeping the return path open.
-		pub fn is_active_teleportable_erc20(contract: &H160) -> bool {
+		/// Whether the given ERC-20 contract is currently outbound-eligible
+		/// (`Registered` or `Active`). Used by outbound gates (`withdraw_asset`,
+		/// `can_check_out`, `internal_transfer_asset`, `XcmTeleportFilter`).
+		/// `Deregistered` returns false — that's what disables new outbound locks while
+		/// keeping the return path open.
+		pub fn is_outbound_eligible_erc20(contract: &H160) -> bool {
 			matches!(
 				TeleportableErc20s::<T>::get(contract),
-				Some(TeleportableErc20Status::Active)
+				Some(TeleportableErc20Status::Registered) | Some(TeleportableErc20Status::Active),
 			)
+		}
+		/// Promote a `Registered` entry to `Active`. Called from inside the asset
+		/// transactor's storage layer immediately after a successful EVM transfer leg.
+		/// Idempotent: a no-op if the contract is already `Active` or has been moved
+		/// to a different state. Emits [`Event::TeleportableErc20Activated`] only on
+		/// the actual `Registered → Active` transition.
+		fn promote_registered_to_active(contract: &H160) {
+			if matches!(
+				TeleportableErc20s::<T>::get(contract),
+				Some(TeleportableErc20Status::Registered),
+			) {
+				TeleportableErc20s::<T>::insert(contract, TeleportableErc20Status::Active);
+				Self::deposit_event(Event::TeleportableErc20Activated {
+					contract: *contract,
+				});
+			}
 		}
 		pub fn gas_limit_of_erc20_transfer(asset_id: &AssetId) -> u64 {
 			let location = &asset_id.0;
@@ -471,39 +638,58 @@ pub mod pallet {
 		}
 	}
 
-	/// `TransactAsset` implementation for whitelisted ERC-20s. Performs real EVM transfers
-	/// against `T::TeleportCheckingAccount`:
+	/// `TransactAsset` implementation for whitelisted ERC-20s. Performs real EVM
+	/// transfers against `T::TeleportCheckingAccount` and maintains the [`LockedSupply`]
+	/// counter and the [`TeleportableErc20Status`] lifecycle:
 	///
-	/// - `withdraw_asset(asset, who)` → `ERC20.transfer(who → checking)`. Used both for
-	///   teleport-out and (incidentally) reserve-out of whitelisted contracts.
-	/// - `deposit_asset(holding, beneficiary)` → `ERC20.transfer(checking → beneficiary)`. Used
-	///   both for teleport-in and reserve-in of whitelisted contracts.
-	/// - `internal_transfer_asset(asset, from, to)` → `ERC20.transfer(from → to)` (same as
-	///   the legacy reserve adapter; same-chain transfer never touches the checking address).
+	/// - `withdraw_asset(asset, who)` → `ERC20.transfer(who → checking)`, then
+	///   `LockedSupply += amount`, then `Registered → Active` if applicable.
+	/// - `deposit_asset(holding, beneficiary)` → `ERC20.transfer(checking → beneficiary)`,
+	///   then `LockedSupply -=(saturating) amount`, then `Registered → Active` if
+	///   applicable.
+	/// - `internal_transfer_asset(asset, from, to)` → `ERC20.transfer(from → to)`
+	///   (same-chain hop, never touches the checking account; only the status
+	///   promotion runs).
 	///
-	/// Non-whitelisted assets always return `Err(AssetNotFound)`, letting the legacy
-	/// `Pallet<T>` adapter (placed after this one in `AssetTransactors`) keep its
-	/// single-EVM-call reserve optimisation.
+	/// All three legs are wrapped in `frame_support::storage::with_storage_layer` so
+	/// the EVM transfer, counter mutation, and status promotion are atomic w.r.t. each
+	/// other.
+	///
+	/// **Zero-amount fast path.** When the matcher resolves a whitelisted contract
+	/// with `Fungible(0)`, all three legs short-circuit to `Ok(())` (or `Ok(holding)`
+	/// for the outbound legs) **without** touching the EVM, the counter, or the
+	/// lifecycle. This prevents spam-able zero-amount teleports from burning gas,
+	/// writing the counter to its current value, and prematurely promoting
+	/// `Registered → Active` (which would otherwise emit a spurious
+	/// [`Event::TeleportableErc20Activated`] for a flow that moved nothing).
+	///
+	/// Non-whitelisted assets and `Deregistered` outbound legs return
+	/// `Err(AssetNotFound)`, letting the legacy `Pallet<T>` adapter (placed after this
+	/// one in `AssetTransactors`) keep its single-EVM-call reserve optimisation.
 	pub struct Erc20TeleportTransactor<T>(PhantomData<T>);
 
 	impl<T: Config> Erc20TeleportTransactor<T> {
-		/// Decode an `Asset` to `(contract, amount)` only when the contract is admitted
-		/// on the **outbound** path, i.e. its whitelist entry is `Active`. Used by gates
-		/// that must NOT lock new supply for contracts that have been moved to
-		/// `InboundOnly` via `remove_teleportable_erc20`.
-		fn match_active(asset: &Asset) -> Result<(H160, U256), MatchError> {
+		/// Decode an `Asset` to `(contract, amount)` only when the contract is
+		/// outbound-eligible, i.e. its whitelist entry is `Registered` or `Active`.
+		/// Used by gates that must NOT lock new supply for contracts that have been
+		/// moved to `Deregistered` via `remove_teleportable_erc20`.
+		fn match_outbound(asset: &Asset) -> Result<(H160, U256), MatchError> {
 			let (contract, amount) =
 				Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(asset)?;
 			match TeleportableErc20s::<T>::get(&contract) {
-				Some(TeleportableErc20Status::Active) => Ok((contract, amount)),
-				_ => Err(MatchError::AssetNotHandled),
+				Some(TeleportableErc20Status::Registered)
+				| Some(TeleportableErc20Status::Active) => Ok((contract, amount)),
+				Some(TeleportableErc20Status::Deregistered) | None => {
+					Err(MatchError::AssetNotHandled)
+				}
 			}
 		}
 
 		/// Decode an `Asset` to `(contract, amount)` whenever the contract has any
-		/// whitelist entry — `Active` or `InboundOnly`. Used by inbound gates so that
-		/// supply already locked in `TeleportCheckingAccount` can always come home from
-		/// `TeleportTrustedLocation`, even after the contract has been "removed".
+		/// whitelist entry — `Registered`, `Active`, or `Deregistered`. Used by
+		/// inbound gates so that supply already locked in `TeleportCheckingAccount` can
+		/// always come home from `TeleportTrustedLocation`, even after the contract
+		/// has been deregistered.
 		fn match_admitted(asset: &Asset) -> Result<(H160, U256), MatchError> {
 			let (contract, amount) =
 				Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(asset)?;
@@ -530,8 +716,8 @@ pub mod pallet {
 	impl<T: Config> xcm_executor::traits::TransactAsset for Erc20TeleportTransactor<T> {
 		fn can_check_in(origin: &Location, what: &Asset, _context: &XcmContext) -> XcmResult {
 			Self::ensure_trusted_peer(origin)?;
-			// Inbound: admit `Active` OR `InboundOnly` so that "removed" contracts can
-			// still unwind any supply still locked in `TeleportCheckingAccount`.
+			// Inbound: admit any whitelisted entry so a `Deregistered` contract can
+			// still unwind supply still locked in `TeleportCheckingAccount`.
 			let _ = Self::match_admitted(what)?;
 			Ok(())
 		}
@@ -540,27 +726,46 @@ pub mod pallet {
 
 		fn can_check_out(dest: &Location, what: &Asset, _context: &XcmContext) -> XcmResult {
 			Self::ensure_trusted_peer(dest)?;
-			// Outbound: only admit `Active`. `InboundOnly` contracts must NOT lock new
-			// supply; this is the runtime-side enforcement of
-			// `remove_teleportable_erc20` semantics.
-			let _ = Self::match_active(what)?;
+			// Outbound: admit `Registered` (so the first leg can run) or `Active`.
+			// `Deregistered` contracts must NOT lock new supply.
+			let _ = Self::match_outbound(what)?;
 			Ok(())
 		}
 
 		fn check_out(_dest: &Location, _what: &Asset, _context: &XcmContext) {}
 
 		fn deposit_asset(what: &Asset, who: &Location, _context: Option<&XcmContext>) -> XcmResult {
-			// Inbound side of the EVM transfer. Admit Active OR InboundOnly so the
-			// teleport-back path stays open indefinitely after `remove_teleportable_erc20`.
+			// Inbound side of the EVM transfer. Admit any whitelisted entry so the
+			// teleport-back path stays open indefinitely after
+			// `remove_teleportable_erc20` deregisters a contract.
 			let (contract, amount) = Self::match_admitted(what)?;
+
+			// Zero-amount fast path: trivially succeed without touching the EVM,
+			// the counter, or the lifecycle. See the module-level docs for why we
+			// short-circuit here. The contract was admitted by the matcher, so this
+			// is only a no-op for whitelisted entries; non-whitelisted contracts
+			// still fall through to the legacy adapter via `AssetNotFound`.
+			if amount.is_zero() {
+				return Ok(());
+			}
+
 			let beneficiary = T::AccountIdConverter::convert_location(who)
 				.ok_or(MatchError::AccountIdConversionFailed)?;
 
 			let gas_limit = Pallet::<T>::gas_limit_of_erc20_transfer(&what.id);
 			let checking = T::TeleportCheckingAccount::get();
 
-			frame_support::storage::with_storage_layer(|| {
-				Pallet::<T>::erc20_transfer(contract, checking, beneficiary, amount, gas_limit)
+			frame_support::storage::with_storage_layer(|| -> Result<(), Erc20TransferError> {
+				Pallet::<T>::erc20_transfer(contract, checking, beneficiary, amount, gas_limit)?;
+				// Decrement the obligation counter. Saturating so that pre-seeded
+				// supply on the trusted counterparty (which has no matching prior
+				// outbound leg here) doesn't underflow; the deposit still proceeds.
+				LockedSupply::<T>::mutate(&contract, |b| *b = b.saturating_sub(amount));
+				// First leg in this lifecycle promotes `Registered → Active`. Done
+				// inside the storage layer so a failed EVM transfer rolls back the
+				// state transition along with the counter mutation.
+				Pallet::<T>::promote_registered_to_active(&contract);
+				Ok(())
 			})
 			.map_err(Into::into)
 		}
@@ -570,17 +775,31 @@ pub mod pallet {
 			who: &Location,
 			_context: Option<&XcmContext>,
 		) -> Result<AssetsInHolding, XcmError> {
-			// Outbound side of the EVM transfer. Active-only: `remove_teleportable_erc20`
-			// stops new supply from getting locked in `TeleportCheckingAccount` here.
-			let (contract, amount) = Self::match_active(what)?;
+			// Outbound side of the EVM transfer. Outbound-eligible only.
+			// `Deregistered` contracts must NOT lock new supply here.
+			let (contract, amount) = Self::match_outbound(what)?;
+
+			// Zero-amount fast path. Skips the EVM call, the `LockedSupply` write,
+			// and the `Registered → Active` promotion so spam-able 0-amount
+			// teleports cannot eat through the lifecycle for free. Holding stays
+			// consistent because we still report the asset as withdrawn (with
+			// fungible amount 0).
+			if amount.is_zero() {
+				return Ok(what.clone().into());
+			}
+
 			let from = T::AccountIdConverter::convert_location(who)
 				.ok_or(MatchError::AccountIdConversionFailed)?;
 
 			let gas_limit = Pallet::<T>::gas_limit_of_erc20_transfer(&what.id);
 			let checking = T::TeleportCheckingAccount::get();
 
-			frame_support::storage::with_storage_layer(|| {
-				Pallet::<T>::erc20_transfer(contract, from, checking, amount, gas_limit)
+			frame_support::storage::with_storage_layer(|| -> Result<(), Erc20TransferError> {
+				Pallet::<T>::erc20_transfer(contract, from, checking, amount, gas_limit)?;
+				// Increment the obligation counter to reflect the new locked supply.
+				LockedSupply::<T>::mutate(&contract, |b| *b = b.saturating_add(amount));
+				Pallet::<T>::promote_registered_to_active(&contract);
+				Ok(())
 			})?;
 
 			Ok(what.clone().into())
@@ -592,10 +811,21 @@ pub mod pallet {
 			to: &Location,
 			_context: &XcmContext,
 		) -> Result<AssetsInHolding, XcmError> {
-			// Same-chain XCM hop. Treat like a fresh outbound: only Active contracts
-			// can be moved by this transactor; otherwise fall through to the legacy
-			// reserve adapter via `AssetNotHandled`.
-			let (contract, amount) = Self::match_active(asset)?;
+			// Same-chain XCM hop. Treat like a fresh outbound for matching purposes
+			// (outbound-eligible only); otherwise fall through to the legacy reserve
+			// adapter via `AssetNotHandled`.
+			//
+			// The checking account is **not** involved, so `LockedSupply` is not
+			// touched: a same-chain transfer changes neither the locked-supply
+			// obligation nor the cross-chain accounting. The status promotion still
+			// fires because this is a successful flow handled by this transactor.
+			let (contract, amount) = Self::match_outbound(asset)?;
+
+			// Zero-amount fast path: see `withdraw_asset` rationale.
+			if amount.is_zero() {
+				return Ok(asset.clone().into());
+			}
+
 			let from = T::AccountIdConverter::convert_location(from)
 				.ok_or(MatchError::AccountIdConversionFailed)?;
 			let to = T::AccountIdConverter::convert_location(to)
@@ -603,8 +833,10 @@ pub mod pallet {
 
 			let gas_limit = Pallet::<T>::gas_limit_of_erc20_transfer(&asset.id);
 
-			frame_support::storage::with_storage_layer(|| {
-				Pallet::<T>::erc20_transfer(contract, from, to, amount, gas_limit)
+			frame_support::storage::with_storage_layer(|| -> Result<(), Erc20TransferError> {
+				Pallet::<T>::erc20_transfer(contract, from, to, amount, gas_limit)?;
+				Pallet::<T>::promote_registered_to_active(&contract);
+				Ok(())
 			})?;
 
 			Ok(asset.clone().into())
@@ -616,30 +848,31 @@ pub mod pallet {
 	/// Implements both:
 	/// - `ContainsPair<Asset, Location>` for use as `xcm_executor::Config::IsTeleporter`.
 	///   This is the inbound + outbound counterparty trust gate. Returns `true` ONLY when
-	///   the asset is a whitelisted ERC-20 (in either `Active` or `InboundOnly` state)
-	///   AND the location equals `T::TeleportTrustedLocation::get()`. Without that
-	///   location bind, any sibling chain able to deliver XCM to this runtime could
-	///   present a whitelisted ERC-20 in `ReceiveTeleportedAsset`, pass `IsTeleporter`,
-	///   and drain the EVM checking account via the subsequent `DepositAsset`.
-	///   `InboundOnly` contracts are still admitted here so the teleport-back path stays
-	///   open; outbound teleports of `InboundOnly` contracts are blocked instead by
-	///   `Erc20TeleportTransactor::{can_check_out, withdraw_asset}` and the
-	///   `XcmTeleportFilter` impl below — all of which require `Active`.
+	///   the asset is a whitelisted ERC-20 in any state (`Registered`, `Active`, or
+	///   `Deregistered`) AND the location equals `T::TeleportTrustedLocation::get()`.
+	///   Without that location bind, any sibling chain able to deliver XCM to this
+	///   runtime could present a whitelisted ERC-20 in `ReceiveTeleportedAsset`, pass
+	///   `IsTeleporter`, and drain the EVM checking account via the subsequent
+	///   `DepositAsset`. `Deregistered` contracts are still admitted here so the
+	///   teleport-back path stays open; outbound teleports of `Deregistered` contracts
+	///   are blocked instead by `Erc20TeleportTransactor::{can_check_out, withdraw_asset}`
+	///   and the `XcmTeleportFilter` impl below — all of which require outbound
+	///   eligibility (`Registered` or `Active`).
 	/// - `Contains<(Location, Vec<Asset>)>` for use as
 	///   `pallet_xcm::Config::XcmTeleportFilter`. The user-facing outbound gate. It
-	///   admits ONLY `Active` contracts so that `pallet_xcm::limited_teleport_assets`
-	///   cannot start a fresh outbound teleport once the operator has called
-	///   `remove_teleportable_erc20`. The location argument here is the local caller's
-	///   origin (set inside `pallet_xcm::limited_teleport_assets` before the executor
-	///   runs), NOT the destination, so it is intentionally not bound. The destination is
-	///   enforced separately by `IsTeleporter` when the executor builds the outbound
-	///   message.
+	///   admits ONLY outbound-eligible contracts (`Registered` or `Active`) so that
+	///   `pallet_xcm::limited_teleport_assets` cannot start a fresh outbound teleport
+	///   once the operator has called `remove_teleportable_erc20` (and the entry is
+	///   either `Deregistered` or fully purged). The location argument here is the
+	///   local caller's origin (set inside `pallet_xcm::limited_teleport_assets`
+	///   before the executor runs), NOT the destination, so it is intentionally not
+	///   bound. The destination is enforced separately by `IsTeleporter` when the
+	///   executor builds the outbound message.
 	pub struct IsTeleportableErc20<T>(PhantomData<T>);
 
 	impl<T: Config> IsTeleportableErc20<T> {
-		/// Whether the asset's ERC-20 contract has any whitelist entry — `Active` or
-		/// `InboundOnly`. Used by `IsTeleporter` to keep the inbound unwind path open
-		/// indefinitely after `remove_teleportable_erc20`.
+		/// Whether the asset's ERC-20 contract has any whitelist entry. Used by
+		/// `IsTeleporter` to keep the inbound unwind path open across all states.
 		fn asset_is_admitted(asset: &Asset) -> bool {
 			match Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(asset) {
 				Ok((contract, _amount)) => TeleportableErc20s::<T>::contains_key(&contract),
@@ -647,14 +880,16 @@ pub mod pallet {
 			}
 		}
 
-		/// Whether the asset's ERC-20 contract is admitted as `Active`. Used by the
-		/// user-facing outbound `XcmTeleportFilter` so `remove_teleportable_erc20`
-		/// immediately closes the door to fresh outbound teleports.
-		fn asset_is_active(asset: &Asset) -> bool {
+		/// Whether the asset's ERC-20 contract is currently outbound-eligible
+		/// (`Registered` or `Active`). Used by the user-facing outbound
+		/// `XcmTeleportFilter` so `remove_teleportable_erc20` immediately closes the
+		/// door to fresh outbound teleports.
+		fn asset_is_outbound_eligible(asset: &Asset) -> bool {
 			match Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(asset) {
 				Ok((contract, _amount)) => matches!(
 					TeleportableErc20s::<T>::get(&contract),
-					Some(TeleportableErc20Status::Active)
+					Some(TeleportableErc20Status::Registered)
+						| Some(TeleportableErc20Status::Active),
 				),
 				Err(_) => false,
 			}
@@ -670,7 +905,7 @@ pub mod pallet {
 	impl<T: Config> Contains<(Location, Vec<Asset>)> for IsTeleportableErc20<T> {
 		fn contains(value: &(Location, Vec<Asset>)) -> bool {
 			let (_origin, assets) = value;
-			!assets.is_empty() && assets.iter().all(Self::asset_is_active)
+			!assets.is_empty() && assets.iter().all(Self::asset_is_outbound_eligible)
 		}
 	}
 }

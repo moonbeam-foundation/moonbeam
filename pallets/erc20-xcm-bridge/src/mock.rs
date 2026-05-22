@@ -116,7 +116,10 @@ const BLOCK_STORAGE_LIMIT: u64 = 40 * 1024;
 
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::from(u64::MAX);
-	pub const WeightPerGas: Weight = Weight::from_parts(1, 0);
+	// Non-zero proof_size component so `pallet_evm`'s runner has a budget large enough
+	// to record `ACCOUNT_CODES_METADATA_PROOF_SIZE` (~76 bytes) at the start of a call.
+	// Without this the runner returns `GasLimitTooLow` for any contract call.
+	pub const WeightPerGas: Weight = Weight::from_parts(1, 1);
 	pub GasLimitPovSizeRatio: u64 = {
 		let block_gas_limit = BlockGasLimit::get().min(u64::MAX.into()).low_u64();
 		block_gas_limit.saturating_div(MAX_POV_SIZE)
@@ -155,8 +158,12 @@ impl pallet_evm::Config for Test {
 	type FindAuthor = ();
 	type BlockHashMapping = SubstrateBlockHashMapping<Self>;
 	type OnCreate = ();
-	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
-	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
+	// `()` resolves to `0` for these `Get<u64>` ratios — that disables the PoV / storage
+	// growth checks in the EVM runner, which would otherwise reject our small-gas
+	// `erc20_transfer` test calls because the mock's `BlockGasLimit = u64::MAX`
+	// makes the computed ratios astronomical.
+	type GasLimitPovSizeRatio = ();
+	type GasLimitStorageGrowthRatio = ();
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Test>;
 	type AccountProvider = FrameSystemAccountProvider<Test>;
@@ -178,8 +185,23 @@ parameter_types! {
 		[xcm::latest::Junction::Parachain(1001)],
 	);
 }
+/// Minimal `Location → H160` converter for the unit-test ext: matches the leaf
+/// `AccountKey20 { key, .. }` and returns `H160(key)`. Pattern matches any number of
+/// preceding junctions so both `(0, [AccountKey20])` and richer locations work.
+pub struct H160FromAccountKey20Junction;
+
+impl xcm_executor::traits::ConvertLocation<H160> for H160FromAccountKey20Junction {
+	fn convert_location(loc: &xcm::latest::Location) -> Option<H160> {
+		use xcm::latest::Junction;
+		match loc.interior().last() {
+			Some(Junction::AccountKey20 { key, .. }) => Some(H160::from(*key)),
+			_ => None,
+		}
+	}
+}
+
 impl crate::Config for Test {
-	type AccountIdConverter = ();
+	type AccountIdConverter = H160FromAccountKey20Junction;
 	type Erc20MultilocationPrefix = Erc20MultilocationPrefix;
 	type Erc20TransferGasLimit = Erc20XcmBridgeTransferGasLimit;
 	type EvmRunner = pallet_evm::runner::stack::Runner<Self>;
