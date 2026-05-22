@@ -80,7 +80,8 @@ describeSuite({
 
     // Submit `completeUnclaimedRewards(target)` from Alith and build blocks (via moonwall's
     // createBlock, which builds deterministically from the local pool) until it is included.
-    // Returns the events scoped to our extrinsic.
+    // Returns the events scoped to our extrinsic. `allowFailures` keeps moonwall from throwing
+    // on the intentionally-failing second call (T02), so the test can inspect the failure itself.
     const settleAndCollectEvents = async (): Promise<FrameSystemEventRecord[]> => {
       const signed = await api.tx.crowdloanRewards
         .completeUnclaimedRewards(target)
@@ -89,7 +90,7 @@ describeSuite({
       await api.rpc.author.submitExtrinsic(signed.toHex());
 
       for (let attempt = 0; attempt < 3; attempt++) {
-        await context.createBlock();
+        await context.createBlock({ allowFailures: true });
         const block = await api.rpc.chain.getBlock();
         const idx = block.block.extrinsics.findIndex((ex) => ex.hash.toHex() === myHash);
         if (idx >= 0) {
