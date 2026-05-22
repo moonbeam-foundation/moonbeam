@@ -96,74 +96,172 @@ pub mod pallet {
 		/// EVM `H160` address used to lock ERC-20 supply when teleporting whitelisted contracts.
 		/// Must be controlled by this runtime; should not be a regular user account.
 		type TeleportCheckingAccount: Get<H160>;
+		/// The single counterparty location (typically Asset Hub) that this runtime trusts to
+		/// teleport whitelisted ERC-20s in/out. Used by [`IsTeleportableErc20`] to bind the
+		/// asset whitelist to a fixed peer for `xcm_executor::Config::IsTeleporter`, so an
+		/// inbound `ReceiveTeleportedAsset` carrying a whitelisted contract is only accepted
+		/// when the message origin equals this location. Outbound `pallet_xcm::limited_teleport_assets`
+		/// is similarly restricted: `dest` must equal this location.
+		type TeleportTrustedLocation: Get<Location>;
 	}
 
-	/// Whitelist of ERC-20 contracts that are eligible for teleport semantics. Adding a
-	/// contract to this map signals that:
+	/// Lifecycle status of a contract in the teleport whitelist.
+	///
+	/// The whitelist entry is **never** deleted from storage. That is what makes the
+	/// design safe: even after "removal", any supply locked in `TeleportCheckingAccount`
+	/// can still find its way home, because the inbound gates keep admitting the
+	/// contract.
+	///
+	/// Legal admin transitions (all gated by [`Config::TeleportAdminOrigin`]):
+	/// - `(none) → Active` via [`Pallet::add_teleportable_erc20`].
+	/// - `Active → InboundOnly` via [`Pallet::remove_teleportable_erc20`].
+	/// - `InboundOnly → Active` via [`Pallet::add_teleportable_erc20`] (re-activation —
+	///   root can revive a previously removed contract without losing the inbound
+	///   history, because the entry is still in storage).
+	///
+	/// - `Active`: fully whitelisted for both directions. Users can send the contract
+	///   out via `pallet_xcm::limited_teleport_assets` (locking supply in the checking
+	///   account) and inbound teleports from [`Config::TeleportTrustedLocation`] unwind
+	///   locked supply back to beneficiaries.
+	/// - `InboundOnly`: outbound (lock) is disabled — new outbound teleports for this
+	///   contract are rejected by every outbound gate. Inbound (unlock) stays open from
+	///   `TeleportTrustedLocation`, so any supply still parked in
+	///   `TeleportCheckingAccount` can be pulled back via legitimate XCM teleport-back
+	///   messages. Root can flip the contract back to `Active` at any time via
+	///   `add_teleportable_erc20`.
+	#[derive(
+		Encode,
+		Decode,
+		DecodeWithMemTracking,
+		MaxEncodedLen,
+		TypeInfo,
+		Clone,
+		Copy,
+		PartialEq,
+		Eq,
+		Debug,
+	)]
+	pub enum TeleportableErc20Status {
+		Active,
+		InboundOnly,
+	}
+
+	/// Whitelist of ERC-20 contracts that are eligible for teleport semantics, keyed by
+	/// EVM address. The stored variant decides what the per-message gates admit; see
+	/// [`TeleportableErc20Status`].
+	///
+	/// Adding a contract to this map (`Active`) signals that:
 	/// - this runtime locks its supply in `TeleportCheckingAccount` whenever it is sent
-	///   cross-chain via XCM,
-	/// - any sibling chain that registered the asset's foreign-asset twin with `teleportable:
-	///   true` and `reserve = (1, [Parachain(<this para>)])` will accept teleport semantics
-	///   for it.
+	///   cross-chain via XCM, and
+	/// - any sibling chain that registered the asset's foreign-asset twin with
+	///   `teleportable: true` and `reserve = (1, [Parachain(<this para>)])` will accept
+	///   teleport semantics for it.
 	#[pallet::storage]
-	pub type TeleportableErc20s<T: Config> = StorageMap<_, Twox64Concat, H160, (), OptionQuery>;
+	pub type TeleportableErc20s<T: Config> =
+		StorageMap<_, Twox64Concat, H160, TeleportableErc20Status, OptionQuery>;
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
-		/// An ERC-20 contract was added to the teleport whitelist.
+		/// An ERC-20 contract is now `Active` in the teleport whitelist. Emitted both on
+		/// the fresh insert (`(none) → Active`) and on the re-activation transition
+		/// (`InboundOnly → Active`); both go through [`Pallet::add_teleportable_erc20`].
 		TeleportableErc20Added { contract: H160 },
-		/// An ERC-20 contract was removed from the teleport whitelist.
+		/// An ERC-20 contract was moved from `Active` to `InboundOnly`. New outbound
+		/// teleports for it are now refused, but inbound teleports from
+		/// `TeleportTrustedLocation` continue to unwind any supply still locked in
+		/// `TeleportCheckingAccount`.
 		TeleportableErc20Removed { contract: H160 },
 	}
 
 	#[pallet::error]
 	pub enum Error<T> {
-		/// The contract is already in the teleport whitelist.
+		/// The contract is already in the teleport whitelist as `Active`. (An
+		/// `InboundOnly` contract is **not** considered duplicate by
+		/// [`Pallet::add_teleportable_erc20`] — calling `add` on it re-activates it.)
 		Erc20AlreadyTeleportable,
 		/// The contract is not in the teleport whitelist.
 		Erc20NotTeleportable,
+		/// The contract is already in `InboundOnly` state — `remove_teleportable_erc20`
+		/// is a no-op here. To re-enable outbound, call
+		/// [`Pallet::add_teleportable_erc20`], which is the legal `InboundOnly → Active`
+		/// transition.
+		Erc20AlreadyRemoved,
 	}
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		/// Add an ERC-20 contract to the teleport whitelist. Callable only by
+		/// Set an ERC-20 contract's whitelist entry to `Active`. Callable only by
 		/// `TeleportAdminOrigin`.
 		///
+		/// Behaviour by current state:
+		/// - **No entry** (`(none) → Active`): inserts a fresh whitelist entry. This is
+		///   the normal "add" path.
+		/// - **`InboundOnly` → `Active`**: re-activates a previously removed contract.
+		///   Root can use this to revive a contract whose `remove_teleportable_erc20`
+		///   was issued in error or whose retirement should be reversed. The whitelist
+		///   entry was preserved in storage precisely so this transition is lossless
+		///   (in particular, any supply still parked in `TeleportCheckingAccount` keeps
+		///   its inbound path open the whole time).
+		/// - **`Active`**: rejected with [`Error::Erc20AlreadyTeleportable`] — already a
+		///   no-op.
+		///
 		/// The whitelist is checked by [`Erc20TeleportTransactor`] and by the
-		/// [`IsTeleportableErc20`] filter, so adding a contract here both:
-		/// - admits user-facing `pallet_xcm::limited_teleport_assets` calls carrying that
-		///   contract, and
+		/// [`IsTeleportableErc20`] filter, so setting a contract `Active` both:
+		/// - admits user-facing `pallet_xcm::limited_teleport_assets` calls carrying
+		///   that contract, and
 		/// - enables true lock/unlock semantics for it on cross-chain XCM flows.
+		///
+		/// Both the fresh add and the re-activation paths emit
+		/// [`Event::TeleportableErc20Added`].
 		#[pallet::call_index(0)]
 		#[pallet::weight(Weight::from_parts(15_000_000, 0).saturating_add(T::DbWeight::get().reads_writes(1, 1)))]
 		pub fn add_teleportable_erc20(origin: OriginFor<T>, contract: H160) -> DispatchResult {
 			T::TeleportAdminOrigin::ensure_origin(origin)?;
-			ensure!(
-				!TeleportableErc20s::<T>::contains_key(&contract),
-				Error::<T>::Erc20AlreadyTeleportable
-			);
-			TeleportableErc20s::<T>::insert(&contract, ());
-			Self::deposit_event(Event::TeleportableErc20Added { contract });
-			Ok(())
+			match TeleportableErc20s::<T>::get(&contract) {
+				Some(TeleportableErc20Status::Active) => {
+					return Err(Error::<T>::Erc20AlreadyTeleportable.into())
+				}
+				_ => {
+					TeleportableErc20s::<T>::insert(&contract, TeleportableErc20Status::Active);
+					Self::deposit_event(Event::TeleportableErc20Added { contract });
+					Ok(())
+				}
+			}
 		}
 
-		/// Remove an ERC-20 contract from the teleport whitelist. Callable only by
+		/// Move an `Active` whitelisted ERC-20 to `InboundOnly`. Callable only by
 		/// `TeleportAdminOrigin`.
 		///
-		/// Removing a contract immediately stops new outbound teleports for it. It does not
-		/// unwind already-locked balances in `TeleportCheckingAccount`; those must still be
-		/// claimed via the inbound teleport path. Operators should drain the lock account
-		/// before removing widely-used contracts.
+		/// After this call:
+		/// - new outbound `pallet_xcm::limited_teleport_assets` calls for this contract
+		///   are rejected by [`IsTeleportableErc20`] (`XcmTeleportFilter`) and by
+		///   `Erc20TeleportTransactor::{can_check_out, withdraw_asset, internal_transfer_asset}`;
+		/// - inbound teleports from [`Config::TeleportTrustedLocation`] continue to
+		///   unwind any supply still locked in `TeleportCheckingAccount` back to
+		///   beneficiaries — `IsTeleporter`, `can_check_in`, and `deposit_asset` all
+		///   keep admitting the contract.
+		///
+		/// The whitelist entry is **not** deleted: it just flips state. That's what
+		/// keeps the inbound path open. Operators don't need to track or pre-drain the
+		/// EVM checking account before calling this; users that still hold
+		/// `pallet_assets` foreign-asset balances on the trusted counterparty can
+		/// teleport them back at any later point and the unlock will succeed.
+		///
+		/// `InboundOnly` is reversible: root can call
+		/// [`Pallet::add_teleportable_erc20`] to flip the contract back to `Active`.
 		#[pallet::call_index(1)]
 		#[pallet::weight(Weight::from_parts(15_000_000, 0).saturating_add(T::DbWeight::get().reads_writes(1, 1)))]
 		pub fn remove_teleportable_erc20(origin: OriginFor<T>, contract: H160) -> DispatchResult {
 			T::TeleportAdminOrigin::ensure_origin(origin)?;
-			ensure!(
-				TeleportableErc20s::<T>::contains_key(&contract),
-				Error::<T>::Erc20NotTeleportable
-			);
-			TeleportableErc20s::<T>::remove(&contract);
+			match TeleportableErc20s::<T>::get(&contract) {
+				None => return Err(Error::<T>::Erc20NotTeleportable.into()),
+				Some(TeleportableErc20Status::InboundOnly) => {
+					return Err(Error::<T>::Erc20AlreadyRemoved.into())
+				}
+				Some(TeleportableErc20Status::Active) => {}
+			}
+			TeleportableErc20s::<T>::insert(&contract, TeleportableErc20Status::InboundOnly);
 			Self::deposit_event(Event::TeleportableErc20Removed { contract });
 			Ok(())
 		}
@@ -173,9 +271,23 @@ pub mod pallet {
 		pub fn is_erc20_asset(asset: &Asset) -> bool {
 			Erc20Matcher::<T::Erc20MultilocationPrefix>::is_erc20_asset(asset)
 		}
-		/// Whether the given ERC-20 contract has been admitted to the teleport whitelist.
+		/// Whether the given ERC-20 contract is currently admitted by the teleport
+		/// whitelist in any state (`Active` or `InboundOnly`). Used by inbound gates
+		/// (`IsTeleporter`, `can_check_in`, `deposit_asset`) so that supply locked in
+		/// `TeleportCheckingAccount` can always come home, even after the contract has
+		/// been "removed" (i.e. flipped to `InboundOnly`).
 		pub fn is_teleportable_erc20(contract: &H160) -> bool {
 			TeleportableErc20s::<T>::contains_key(contract)
+		}
+		/// Whether the given ERC-20 contract is currently admitted as `Active`. Used by
+		/// outbound gates (`withdraw_asset`, `can_check_out`, `internal_transfer_asset`,
+		/// `XcmTeleportFilter`). `InboundOnly` returns false here — that's what disables
+		/// new outbound locks while keeping the return path open.
+		pub fn is_active_teleportable_erc20(contract: &H160) -> bool {
+			matches!(
+				TeleportableErc20s::<T>::get(contract),
+				Some(TeleportableErc20Status::Active)
+			)
 		}
 		pub fn gas_limit_of_erc20_transfer(asset_id: &AssetId) -> u64 {
 			let location = &asset_id.0;
@@ -375,33 +487,72 @@ pub mod pallet {
 	pub struct Erc20TeleportTransactor<T>(PhantomData<T>);
 
 	impl<T: Config> Erc20TeleportTransactor<T> {
-		fn match_whitelisted(asset: &Asset) -> Result<(H160, U256), MatchError> {
+		/// Decode an `Asset` to `(contract, amount)` only when the contract is admitted
+		/// on the **outbound** path, i.e. its whitelist entry is `Active`. Used by gates
+		/// that must NOT lock new supply for contracts that have been moved to
+		/// `InboundOnly` via `remove_teleportable_erc20`.
+		fn match_active(asset: &Asset) -> Result<(H160, U256), MatchError> {
 			let (contract, amount) =
 				Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(asset)?;
-			if !TeleportableErc20s::<T>::contains_key(&contract) {
-				return Err(MatchError::AssetNotHandled);
+			match TeleportableErc20s::<T>::get(&contract) {
+				Some(TeleportableErc20Status::Active) => Ok((contract, amount)),
+				_ => Err(MatchError::AssetNotHandled),
 			}
-			Ok((contract, amount))
+		}
+
+		/// Decode an `Asset` to `(contract, amount)` whenever the contract has any
+		/// whitelist entry — `Active` or `InboundOnly`. Used by inbound gates so that
+		/// supply already locked in `TeleportCheckingAccount` can always come home from
+		/// `TeleportTrustedLocation`, even after the contract has been "removed".
+		fn match_admitted(asset: &Asset) -> Result<(H160, U256), MatchError> {
+			let (contract, amount) =
+				Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(asset)?;
+			match TeleportableErc20s::<T>::get(&contract) {
+				Some(_) => Ok((contract, amount)),
+				None => Err(MatchError::AssetNotHandled),
+			}
+		}
+
+		/// Returns `Ok` only when `peer` is the runtime's trusted teleport counterparty
+		/// (typically Asset Hub). Used by `can_check_in`/`can_check_out` to refuse the
+		/// transactor's own bookkeeping for any non-AH origin/destination, even if a
+		/// (mis)configured `IsTeleporter` upstream tried to admit it. This is defense in
+		/// depth: it keeps a single source of truth — `T::TeleportTrustedLocation` — for
+		/// where teleports are allowed in/out of this runtime.
+		fn ensure_trusted_peer(peer: &Location) -> XcmResult {
+			if peer != &T::TeleportTrustedLocation::get() {
+				return Err(XcmError::UntrustedTeleportLocation);
+			}
+			Ok(())
 		}
 	}
 
 	impl<T: Config> xcm_executor::traits::TransactAsset for Erc20TeleportTransactor<T> {
-		fn can_check_in(_origin: &Location, what: &Asset, _context: &XcmContext) -> XcmResult {
-			let _ = Self::match_whitelisted(what)?;
+		fn can_check_in(origin: &Location, what: &Asset, _context: &XcmContext) -> XcmResult {
+			Self::ensure_trusted_peer(origin)?;
+			// Inbound: admit `Active` OR `InboundOnly` so that "removed" contracts can
+			// still unwind any supply still locked in `TeleportCheckingAccount`.
+			let _ = Self::match_admitted(what)?;
 			Ok(())
 		}
 
 		fn check_in(_origin: &Location, _what: &Asset, _context: &XcmContext) {}
 
-		fn can_check_out(_dest: &Location, what: &Asset, _context: &XcmContext) -> XcmResult {
-			let _ = Self::match_whitelisted(what)?;
+		fn can_check_out(dest: &Location, what: &Asset, _context: &XcmContext) -> XcmResult {
+			Self::ensure_trusted_peer(dest)?;
+			// Outbound: only admit `Active`. `InboundOnly` contracts must NOT lock new
+			// supply; this is the runtime-side enforcement of
+			// `remove_teleportable_erc20` semantics.
+			let _ = Self::match_active(what)?;
 			Ok(())
 		}
 
 		fn check_out(_dest: &Location, _what: &Asset, _context: &XcmContext) {}
 
 		fn deposit_asset(what: &Asset, who: &Location, _context: Option<&XcmContext>) -> XcmResult {
-			let (contract, amount) = Self::match_whitelisted(what)?;
+			// Inbound side of the EVM transfer. Admit Active OR InboundOnly so the
+			// teleport-back path stays open indefinitely after `remove_teleportable_erc20`.
+			let (contract, amount) = Self::match_admitted(what)?;
 			let beneficiary = T::AccountIdConverter::convert_location(who)
 				.ok_or(MatchError::AccountIdConversionFailed)?;
 
@@ -419,7 +570,9 @@ pub mod pallet {
 			who: &Location,
 			_context: Option<&XcmContext>,
 		) -> Result<AssetsInHolding, XcmError> {
-			let (contract, amount) = Self::match_whitelisted(what)?;
+			// Outbound side of the EVM transfer. Active-only: `remove_teleportable_erc20`
+			// stops new supply from getting locked in `TeleportCheckingAccount` here.
+			let (contract, amount) = Self::match_active(what)?;
 			let from = T::AccountIdConverter::convert_location(who)
 				.ok_or(MatchError::AccountIdConversionFailed)?;
 
@@ -439,7 +592,10 @@ pub mod pallet {
 			to: &Location,
 			_context: &XcmContext,
 		) -> Result<AssetsInHolding, XcmError> {
-			let (contract, amount) = Self::match_whitelisted(asset)?;
+			// Same-chain XCM hop. Treat like a fresh outbound: only Active contracts
+			// can be moved by this transactor; otherwise fall through to the legacy
+			// reserve adapter via `AssetNotHandled`.
+			let (contract, amount) = Self::match_active(asset)?;
 			let from = T::AccountIdConverter::convert_location(from)
 				.ok_or(MatchError::AccountIdConversionFailed)?;
 			let to = T::AccountIdConverter::convert_location(to)
@@ -455,37 +611,66 @@ pub mod pallet {
 		}
 	}
 
-	/// Filter that returns `true` only when every input asset is a whitelisted ERC-20.
+	/// Filter that admits teleports of whitelisted ERC-20s.
 	///
 	/// Implements both:
-	/// - `ContainsPair<Asset, Location>` for use as `xcm_executor::Config::IsTeleporter`. The
-	///   destination is intentionally ignored: trust on the receiving side is enforced by AH's
-	///   per-asset `set_reserves(teleportable: true)`. If you want to also lock the
-	///   counterparty here, wrap this with `Case<DevForAssetHub>` or similar in the runtime.
-	/// - `Contains<(Location, Vec<Asset>)>` for use as `pallet_xcm::Config::XcmTeleportFilter`,
-	///   so user-facing `pallet_xcm::limited_teleport_assets` calls only succeed when carrying
-	///   whitelisted ERC-20 contracts.
+	/// - `ContainsPair<Asset, Location>` for use as `xcm_executor::Config::IsTeleporter`.
+	///   This is the inbound + outbound counterparty trust gate. Returns `true` ONLY when
+	///   the asset is a whitelisted ERC-20 (in either `Active` or `InboundOnly` state)
+	///   AND the location equals `T::TeleportTrustedLocation::get()`. Without that
+	///   location bind, any sibling chain able to deliver XCM to this runtime could
+	///   present a whitelisted ERC-20 in `ReceiveTeleportedAsset`, pass `IsTeleporter`,
+	///   and drain the EVM checking account via the subsequent `DepositAsset`.
+	///   `InboundOnly` contracts are still admitted here so the teleport-back path stays
+	///   open; outbound teleports of `InboundOnly` contracts are blocked instead by
+	///   `Erc20TeleportTransactor::{can_check_out, withdraw_asset}` and the
+	///   `XcmTeleportFilter` impl below — all of which require `Active`.
+	/// - `Contains<(Location, Vec<Asset>)>` for use as
+	///   `pallet_xcm::Config::XcmTeleportFilter`. The user-facing outbound gate. It
+	///   admits ONLY `Active` contracts so that `pallet_xcm::limited_teleport_assets`
+	///   cannot start a fresh outbound teleport once the operator has called
+	///   `remove_teleportable_erc20`. The location argument here is the local caller's
+	///   origin (set inside `pallet_xcm::limited_teleport_assets` before the executor
+	///   runs), NOT the destination, so it is intentionally not bound. The destination is
+	///   enforced separately by `IsTeleporter` when the executor builds the outbound
+	///   message.
 	pub struct IsTeleportableErc20<T>(PhantomData<T>);
 
 	impl<T: Config> IsTeleportableErc20<T> {
-		fn asset_is_whitelisted(asset: &Asset) -> bool {
+		/// Whether the asset's ERC-20 contract has any whitelist entry — `Active` or
+		/// `InboundOnly`. Used by `IsTeleporter` to keep the inbound unwind path open
+		/// indefinitely after `remove_teleportable_erc20`.
+		fn asset_is_admitted(asset: &Asset) -> bool {
 			match Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(asset) {
 				Ok((contract, _amount)) => TeleportableErc20s::<T>::contains_key(&contract),
+				Err(_) => false,
+			}
+		}
+
+		/// Whether the asset's ERC-20 contract is admitted as `Active`. Used by the
+		/// user-facing outbound `XcmTeleportFilter` so `remove_teleportable_erc20`
+		/// immediately closes the door to fresh outbound teleports.
+		fn asset_is_active(asset: &Asset) -> bool {
+			match Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(asset) {
+				Ok((contract, _amount)) => matches!(
+					TeleportableErc20s::<T>::get(&contract),
+					Some(TeleportableErc20Status::Active)
+				),
 				Err(_) => false,
 			}
 		}
 	}
 
 	impl<T: Config> ContainsPair<Asset, Location> for IsTeleportableErc20<T> {
-		fn contains(asset: &Asset, _origin: &Location) -> bool {
-			Self::asset_is_whitelisted(asset)
+		fn contains(asset: &Asset, location: &Location) -> bool {
+			location == &T::TeleportTrustedLocation::get() && Self::asset_is_admitted(asset)
 		}
 	}
 
 	impl<T: Config> Contains<(Location, Vec<Asset>)> for IsTeleportableErc20<T> {
 		fn contains(value: &(Location, Vec<Asset>)) -> bool {
 			let (_origin, assets) = value;
-			!assets.is_empty() && assets.iter().all(Self::asset_is_whitelisted)
+			!assets.is_empty() && assets.iter().all(Self::asset_is_active)
 		}
 	}
 }

@@ -171,6 +171,12 @@ parameter_types! {
 		interior: [xcm::latest::Junction::PalletInstance(42u8)].into(),
 	};
 	pub TeleportCheckingAccount: H160 = H160(*b"erc20-teleport-check");
+	/// Mock counterparty: stand-in for AssetHub at para 1001. Tests use this to verify
+	/// `IsTeleportableErc20` admits this exact location and rejects everything else.
+	pub TeleportTrustedLocation: xcm::latest::Location = xcm::latest::Location::new(
+		1,
+		[xcm::latest::Junction::Parachain(1001)],
+	);
 }
 impl crate::Config for Test {
 	type AccountIdConverter = ();
@@ -179,4 +185,5 @@ impl crate::Config for Test {
 	type EvmRunner = pallet_evm::runner::stack::Runner<Self>;
 	type TeleportAdminOrigin = EnsureRoot<AccountId32>;
 	type TeleportCheckingAccount = TeleportCheckingAccount;
+	type TeleportTrustedLocation = TeleportTrustedLocation;
 }

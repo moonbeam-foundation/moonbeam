@@ -712,6 +712,7 @@ impl pallet_erc20_xcm_bridge::Config for Runtime {
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
 	type TeleportAdminOrigin = EnsureRoot<AccountId>;
 	type TeleportCheckingAccount = Erc20TeleportCheckingAccount;
+	type TeleportTrustedLocation = AssetHubLocation;
 }
 
 pub struct AccountIdToH160;
@@ -867,8 +868,13 @@ impl moonbeam_runtime_common::xcm_pallet_benchmark::XcmPalletTeleportBenchmark f
 		}
 
 		// Fixed address for `pallet_xcm` teleport benchmarks — not used on production networks.
+		// Insert as `Active` so all gates (including the user-facing `XcmTeleportFilter`) admit
+		// it; the benchmark exercises the full outbound path.
 		let contract = H160([0x42; 20]);
-		pallet_erc20_xcm_bridge::TeleportableErc20s::<Runtime>::insert(contract, ());
+		pallet_erc20_xcm_bridge::TeleportableErc20s::<Runtime>::insert(
+			contract,
+			pallet_erc20_xcm_bridge::TeleportableErc20Status::Active,
+		);
 
 		let mut asset_location = Erc20XcmBridgePalletLocation::get();
 		let _ = asset_location.append_with(AccountKey20 {

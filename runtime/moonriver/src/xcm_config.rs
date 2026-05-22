@@ -694,6 +694,7 @@ impl pallet_erc20_xcm_bridge::Config for Runtime {
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
 	type TeleportAdminOrigin = EnsureRoot<AccountId>;
 	type TeleportCheckingAccount = ();
+	type TeleportTrustedLocation = AssetHubLocation;
 }
 
 pub struct AccountIdToH160;
