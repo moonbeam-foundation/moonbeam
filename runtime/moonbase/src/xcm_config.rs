@@ -876,6 +876,7 @@ impl moonbeam_runtime_common::xcm_pallet_benchmark::XcmPalletTeleportBenchmark f
 			contract,
 			pallet_erc20_xcm_bridge::TeleportableErc20Status::Registered,
 		);
+		pallet_erc20_xcm_bridge::LockedSupply::<Runtime>::remove(contract);
 
 		let mut asset_location = Erc20XcmBridgePalletLocation::get();
 		let _ = asset_location.append_with(AccountKey20 {
