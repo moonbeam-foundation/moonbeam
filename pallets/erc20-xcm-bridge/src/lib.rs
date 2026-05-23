@@ -43,7 +43,8 @@
 //!   yet in the current lifecycle. Outbound is open so the first user teleport-out can
 //!   actually run; the first successful leg auto-promotes to `Active`.
 //! - **`Active`**: at least one teleport leg has executed. `LockedSupply` may be zero
-//!   or positive.
+//!   or positive — its counter routinely transits through zero between in/out flows
+//!   without that meaning the contract is no longer in use.
 //! - **`Deregistered`**: admin closed outbound while supply was still locked. New
 //!   outbound teleports are refused; inbound teleports keep unwinding the counter so
 //!   users can pull their tokens home.
@@ -51,10 +52,12 @@
 //! [`Pallet::remove_teleportable_erc20`] is dual-purpose:
 //!
 //! - When `LockedSupply == 0`, it deletes the entry outright. The call is
-//!   **permissionless** for `Active`/`Deregistered` (anyone can sweep an entry whose
-//!   obligation has been fully discharged) and **admin-only** for `Registered` (so a
-//!   freshly added entry can't be erased by someone other than admin before any flow
-//!   has happened).
+//!   **permissionless** ONLY for `Deregistered` (admin already opted into wind-down,
+//!   the public sweep just finalizes that intent once the obligation is fully
+//!   discharged). `Registered` and `Active` are **admin-only**: admin-only on
+//!   `Registered` so a fresh add can't be undone before any flow happens, and
+//!   admin-only on `Active` so a third party can't snipe a live operational entry
+//!   the moment its counter momentarily hits zero between flows.
 //! - When `LockedSupply > 0`, it requires admin and flips the entry to `Deregistered`.
 //!
 //! [`Pallet::force_remove_teleportable_erc20`] is the admin escape hatch that deletes
@@ -145,13 +148,16 @@ pub mod pallet {
 	/// - `Active`: at least one teleport leg (in or out) has executed. The transition
 	///   from `Registered` is automatic and happens inside the asset transactor when
 	///   the EVM transfer succeeds. `LockedSupply` may be `0` (e.g. inbound legs
-	///   unwound everything) or positive.
+	///   unwound everything) or positive — the counter routinely transits through
+	///   zero between in/out flows. While in this state the entry only leaves the
+	///   whitelist via an admin call; third parties cannot purge it.
 	/// - `Deregistered`: admin called [`Pallet::remove_teleportable_erc20`] while
 	///   `LockedSupply > 0`. Outbound is closed in every gate, but inbound stays open
 	///   so users can teleport their twin back from
-	///   [`Config::TeleportTrustedLocation`] and decrement the counter. When the
-	///   counter reaches `0`, anyone can sweep the entry by calling
-	///   `remove_teleportable_erc20` again.
+	///   [`Config::TeleportTrustedLocation`] and decrement the counter. Once the
+	///   counter reaches `0`, anyone can finalize the wind-down by calling
+	///   `remove_teleportable_erc20` again — this is the only state from which a
+	///   permissionless purge is allowed.
 	#[derive(
 		Encode,
 		Decode,
@@ -175,8 +181,8 @@ pub mod pallet {
 	/// [`TeleportableErc20Status`] and the module-level state diagram.
 	///
 	/// Storage entries are removed under exactly two paths:
-	/// - [`Pallet::remove_teleportable_erc20`] when [`LockedSupply`] is zero (admin for
-	///   `Registered`, permissionless for `Active`/`Deregistered`), and
+	/// - [`Pallet::remove_teleportable_erc20`] when [`LockedSupply`] is zero (admin
+	///   for `Registered` and `Active`, permissionless only for `Deregistered`), and
 	/// - [`Pallet::force_remove_teleportable_erc20`] (admin escape hatch).
 	///
 	/// While the entry is present, this runtime locks the contract's supply in
@@ -199,9 +205,10 @@ pub mod pallet {
 	///
 	/// The counter is **the** authoritative signal for "any outstanding obligation?".
 	/// When it is zero, [`Pallet::remove_teleportable_erc20`] purges the storage entry
-	/// outright; when it is non-zero, removal flips the contract to `Deregistered` so
-	/// users on the trusted counterparty can keep teleporting their twin back and
-	/// decrementing the counter.
+	/// outright (admin-only from `Registered`/`Active`, permissionless from
+	/// `Deregistered`); when it is non-zero, removal flips the contract to
+	/// `Deregistered` so users on the trusted counterparty can keep teleporting their
+	/// twin back and decrementing the counter.
 	///
 	/// Drift modes:
 	/// - **Donations.** A direct `ERC20.transfer(checking, amount)` outside XCM raises
@@ -316,18 +323,24 @@ pub mod pallet {
 		/// - **`LockedSupply == 0`** (no outstanding obligation): the entry is purged
 		///   from storage outright. `LockedSupply` is also removed.
 		///   - Origin: [`Config::TeleportAdminOrigin`] is required when the current
-		///     status is `Registered` (a freshly added entry should only be erased by
-		///     admin, never by a third party racing the admin's intent).
-		///   - Origin: any **signed** origin is accepted when the current status is
-		///     `Active` or `Deregistered` — anyone may sweep an entry whose obligation
-		///     has been fully discharged. This is the "permissionless purge" path and
-		///     is what gives the lifecycle a natural terminus.
+		///     status is `Registered` or `Active`. Admin-only on `Registered` so a
+		///     freshly added entry can't be erased by a third party racing the
+		///     admin's intent. Admin-only on `Active` so a third party cannot snipe
+		///     a live operational entry the moment its counter momentarily hits zero
+		///     between in/out flows — the operator stays in control of when an
+		///     active contract leaves the whitelist.
+		///   - Origin: any **signed** origin (or root) is accepted when the current
+		///     status is `Deregistered` — admin already opted into wind-down by
+		///     flipping the entry, so the public sweep just finalizes that intent
+		///     once the obligation is fully discharged. This is the "permissionless
+		///     purge" path and is what gives a deregistered entry a natural
+		///     terminus without further admin intervention.
 		///   - Emits [`Event::TeleportableErc20Purged`].
 		///
 		/// - **`LockedSupply > 0`** (outstanding obligation): the entry is flipped to
 		///   `Deregistered`. New outbound teleports are refused; inbound teleports keep
 		///   unwinding the counter. Once the counter reaches zero, the entry can be
-		///   swept by anyone via this same extrinsic.
+		///   swept permissionlessly via this same extrinsic.
 		///   - Origin: [`Config::TeleportAdminOrigin`] is required.
 		///   - Already-`Deregistered` entries return [`Error::Erc20AlreadyRemoved`].
 		///   - Emits [`Event::TeleportableErc20Removed`].
@@ -344,13 +357,20 @@ pub mod pallet {
 			let count = LockedSupply::<T>::get(&contract);
 
 			if count.is_zero() {
-				// Purge path. Permissionless for `Active`/`Deregistered`, admin-only
-				// for `Registered` so a fresh add can't be undone by a third party.
+				// Purge path. Permissionless ONLY for `Deregistered`: the admin has
+				// already opted into wind-down by flipping the entry, so the public
+				// sweep just finalizes that intent once the obligation is fully
+				// discharged. `Registered` and `Active` are admin-only — a live
+				// `Active` contract routinely transits through `count == 0` between
+				// flows, and admitting third parties to that purge would let anyone
+				// snipe operational entries the moment the counter hits zero,
+				// forcing the operator to re-add. `Registered` is admin-only too so
+				// a fresh add can't be undone by anyone but the admin.
 				match status {
-					TeleportableErc20Status::Registered => {
+					TeleportableErc20Status::Registered | TeleportableErc20Status::Active => {
 						T::TeleportAdminOrigin::ensure_origin(origin)?;
 					}
-					TeleportableErc20Status::Active | TeleportableErc20Status::Deregistered => {
+					TeleportableErc20Status::Deregistered => {
 						// Permissionless: any signed origin passes, and admin (root)
 						// is the strict superset. Unsigned (`None`) is rejected with
 						// `BadOrigin` to prevent free unsigned calls.

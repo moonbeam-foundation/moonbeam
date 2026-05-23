@@ -28,7 +28,7 @@
 //! - **Whitelist lifecycle.** End-to-end exercise of the three-state state
 //!   machine (`Registered → Active → Deregistered`) and the dual-purpose
 //!   `remove_teleportable_erc20` (admin-only purge from `Registered`,
-//!   permissionless purge from `Active`/`Deregistered` once `LockedSupply == 0`,
+//!   permissionless purge from `Deregistered` once `LockedSupply == 0`,
 //!   admin flip to `Deregistered` while `LockedSupply > 0`, revival via
 //!   `add_teleportable_erc20`).
 //! - **Admin escape hatch.** `force_remove_teleportable_erc20` purges any state
@@ -260,9 +260,13 @@ fn whitelist_admin_extrinsics_lifecycle() {
 			);
 
 			// Drain the counter (simulating the inbound teleport-back unwinding it),
-			// then prove the permissionless purge from `Active`. We pre-set `Active`
-			// because the actual auto-promotion fires from the asset transactor; a
+			// then prove the permission matrix on `count == 0`. We pre-set the status
+			// directly because auto-promotion fires from the asset transactor; a
 			// pure-Substrate `remove` test isolates the lifecycle logic.
+			//
+			// First, `Active + count == 0` is admin-only. A live operational entry
+			// transits through `count == 0` between in/out flows, so a third party
+			// must NOT be able to snipe it the moment the counter hits zero.
 			pallet_erc20_xcm_bridge::TeleportableErc20s::<Runtime>::insert(
 				&contract,
 				TeleportableErc20Status::Active,
@@ -271,9 +275,35 @@ fn whitelist_admin_extrinsics_lifecycle() {
 				&contract,
 				sp_core::U256::zero(),
 			);
+			assert_noop!(
+				Erc20XcmBridge::remove_teleportable_erc20(signed.clone(), contract),
+				DispatchError::BadOrigin,
+			);
+			assert_eq!(
+				pallet_erc20_xcm_bridge::TeleportableErc20s::<Runtime>::get(&contract),
+				Some(TeleportableErc20Status::Active),
+				"signed user must not be able to purge an Active entry",
+			);
+			// Admin can.
+			assert_ok!(Erc20XcmBridge::remove_teleportable_erc20(
+				root_origin(),
+				contract,
+			));
+			assert!(
+				!pallet_erc20_xcm_bridge::TeleportableErc20s::<Runtime>::contains_key(&contract)
+			);
 
-			// Now `Active + count == 0` is the permissionless purge case — any signed
-			// user (including ALICE, not admin) can sweep the entry.
+			// Now the only permissionless case: `Deregistered + count == 0` — admin
+			// already opted into wind-down by flipping the entry, and the obligation
+			// is fully discharged, so the public sweep is allowed.
+			pallet_erc20_xcm_bridge::TeleportableErc20s::<Runtime>::insert(
+				&contract,
+				TeleportableErc20Status::Deregistered,
+			);
+			pallet_erc20_xcm_bridge::LockedSupply::<Runtime>::insert(
+				&contract,
+				sp_core::U256::zero(),
+			);
 			assert_ok!(Erc20XcmBridge::remove_teleportable_erc20(signed, contract));
 			assert!(
 				!pallet_erc20_xcm_bridge::TeleportableErc20s::<Runtime>::contains_key(&contract)

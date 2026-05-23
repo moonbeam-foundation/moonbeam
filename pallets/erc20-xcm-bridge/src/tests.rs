@@ -101,7 +101,9 @@ fn xcm_ctx() -> XcmContext {
 	}
 }
 
-/// Some signed AccountId for the permissionless-purge tests.
+/// Some signed AccountId. Used both to drive the permissionless-purge path on
+/// `Deregistered + count == 0` and to assert `BadOrigin` rejection on the admin-only
+/// paths (`Registered`/`Active + count == 0`, and any `count > 0` flow).
 fn signed_origin() -> RuntimeOrigin {
 	RuntimeOrigin::from(frame_system::RawOrigin::Signed(AccountId32::from(
 		[7u8; 32],
@@ -535,17 +537,33 @@ fn remove_on_registered_with_zero_count_is_admin_only_purge() {
 	});
 }
 
-/// Permissionless purge on `Active + count == 0`: any signed user can sweep an entry
-/// whose obligation has been fully discharged. The same call from admin also works.
+/// Admin-only purge on `Active + count == 0`: a live operational entry routinely
+/// transits through `count == 0` between in/out flows, so a third party MUST NOT be
+/// able to snipe the purge — only admin can take an `Active` contract off the
+/// whitelist. To get a permissionless terminus the admin first has to opt into
+/// wind-down by deregistering (covered by
+/// `remove_on_deregistered_with_zero_count_is_permissionless_purge`).
 #[test]
-fn remove_on_active_with_zero_count_is_permissionless_purge() {
+fn remove_on_active_with_zero_count_is_admin_only_purge() {
 	new_test_ext().execute_with(|| {
 		let contract = H160([0xa2; 20]);
 		// Pre-seed `Active + count == 0` (e.g. all supply was teleported back already).
 		TeleportableErc20s::<Test>::insert(&contract, TeleportableErc20Status::Active);
 
+		// Signed user: rejected with `BadOrigin`. State must NOT change.
+		assert_noop!(
+			Erc20XcmBridge::remove_teleportable_erc20(signed_origin(), contract),
+			sp_runtime::DispatchError::BadOrigin,
+		);
+		assert_eq!(
+			TeleportableErc20s::<Test>::get(&contract),
+			Some(TeleportableErc20Status::Active),
+		);
+
+		// Admin: purges cleanly. `LockedSupply` is also removed and the event is
+		// `Purged` (not `Removed` — the entry left the storage map outright).
 		assert_ok!(Erc20XcmBridge::remove_teleportable_erc20(
-			signed_origin(),
+			RuntimeOrigin::root(),
 			contract,
 		));
 		assert!(!TeleportableErc20s::<Test>::contains_key(&contract));
@@ -553,19 +571,14 @@ fn remove_on_active_with_zero_count_is_permissionless_purge() {
 		System::assert_has_event(RuntimeEvent::Erc20XcmBridge(
 			Event::TeleportableErc20Purged { contract },
 		));
-
-		// Same call from admin also works (admin is the strict superset).
-		TeleportableErc20s::<Test>::insert(&contract, TeleportableErc20Status::Active);
-		assert_ok!(Erc20XcmBridge::remove_teleportable_erc20(
-			RuntimeOrigin::root(),
-			contract,
-		));
-		assert!(!TeleportableErc20s::<Test>::contains_key(&contract));
 	});
 }
 
-/// Permissionless purge on `Deregistered + count == 0`: same as `Active + count == 0`
-/// — anyone can sweep an entry whose users have all teleported their twin home.
+/// Permissionless purge on `Deregistered + count == 0`: this is the ONE state from
+/// which any signed origin can finalize the wind-down — admin already opted into it
+/// by flipping the entry to `Deregistered`, and the counter has hit zero so there is
+/// no obligation left. (`Active + count == 0` is admin-only, see
+/// `remove_on_active_with_zero_count_is_admin_only_purge`.)
 #[test]
 fn remove_on_deregistered_with_zero_count_is_permissionless_purge() {
 	new_test_ext().execute_with(|| {
