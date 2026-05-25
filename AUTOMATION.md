@@ -6,9 +6,11 @@ This section of the documentation is dedicated to the automation processes for t
 
 Automation is using Github Action, where all the actions are described in [.github/workflows](.github/workflows)
 
-### bare-metal
+### Blacksmith runners
 
-label bare-metal refers to our CI servers managed by opslayer. Those are dedicated machines, optimized to reduce the compilation and testing time of the actions.
+CI jobs run on Blacksmith ephemeral cloud runners. Runner labels such as
+`blacksmith-4vcpu-ubuntu-2404` and `blacksmith-16vcpu-ubuntu-2404` select the
+machine size used by each action.
 
 ## Cancellation
 
