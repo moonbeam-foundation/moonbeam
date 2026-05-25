@@ -15,7 +15,6 @@ Implements Delegated Proof of Stake to
 
 Links:
 
-- [Rust Documentation](https://moonbeam-foundation.github.io/moonbeam/pallet_parachain_staking/index.html)
 - [Unofficial Documentation](https://meta5.world/posts/parachain-staking)
 - [(Outdated) Blog Post with Justification](https://meta5.world/posts/parachain-staking)
 

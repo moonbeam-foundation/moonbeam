@@ -7,8 +7,7 @@
 **An Ethereum compatible [Parachain](https://docs.polkadot.com/polkadot-protocol/architecture/parachains) built with the [Polkadot-SDK](https://github.com/paritytech/polkadot-sdk).**
 
 👉 _Discover the Moonbeam project at [moonbeam.network](https://moonbeam.network)._<br>
-👉 _Learn to [use the Moonbeam network](https://docs.moonbeam.network/) with our technical docs._<br>
-👉 _Reference our [crate-level docs (rustdocs)](https://moonbeam-foundation.github.io/moonbeam) to contribute._
+👉 _Learn to [use the Moonbeam network](https://docs.moonbeam.network/) with our technical docs._
 
 ## Run Moonbeam with zombienet
 ```bash
@@ -238,11 +237,6 @@ The following pallets are stored in `pallets/`. They are designed for Moonbeam's
 - _Parachain Staking_: Minimal staking pallet that selects collators by total amount at stake
 
 When modifying the git repository for these dependencies, a tool called [diener](https://github.com/bkchr/diener) can be used to replace the git URL and branch for each reference in all `Cargo.toml` files with a single command. This alleviates a lot of the repetitive modifications necessary when changing dependency versions.
-
-## Rustdocs
-
-Rustdocs for the Moonbeam codebase are automatically generated and published
-[here](https://moonbeam-foundation.github.io/moonbeam/moonbeam_runtime/index.html).
 
 ## Contribute
 
