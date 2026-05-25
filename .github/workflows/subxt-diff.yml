@@ -32,10 +32,10 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
+      - name: Setup Rust toolchain
+        uses: ./.github/workflow-templates/rust-toolchain
       - name: Install Subxt-cli
         run: |
-          rustup override unset
-          rustup show
           cargo install subxt-cli --locked
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
       - name: Lookup previous runtime release build
