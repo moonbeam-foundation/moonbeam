@@ -16,9 +16,10 @@ jobs:
   scout-audit:
     runs-on: ubuntu-latest
     steps:
-      - name: Install required dependencies
+      - name: Install native build dependencies
+        uses: ./.github/workflow-templates/native-build-deps
+      - name: Install Scout dependencies
         run: |
-          sudo apt-get install -y libprotobuf-dev protobuf-compiler
           rustup component add rust-src rustc-dev llvm-tools-preview --toolchain nightly-2025-08-07
           cargo +nightly-2025-08-07 install cargo-scout-audit
 
