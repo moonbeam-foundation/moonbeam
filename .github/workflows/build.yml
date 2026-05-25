@@ -288,10 +288,13 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+      - name: Read Rust toolchain cache key
+        id: rust-toolchain-cache-key
+        uses: ./.github/workflow-templates/rust-toolchain-cache-key
       - name: Mount Blacksmith sccache disk
         uses: useblacksmith/stickydisk@v1
         with:
-          key: ${{ github.repository }}-sccache-clippy-${{ runner.os }}-${{ hashFiles('rust-toolchain') }}
+          key: ${{ github.repository }}-sccache-clippy-${{ runner.os }}-${{ steps.rust-toolchain-cache-key.outputs.cache-key }}
           path: .sccache
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.10
@@ -348,12 +351,15 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+      - name: Read Rust toolchain cache key
+        id: rust-toolchain-cache-key
+        uses: ./.github/workflow-templates/rust-toolchain-cache-key
       - name: Cargo build
         uses: ./.github/workflow-templates/cargo-build
         with:
           features: metadata-hash
           blacksmith-sticky-sccache: "true"
-          blacksmith-sticky-sccache-key: ${{ github.repository }}-sccache-release-${{ runner.os }}-${{ hashFiles('rust-toolchain') }}
+          blacksmith-sticky-sccache-key: ${{ github.repository }}-sccache-release-${{ runner.os }}-${{ steps.rust-toolchain-cache-key.outputs.cache-key }}
       - name: Upload runtimes
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
@@ -403,10 +409,13 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+      - name: Read Rust toolchain cache key
+        id: rust-toolchain-cache-key
+        uses: ./.github/workflow-templates/rust-toolchain-cache-key
       - name: Mount Blacksmith sccache disk
         uses: useblacksmith/stickydisk@v1
         with:
-          key: ${{ github.repository }}-sccache-release-${{ runner.os }}-${{ hashFiles('rust-toolchain') }}
+          key: ${{ github.repository }}-sccache-release-${{ runner.os }}-${{ steps.rust-toolchain-cache-key.outputs.cache-key }}
           path: .sccache
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.10
