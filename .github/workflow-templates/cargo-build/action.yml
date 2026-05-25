@@ -7,22 +7,40 @@ inputs:
   features:
     description: features to include in the build (comma separated)
     required: false
+  blacksmith-sticky-sccache:
+    description: use a Blacksmith sticky disk for the local sccache directory
+    required: false
+    default: "false"
+  blacksmith-sticky-sccache-key:
+    description: Blacksmith sticky disk key for the local sccache directory
+    required: false
+    default: ""
 
 runs:
   using: "composite"
   steps:
-    - name: Run sccache-cache
-      uses: mozilla-actions/sccache-action@v0.0.10
+    - name: Mount Blacksmith sccache disk
+      if: ${{ inputs.blacksmith-sticky-sccache == 'true' }}
+      uses: useblacksmith/stickydisk@v1
+      with:
+        key: ${{ inputs.blacksmith-sticky-sccache-key }}
+        path: .sccache
     - name: Setup Variables
       shell: bash
       run: |
         echo "CARGO_INCREMENTAL=0" >> $GITHUB_ENV
-        echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
         echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
         echo "SCCACHE_CACHE_SIZE=100GB" >> $GITHUB_ENV
+        if [ "${{ inputs.blacksmith-sticky-sccache }}" = "true" ]; then
+          echo "SCCACHE_DIR=$GITHUB_WORKSPACE/.sccache" >> $GITHUB_ENV
+        else
+          echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
+        fi
         if [ -z "$RUSTFLAGS" ]; then
           echo "RUSTFLAGS=-C opt-level=3 -D warnings -C linker=clang -C link-arg=-fuse-ld=$(pwd)/mold/bin/mold" >> $GITHUB_ENV
         fi
+    - name: Run sccache-cache
+      uses: mozilla-actions/sccache-action@v0.0.10
     - name: Setup Mold Linker
       shell: bash
       run: |
