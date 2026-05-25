@@ -43,6 +43,7 @@ runs:
             IFS=',' read -ra targets <<< "$configured_targets"
             rustup target add --toolchain "${{ inputs.toolchain }}" "${targets[@]}"
           fi
+          rustup override set "${{ inputs.toolchain }}"
         else
           rustup show
         fi
