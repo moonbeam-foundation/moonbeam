@@ -1,0 +1,48 @@
+name: Rust toolchain
+description: Installs rustup when needed and configures a Rust toolchain.
+
+inputs:
+  toolchain:
+    description: Optional explicit toolchain. When empty, use the repository rust-toolchain file.
+    required: false
+    default: ""
+  components:
+    description: Comma-separated components to add to the explicit toolchain.
+    required: false
+    default: ""
+  targets:
+    description: Comma-separated targets to add to the explicit toolchain.
+    required: false
+    default: ""
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Rust toolchain
+      shell: bash
+      run: |
+        if ! which "rustup" > /dev/null; then
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          export PATH="$HOME/.cargo/bin:$PATH"
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+        fi
+
+        rustup override unset
+
+        if [ -n "${{ inputs.toolchain }}" ]; then
+          rustup toolchain install "${{ inputs.toolchain }}" --profile minimal --no-self-update
+          if [ -n "${{ inputs.components }}" ]; then
+            IFS=',' read -ra components <<< "${{ inputs.components }}"
+            rustup component add --toolchain "${{ inputs.toolchain }}" "${components[@]}"
+          fi
+          configured_targets="${{ inputs.targets }}"
+          if [ -z "$configured_targets" ]; then
+            configured_targets="$(awk -F '[' '/^targets =/ { print $2; exit }' rust-toolchain | tr -d '[] "')"
+          fi
+          if [ -n "$configured_targets" ]; then
+            IFS=',' read -ra targets <<< "$configured_targets"
+            rustup target add --toolchain "${{ inputs.toolchain }}" "${targets[@]}"
+          fi
+        else
+          rustup show
+        fi

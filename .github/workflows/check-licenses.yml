@@ -18,8 +18,8 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v6
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+      - name: Setup Rust toolchain
+        uses: ./.github/workflow-templates/rust-toolchain
         with:
           toolchain: 1.88.0
       - name: Verify Licenses
