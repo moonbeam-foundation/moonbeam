@@ -7,6 +7,7 @@ name: Build
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
   push:
     branches:
       - master
@@ -531,13 +532,17 @@ jobs:
           pnpm moonwall test dev_${{ matrix.chain }} --ts ${{ matrix.shard }}/4
 
   typescript-tracing-tests:
-    # Tracing tests are expensive, so skip them when the required moonbase dev-test
-    # gate has already failed.
+    # Tracing tests are expensive, so run them on master or when explicitly
+    # requested on PRs.
     if: |
       (needs.set-tags.outputs.rust_changed == 'true' || needs.set-tags.outputs.ts_tests_changed == 'true') &&
       needs.set-tags.outputs.blacksmith_allowed == 'true' &&
-      needs.dev-test.result == 'success'
-    runs-on: blacksmith-8vcpu-ubuntu-2404
+      needs.dev-test.result == 'success' &&
+      (
+        github.ref == 'refs/heads/master' ||
+        (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'A10-evmtracing'))
+      )
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 30
     permissions:
       contents: read
@@ -713,20 +718,20 @@ jobs:
             bun moonwall test upgrade_${{matrix.chain}}
 
   zombie_upgrade_test:
-    # Zombie upgrade tests are expensive and run serially; use moonbase dev-test as
-    # the fast gate before reserving those runners.
+    # Zombie upgrade tests are expensive and run serially; run all runtimes on
+    # master, but keep PRs to moonbeam only.
     if: |
       (needs.set-tags.outputs.rust_changed == 'true' || needs.set-tags.outputs.ts_tests_changed == 'true') &&
       needs.set-tags.outputs.blacksmith_allowed == 'true' &&
       needs.dev-test.result == 'success'
-    runs-on: blacksmith-8vcpu-ubuntu-2404
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 30
     needs: ["set-tags", "build", "dev-test"]
     strategy:
       fail-fast: false
       max-parallel: 1
       matrix:
-        chain: ["moonbase", "moonriver", "moonbeam"]
+        chain: ${{ github.ref == 'refs/heads/master' && fromJSON('["moonbase", "moonriver", "moonbeam"]') || fromJSON('["moonbeam"]') }}
     env:
       GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
       DEBUG_COLORS: 1
@@ -796,10 +801,14 @@ jobs:
 
   bridge-integration-tests:
     # Bridge integration tests are expensive and only relevant to Rust changes, so
-    # require the moonbase dev-test gate before running them.
+    # run them on master or when explicitly requested on PRs.
     if: |
       needs.set-tags.outputs.rust_changed == 'true' &&
-      needs.dev-test.result == 'success'
+      needs.dev-test.result == 'success' &&
+      (
+        github.ref == 'refs/heads/master' ||
+        (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'B10-Bridge'))
+      )
     needs: ["set-tags", "build", "dev-test"]
     runs-on: ubuntu-latest
     timeout-minutes: 30
