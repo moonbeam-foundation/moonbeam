@@ -283,6 +283,21 @@ pub mod pallet {
 		/// Insert (or revive) an ERC-20 contract in the teleport whitelist as
 		/// `Registered`. Callable only by [`Config::TeleportAdminOrigin`].
 		///
+		/// **Operator warning — this is NOT a narrow "teleport-on" flag.** Once a
+		/// contract is in [`TeleportableErc20s`], the runtime's asset transactor
+		/// tuple routes EVERY XCM `TransactAsset` operation for it (`withdraw_asset`,
+		/// `deposit_asset`, `internal_transfer_asset`) through
+		/// [`Erc20TeleportTransactor`] before falling back to the legacy reserve
+		/// adapter. The transactor cannot tell teleport-driven flows apart from
+		/// reserve-driven or `pallet_xcm::execute`-driven flows, so the
+		/// lock/unlock-against-[`Config::TeleportCheckingAccount`] semantics apply
+		/// uniformly. Whitelisted ERC-20s used in the wrong path
+		/// (e.g. `pallet_xcm::limited_reserve_transfer_assets` to the trusted
+		/// counterparty) are rejected with `Filtered` by `pallet_xcm` itself, but
+		/// for non-counterparty destinations the failure surface lives inside
+		/// `xcm-executor`. **Only whitelist contracts intended exclusively for the
+		/// trusted teleport flow** (per [`Config::TeleportTrustedLocation`]).
+		///
 		/// Behaviour by current state:
 		/// - **No entry** (`(none) → Registered`): fresh add. The first subsequent
 		///   teleport leg auto-promotes to `Active`.

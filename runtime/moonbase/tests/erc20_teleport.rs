@@ -25,6 +25,11 @@
 //!   relay, and `Here` are all rejected.
 //! - **Outbound destination.** `pallet_xcm::limited_teleport_assets` rejects
 //!   non-AH destinations with `Filtered` before any EVM state mutation.
+//! - **Wrong-path safety net.** `pallet_xcm::limited_reserve_transfer_assets` of a
+//!   whitelisted ERC-20 to AH is rejected with `Filtered` (pallet-xcm classifies it
+//!   as teleportable and refuses reserve-transfer); the same call to a non-AH
+//!   destination errors at execution time and the storage layer rolls back, so no
+//!   supply leaks into the `TeleportCheckingAccount`.
 //! - **Whitelist lifecycle.** End-to-end exercise of the three-state state
 //!   machine (`Registered → Active → Deregistered`) and the dual-purpose
 //!   `remove_teleportable_erc20` (admin-only purge from `Registered`,
@@ -596,6 +601,166 @@ fn limited_teleport_assets_rejects_non_ah_destination() {
 					xcm::v5::WeightLimit::Unlimited,
 				),
 				pallet_xcm::Error::<Runtime>::Filtered,
+			);
+		});
+}
+
+/// Whitelisting an ERC-20 changes XCM `TransactAsset` handling for that contract on
+/// every path (teleport, reserve transfer, raw `WithdrawAsset`+`DepositAsset` programs,
+/// etc.) — `Erc20TeleportTransactor` is placed before the legacy `Erc20XcmBridge`
+/// adapter in `AssetTransactors`, so for any whitelisted contract it intercepts
+/// `withdraw_asset` / `deposit_asset` regardless of which user-facing extrinsic
+/// triggered the program.
+///
+/// On the user-facing extrinsic surface, the safety net for "wrong path" callers is
+/// `pallet_xcm`'s reserve-transfer entry point: `do_reserve_transfer_assets` calls
+/// `XcmAssetTransfers::determine_for(asset, dest)`, which returns `TransferType::Teleport`
+/// the moment `IsTeleporter::contains(asset, dest)` is true. `do_reserve_transfer_assets`
+/// then explicitly refuses with `Filtered` (see
+/// `pallet_xcm/src/lib.rs`, "Ensure assets are not teleportable to `dest`").
+///
+/// This test pins that contract for whitelisted ERC-20s with `dest = AssetHub` so that
+/// any future change to `IsTeleporter` (or to `pallet_xcm`'s classification logic) that
+/// would let a reserve-transfer call slip through and end up in the teleport transactor
+/// will be caught here. We also verify no storage was mutated (no auto-promotion to
+/// `Active`, no `LockedSupply` increment), pinning the "rejected pre-execution" property.
+#[test]
+fn limited_reserve_transfer_assets_for_whitelisted_erc20_to_ah_returns_filtered() {
+	use pallet_erc20_xcm_bridge::TeleportableErc20Status;
+
+	ExtBuilder::default()
+		.with_balances(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
+		.build()
+		.execute_with(|| {
+			let contract = H160([0xc1; 20]);
+			assert_ok!(Erc20XcmBridge::add_teleportable_erc20(
+				root_origin(),
+				contract
+			));
+			// Sanity-check the starting state so the post-call assertions are meaningful.
+			assert_eq!(
+				pallet_erc20_xcm_bridge::TeleportableErc20s::<Runtime>::get(&contract),
+				Some(TeleportableErc20Status::Registered),
+			);
+			assert!(pallet_erc20_xcm_bridge::LockedSupply::<Runtime>::get(&contract).is_zero());
+
+			let asset: Asset = (erc20_location(contract), 1_000u128).into();
+			let beneficiary = VersionedLocation::from(Location::new(
+				0,
+				[AccountKey20 {
+					network: None,
+					key: ALICE,
+				}],
+			));
+
+			// `assert_noop!` covers both "errored with `Filtered`" AND "no storage
+			// mutation" in a single check. Filtered comes from line ~2084 of the
+			// upstream `pallet_xcm::do_reserve_transfer_assets`:
+			// `ensure!(assets_transfer_type != TransferType::Teleport, Error::Filtered)`.
+			assert_noop!(
+				PolkadotXcm::limited_reserve_transfer_assets(
+					origin_of(AccountId::from(ALICE)),
+					Box::new(VersionedLocation::from(dest_assethub())),
+					Box::new(beneficiary),
+					Box::new(VersionedAssets::from(vec![asset])),
+					0,
+					xcm::v5::WeightLimit::Unlimited,
+				),
+				pallet_xcm::Error::<Runtime>::Filtered,
+			);
+
+			// Belt-and-braces: the contract was not promoted (the executor never ran)
+			// and no supply was parked in the checking account.
+			assert_eq!(
+				pallet_erc20_xcm_bridge::TeleportableErc20s::<Runtime>::get(&contract),
+				Some(TeleportableErc20Status::Registered),
+				"Filtered call must not auto-promote Registered → Active",
+			);
+			assert!(
+				pallet_erc20_xcm_bridge::LockedSupply::<Runtime>::get(&contract).is_zero(),
+				"Filtered call must not lock supply in TeleportCheckingAccount",
+			);
+		});
+}
+
+/// Companion to the AH test above. For a whitelisted ERC-20 with a *non-AH*
+/// destination, `pallet_xcm::do_reserve_transfer_assets` does NOT classify the asset
+/// as `Teleport` (because `IsTeleporter` is bound to `AssetHubLocation`), so the
+/// reserve-transfer path is admitted by the call gate. The local XCM program then runs
+/// and goes through `Erc20TeleportTransactor::withdraw_asset` (because the contract
+/// is whitelisted and the teleport transactor sits before the legacy adapter in
+/// `AssetTransactors`). That leg either:
+///
+/// 1. Fails on the EVM transfer (no contract code / no balance on the user) →
+///    `XcmError::FailedToTransactAsset` from inside the storage layer, OR
+/// 2. Reaches `TransferReserveAsset` and fails to convert `Here` to `H160` →
+///    `XcmError::AccountIdConversionFailed`.
+///
+/// Either way, the property we MUST preserve is "the storage layer rolls back" — no
+/// supply gets stranded in `TeleportCheckingAccount` and no `LockedSupply` accounting
+/// drift survives. This test pins that property irrespective of which of the two
+/// failure modes the executor surfaces (they can drift between polkadot-sdk versions
+/// and depending on test EVM state). We pre-seed `Active + count == 0` to make the
+/// "did the lock leak through?" assertion as sharp as possible.
+#[test]
+fn limited_reserve_transfer_assets_for_whitelisted_erc20_to_non_ah_does_not_strand_funds() {
+	use pallet_erc20_xcm_bridge::TeleportableErc20Status;
+	use xcm::latest::prelude::Parachain;
+
+	ExtBuilder::default()
+		.with_balances(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
+		.build()
+		.execute_with(|| {
+			let contract = H160([0xc2; 20]);
+			pallet_erc20_xcm_bridge::TeleportableErc20s::<Runtime>::insert(
+				&contract,
+				TeleportableErc20Status::Active,
+			);
+			pallet_erc20_xcm_bridge::LockedSupply::<Runtime>::insert(
+				&contract,
+				sp_core::U256::zero(),
+			);
+
+			let asset: Asset = (erc20_location(contract), 1_000u128).into();
+			let hostile_sibling = VersionedLocation::from(Location::new(1, [Parachain(2042)]));
+			let beneficiary = VersionedLocation::from(Location::new(
+				0,
+				[AccountKey20 {
+					network: None,
+					key: ALICE,
+				}],
+			));
+
+			let result = PolkadotXcm::limited_reserve_transfer_assets(
+				origin_of(AccountId::from(ALICE)),
+				Box::new(hostile_sibling),
+				Box::new(beneficiary),
+				Box::new(VersionedAssets::from(vec![asset])),
+				0,
+				xcm::v5::WeightLimit::Unlimited,
+			);
+
+			// We don't pin the exact error variant — the failure surface depends on
+			// the polkadot-sdk version (it can be `FailedToTransactAsset`,
+			// `AccountIdConversionFailed`, `Unroutable`, etc.). The contract under
+			// test is "no fund leakage", not "this exact variant".
+			assert!(
+				result.is_err(),
+				"limited_reserve_transfer_assets to a non-AH destination must \
+				 not succeed for a whitelisted ERC-20, got {:?}",
+				result,
+			);
+
+			// THE invariant: nothing landed in the checking account, status untouched.
+			assert_eq!(
+				pallet_erc20_xcm_bridge::TeleportableErc20s::<Runtime>::get(&contract),
+				Some(TeleportableErc20Status::Active),
+				"failed reserve-transfer must not flip the contract state",
+			);
+			assert!(
+				pallet_erc20_xcm_bridge::LockedSupply::<Runtime>::get(&contract).is_zero(),
+				"failed reserve-transfer must not leak teleport-locked supply \
+				 into the checking account",
 			);
 		});
 }

@@ -154,9 +154,22 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 //
 // Note: `Erc20TeleportTransactor` is placed BEFORE the legacy `Erc20XcmBridge` adapter so
 // that, for ERC-20 contracts admitted to `pallet_erc20_xcm_bridge::TeleportableErc20s`, the
-// real EVM lock/unlock transactor handles the asset (both for teleport and reserve flows). For
-// every other ERC-20 it returns `AssetNotFound` and the legacy adapter keeps its single-EVM
-// call reserve-mode optimisation.
+// real EVM lock/unlock transactor handles the asset. For every other ERC-20 it returns
+// `AssetNotFound` and the legacy adapter keeps its single-EVM-call reserve-mode optimisation.
+//
+// **Operator note — whitelisting changes XCM `TransactAsset` semantics across ALL paths,
+// not just teleport.** The asset transactor tuple is consulted by the executor for every
+// XCM instruction that moves the asset (`WithdrawAsset`, `DepositAsset`,
+// `TransferReserveAsset`, raw `Transact` programs, etc.) regardless of which user-facing
+// extrinsic produced the program — the transactor cannot distinguish "this came from
+// `limited_teleport_assets`" from "this came from `limited_reserve_transfer_assets`" or
+// "this came from `pallet_xcm::execute`". So once a contract is whitelisted, the lock /
+// unlock-against-`TeleportCheckingAccount` semantics apply to every path, not just the
+// AH teleport flow. The user-facing safety net is `pallet_xcm::do_reserve_transfer_assets`,
+// which classifies any asset that passes `IsTeleporter` as `TransferType::Teleport` and
+// rejects it with `Filtered` (covered by
+// `limited_reserve_transfer_assets_for_whitelisted_erc20_to_ah_returns_filtered` in
+// `runtime/moonbase/tests/erc20_teleport.rs`).
 pub type AssetTransactors = (
 	LocalAssetTransactor,
 	EvmForeignAssets,
