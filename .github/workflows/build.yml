@@ -268,7 +268,7 @@ jobs:
       needs.check-forbid-evm-reentrancy.result == 'success' &&
       needs.check-rust-fmt.result == 'success'
     runs-on:
-      labels: bare-metal
+      labels: blacksmith-32vcpu-ubuntu-2204
     timeout-minutes: 30
     permissions:
       contents: read
@@ -320,7 +320,7 @@ jobs:
         )
       )
     runs-on:
-      labels: bare-metal
+      labels: blacksmith-32vcpu-ubuntu-2204
     timeout-minutes: 30
     permissions:
       contents: read
@@ -368,7 +368,7 @@ jobs:
       needs.check-rust-fmt.result == 'success' &&
       needs.dev-test.result == 'success'
     runs-on:
-      labels: bare-metal
+      labels: blacksmith-32vcpu-ubuntu-2204
     timeout-minutes: 30
     permissions:
       contents: read
@@ -470,7 +470,7 @@ jobs:
       (needs.set-tags.outputs.rust_changed == 'true' || needs.set-tags.outputs.ts_tests_changed == 'true') &&
       needs.set-tags.outputs.self_hosted_allowed == 'true'
     runs-on:
-      labels: bare-metal
+      labels: blacksmith-8vcpu-ubuntu-2404
     permissions:
       contents: read
     needs: ["set-tags", "build"]
@@ -530,7 +530,7 @@ jobs:
       needs.set-tags.outputs.self_hosted_allowed == 'true' &&
       needs.dev-test.result == 'success'
     runs-on:
-      labels: bare-metal
+      labels: blacksmith-32vcpu-ubuntu-2204
     timeout-minutes: 30
     permissions:
       contents: read
@@ -589,7 +589,7 @@ jobs:
       needs.set-tags.outputs.self_hosted_allowed == 'true' &&
       needs.dev-test.result == 'success'
     runs-on:
-      labels: bare-metal
+      labels: blacksmith-32vcpu-ubuntu-2204
     timeout-minutes: 30
     permissions:
       contents: read
@@ -658,7 +658,7 @@ jobs:
       needs.set-tags.outputs.self_hosted_allowed == 'true' &&
       needs.dev-test.result == 'success'
     runs-on:
-      labels: bare-metal
+      labels: blacksmith-8vcpu-ubuntu-2404
     timeout-minutes: 60
     needs: ["set-tags", "build", "dev-test"]
     strategy:
@@ -715,7 +715,7 @@ jobs:
       needs.set-tags.outputs.self_hosted_allowed == 'true' &&
       needs.dev-test.result == 'success'
     runs-on:
-      labels: bare-metal
+      labels: blacksmith-8vcpu-ubuntu-2404
     timeout-minutes: 30
     needs: ["set-tags", "build", "dev-test"]
     strategy:
@@ -797,7 +797,7 @@ jobs:
       needs.set-tags.outputs.rust_changed == 'true' &&
       needs.dev-test.result == 'success'
     needs: ["set-tags", "build", "dev-test"]
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-8vcpu-ubuntu-2404
     timeout-minutes: 30
     permissions:
       contents: read

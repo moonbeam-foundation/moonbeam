@@ -19,7 +19,7 @@ jobs:
   check-benchmarks:
     if: github.ref == 'refs/heads/master'
     runs-on:
-      labels: bare-metal
+      labels: blacksmith-32vcpu-ubuntu-2404
     permissions:
       contents: read
     strategy:
@@ -72,7 +72,7 @@ jobs:
 
   check-unused-dependencies:
     if: github.ref == 'refs/heads/master'
-    runs-on: moonbeam-release-medium
+    runs-on: blacksmith-32vcpu-ubuntu-2404
     permissions:
       contents: read
     steps:
@@ -99,7 +99,7 @@ jobs:
   build-runtimes-for-size-check:
     if: github.ref == 'refs/heads/master'
     runs-on:
-      labels: bare-metal
+      labels: blacksmith-32vcpu-ubuntu-2404
     permissions:
       contents: read
     steps:

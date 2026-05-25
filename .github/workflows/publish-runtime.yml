@@ -53,7 +53,7 @@ jobs:
 
   build-srtool-runtimes:
     needs: ["setup-scripts", "read-rust-version"]
-    runs-on: moonbeam-release-medium
+    runs-on: blacksmith-32vcpu-ubuntu-2404
     permissions:
       contents: read
     strategy:
