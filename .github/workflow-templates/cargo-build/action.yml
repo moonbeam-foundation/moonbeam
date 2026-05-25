@@ -19,6 +19,12 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Validate Blacksmith sccache key
+      if: ${{ inputs.blacksmith-sticky-sccache == 'true' && inputs.blacksmith-sticky-sccache-key == '' }}
+      shell: bash
+      run: |
+        echo "blacksmith-sticky-sccache-key is required when blacksmith-sticky-sccache is true" >&2
+        exit 1
     - name: Mount Blacksmith sccache disk
       if: ${{ inputs.blacksmith-sticky-sccache == 'true' }}
       uses: useblacksmith/stickydisk@d58829ad6f9be8822ec5efe74256c82cd62915ab
