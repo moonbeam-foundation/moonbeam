@@ -21,7 +21,7 @@ runs:
   steps:
     - name: Mount Blacksmith sccache disk
       if: ${{ inputs.blacksmith-sticky-sccache == 'true' }}
-      uses: useblacksmith/stickydisk@v1
+      uses: useblacksmith/stickydisk@d58829ad6f9be8822ec5efe74256c82cd62915ab
       with:
         key: ${{ inputs.blacksmith-sticky-sccache-key }}
         path: .sccache
@@ -40,7 +40,7 @@ runs:
           echo "RUSTFLAGS=-C opt-level=3 -D warnings -C linker=clang -C link-arg=-fuse-ld=$(pwd)/mold/bin/mold" >> $GITHUB_ENV
         fi
     - name: Run sccache-cache
-      uses: mozilla-actions/sccache-action@v0.0.10
+      uses: mozilla-actions/sccache-action@1583d6b38d7be47f593cb472781bbb21cab4321e
     - name: Setup Mold Linker
       shell: bash
       run: |

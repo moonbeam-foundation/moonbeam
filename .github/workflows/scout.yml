@@ -16,17 +16,17 @@ jobs:
   scout-audit:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
       - name: Install native build dependencies
         uses: ./.github/workflow-templates/native-build-deps
       - name: Install Scout dependencies
         run: |
           rustup component add rust-src rustc-dev llvm-tools-preview --toolchain nightly-2025-08-07
           cargo +nightly-2025-08-07 install cargo-scout-audit
-
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
 
       - name: Run scout audit
         id: run-scout
