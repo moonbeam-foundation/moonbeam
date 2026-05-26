@@ -457,10 +457,9 @@ jobs:
         || github.event_name == 'workflow_dispatch'
         || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'XCM'))
       ) &&
-      needs.set-tags.outputs.self_hosted_allowed == 'true' &&
+      needs.set-tags.outputs.blacksmith_allowed == 'true' &&
       needs.set-tags.outputs.any_changed == 'true'
-    runs-on:
-      labels: bare-metal
+    runs-on: blacksmith-16vcpu-ubuntu-2404
     permissions:
       contents: read
     needs: ["set-tags"]
