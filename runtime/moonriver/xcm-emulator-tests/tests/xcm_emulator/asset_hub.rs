@@ -1,5 +1,5 @@
 // Copyright 2019-2025 Moonbeam Foundation.
-// This file is part of Moonbeam.
+// This file is part of Moonriver.
 
 // Moonbeam is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Asset Hub ↔ Moonbeam transfer tests using xcm-emulator.
+//! Asset Hub ↔ Moonriver transfer tests using xcm-emulator.
 //!
 //! These tests exercise cross-chain transfers between the real
 //! `asset-hub-westend-runtime` (para 1000) and the real `moonriver-runtime`

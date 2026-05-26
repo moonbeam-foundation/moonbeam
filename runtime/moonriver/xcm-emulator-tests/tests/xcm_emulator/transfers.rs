@@ -519,7 +519,7 @@ fn transfer_dot_from_moonriver_to_sibling() {
 fn evm_account_receives_foreign_asset() {
 	setup_relay_to_moonriver();
 
-	// ALITH has GLMR from genesis. Send DOT and verify both balances coexist.
+	// ALITH has MOVR from genesis. Send DOT and verify both balances coexist.
 	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
 		assert_ok!(
 			westend_runtime::XcmPallet::transfer_assets_using_type_and_then(
@@ -551,11 +551,11 @@ fn evm_account_receives_foreign_asset() {
 	});
 
 	moonriver_execute_with(|| {
-		// ALITH should have both native GLMR and foreign DOT.
+		// ALITH should have both native MOVR and foreign DOT.
 		let glmr = <moonriver_runtime::Balances as Inspect<_>>::balance(
 			&moonriver_runtime::AccountId::from(ALITH),
 		);
-		assert!(glmr > 0, "ALITH should still have GLMR");
+		assert!(glmr > 0, "ALITH should still have MOVR");
 
 		let dot = moonriver_runtime::EvmForeignAssets::balance(
 			DOT_ASSET_ID,
@@ -576,13 +576,13 @@ fn foreign_assets_survive_native_balance_drain() {
 
 	let test_account: [u8; 20] = [77u8; 20];
 
-	// Give the test account some GLMR.
+	// Give the test account some MOVR.
 	moonriver_execute_with(|| {
 		<moonriver_runtime::Balances as Mutate<_>>::mint_into(
 			&moonriver_runtime::AccountId::from(test_account),
 			moonriver_runtime::currency::MOVR,
 		)
-		.expect("Should mint GLMR");
+		.expect("Should mint MOVR");
 	});
 
 	// Send DOT to the test account.
@@ -616,7 +616,7 @@ fn foreign_assets_survive_native_balance_drain() {
 		);
 	});
 
-	// Drain all GLMR, then verify foreign asset is still accessible.
+	// Drain all MOVR, then verify foreign asset is still accessible.
 	moonriver_execute_with(|| {
 		let balance = <moonriver_runtime::Balances as Inspect<_>>::balance(
 			&moonriver_runtime::AccountId::from(test_account),
@@ -648,10 +648,10 @@ fn foreign_assets_survive_native_balance_drain() {
 }
 
 // ===========================================================================
-// Native asset (GLMR) para → para transfers
+// Native asset (MOVR) para → para transfers
 // ===========================================================================
 
-/// Register Moonriver's native GLMR as a foreign asset on the sibling and
+/// Register Moonriver's native MOVR as a foreign asset on the sibling and
 /// configure the XCM weight trader price.
 fn register_movr_on_sibling() {
 	sibling_execute_with(|| {
@@ -664,7 +664,7 @@ fn register_movr_on_sibling() {
 			moonriver_runtime::RuntimeOrigin::root(),
 			MOVR_ASSET_ID,
 			glmr_location.clone(),
-			18, // GLMR has 18 decimals
+			18, // MOVR has 18 decimals
 			b"MOVR".to_vec().try_into().unwrap(),
 			b"Moonriver".to_vec().try_into().unwrap(),
 		));
@@ -677,14 +677,14 @@ fn register_movr_on_sibling() {
 	});
 }
 
-/// Setup for GLMR para→para transfers: open HRMP, register DOT on Moonriver,
-/// register GLMR on sibling.
+/// Setup for MOVR para→para transfers: open HRMP, register DOT on Moonriver,
+/// register MOVR on sibling.
 fn setup_movr_para_to_para() {
 	setup_with_sibling();
 	register_movr_on_sibling();
 }
 
-/// Transfer GLMR from Moonriver to Sibling (reserve-backed).
+/// Transfer MOVR from Moonriver to Sibling (reserve-backed).
 #[test]
 fn transfer_movr_from_moonriver_to_sibling() {
 	setup_movr_para_to_para();
@@ -695,7 +695,7 @@ fn transfer_movr_from_moonriver_to_sibling() {
 		))
 	});
 
-	let amount = moonriver_runtime::currency::MOVR; // 1 GLMR
+	let amount = moonriver_runtime::currency::MOVR; // 1 MOVR
 
 	moonriver_execute_with(|| {
 		assert_ok!(moonriver_runtime::PolkadotXcm::transfer_assets(
@@ -720,7 +720,7 @@ fn transfer_movr_from_moonriver_to_sibling() {
 		));
 	});
 
-	// ALITH should have less GLMR after the transfer.
+	// ALITH should have less MOVR after the transfer.
 	let alith_after = moonriver_execute_with(|| {
 		<moonriver_runtime::Balances as Inspect<_>>::balance(&moonriver_runtime::AccountId::from(
 			ALITH,
@@ -728,14 +728,14 @@ fn transfer_movr_from_moonriver_to_sibling() {
 	});
 	assert!(
 		alith_after < alith_before,
-		"ALITH should have less GLMR after transfer"
+		"ALITH should have less MOVR after transfer"
 	);
 	assert!(
 		alith_before - alith_after >= amount,
 		"ALITH should have spent at least {amount}"
 	);
 
-	// BALTATHAR should have GLMR on sibling (as foreign asset).
+	// BALTATHAR should have MOVR on sibling (as foreign asset).
 	sibling_execute_with(|| {
 		let balance = moonriver_runtime::EvmForeignAssets::balance(
 			MOVR_ASSET_ID,
@@ -744,12 +744,12 @@ fn transfer_movr_from_moonriver_to_sibling() {
 		.unwrap();
 		assert!(
 			balance > U256::zero(),
-			"BALTATHAR should have GLMR on sibling"
+			"BALTATHAR should have MOVR on sibling"
 		);
 	});
 }
 
-/// Roundtrip: GLMR from Moonriver → Sibling → back to Moonriver.
+/// Roundtrip: MOVR from Moonriver → Sibling → back to Moonriver.
 #[test]
 fn transfer_movr_roundtrip_moonriver_sibling() {
 	setup_movr_para_to_para();
@@ -760,9 +760,9 @@ fn transfer_movr_roundtrip_moonriver_sibling() {
 		))
 	});
 
-	let amount = moonriver_runtime::currency::MOVR; // 1 GLMR
+	let amount = moonriver_runtime::currency::MOVR; // 1 MOVR
 
-	// Step 1: Send GLMR from Moonriver to Sibling (BALTATHAR).
+	// Step 1: Send MOVR from Moonriver to Sibling (BALTATHAR).
 	moonriver_execute_with(|| {
 		assert_ok!(moonriver_runtime::PolkadotXcm::transfer_assets(
 			moonriver_runtime::RuntimeOrigin::signed(moonriver_runtime::AccountId::from(ALITH)),
@@ -786,7 +786,7 @@ fn transfer_movr_roundtrip_moonriver_sibling() {
 		));
 	});
 
-	// Verify BALTATHAR got GLMR on sibling.
+	// Verify BALTATHAR got MOVR on sibling.
 	let glmr_on_sibling = sibling_execute_with(|| {
 		moonriver_runtime::EvmForeignAssets::balance(
 			MOVR_ASSET_ID,
@@ -796,11 +796,11 @@ fn transfer_movr_roundtrip_moonriver_sibling() {
 	});
 	assert!(
 		glmr_on_sibling > U256::zero(),
-		"BALTATHAR should have GLMR on sibling: {glmr_on_sibling}"
+		"BALTATHAR should have MOVR on sibling: {glmr_on_sibling}"
 	);
 
-	// Step 2: Send GLMR back from Sibling to Moonriver (ALITH).
-	// From the sibling's perspective, GLMR is at ../Parachain(2004)/PalletInstance(10).
+	// Step 2: Send MOVR back from Sibling to Moonriver (ALITH).
+	// From the sibling's perspective, MOVR is at ../Parachain(2004)/PalletInstance(10).
 	sibling_execute_with(|| {
 		let glmr_location = Location::new(1, [Parachain(MOONRIVER_PARA_ID), PalletInstance(10)]);
 
@@ -826,7 +826,7 @@ fn transfer_movr_roundtrip_moonriver_sibling() {
 		));
 	});
 
-	// ALITH should have recovered most of the GLMR (minus fees on both hops).
+	// ALITH should have recovered most of the MOVR (minus fees on both hops).
 	let alith_final = moonriver_execute_with(|| {
 		<moonriver_runtime::Balances as Inspect<_>>::balance(&moonriver_runtime::AccountId::from(
 			ALITH,
@@ -840,12 +840,12 @@ fn transfer_movr_roundtrip_moonriver_sibling() {
 	);
 }
 
-/// GLMR transfer with trader: fees are deducted from GLMR on the sibling.
+/// MOVR transfer with trader: fees are deducted from MOVR on the sibling.
 #[test]
 fn transfer_movr_to_sibling_with_trader_fees() {
 	setup_movr_para_to_para();
 
-	let amount = moonriver_runtime::currency::MOVR * 100; // 100 GLMR
+	let amount = moonriver_runtime::currency::MOVR * 100; // 100 MOVR
 
 	moonriver_execute_with(|| {
 		assert_ok!(moonriver_runtime::PolkadotXcm::transfer_assets(
@@ -883,13 +883,13 @@ fn transfer_movr_to_sibling_with_trader_fees() {
 			"Should receive less than full amount due to fees: received={received}, sent={amount}"
 		);
 
-		// Treasury should have received some GLMR as fees.
+		// Treasury should have received some MOVR as fees.
 		let treasury = moonriver_runtime::Treasury::account_id();
 		let treasury_fee =
 			moonriver_runtime::EvmForeignAssets::balance(MOVR_ASSET_ID, treasury).unwrap();
 		assert!(
 			treasury_fee > U256::zero(),
-			"Treasury should have collected GLMR fees"
+			"Treasury should have collected MOVR fees"
 		);
 	});
 }
@@ -1160,7 +1160,7 @@ fn transfer_dot_roundtrip_via_remote_reserve() {
 	);
 }
 
-/// Transfer GLMR to a sibling as a self-reserve asset (GLMR pays its own
+/// Transfer MOVR to a sibling as a self-reserve asset (MOVR pays its own
 /// fees). Exercises `transfer_assets` with a single asset where the fee
 /// asset and the transfer asset are the same.
 #[test]
@@ -1202,18 +1202,18 @@ fn transfer_movr_self_reserve_to_sibling() {
 	});
 	assert!(
 		bal_glmr > U256::zero(),
-		"BALTATHAR should have received GLMR on sibling (got {bal_glmr})"
+		"BALTATHAR should have received MOVR on sibling (got {bal_glmr})"
 	);
 }
 
 /// Receive a sibling-native foreign asset on Moonriver.
-/// A sibling sends its own native token (another Moonriver instance's GLMR)
+/// A sibling sends its own native token (another Moonriver instance's MOVR)
 /// to Moonriver, which receives it as an EVM foreign asset.
 #[test]
 fn receive_sibling_native_asset() {
 	setup_with_sibling();
 
-	// On Moonriver, register the sibling's GLMR (PalletInstance(10) on para 2005)
+	// On Moonriver, register the sibling's MOVR (PalletInstance(10) on para 2005)
 	// as a foreign asset with id=3.
 	const SIBLING_MOVR_ASSET_ID: u128 = 3;
 	moonriver_execute_with(|| {
@@ -1225,7 +1225,7 @@ fn receive_sibling_native_asset() {
 			SIBLING_MOVR_ASSET_ID,
 			sibling_glmr_location.clone(),
 			18,
-			b"sGLMR".to_vec().try_into().unwrap(),
+			b"sMOVR".to_vec().try_into().unwrap(),
 			b"Sibling Glimmer".to_vec().try_into().unwrap(),
 		));
 
@@ -1270,6 +1270,6 @@ fn receive_sibling_native_asset() {
 	});
 	assert!(
 		bal > U256::zero(),
-		"BALTATHAR should have sibling GLMR on Moonriver (got {bal})"
+		"BALTATHAR should have sibling MOVR on Moonriver (got {bal})"
 	);
 }
