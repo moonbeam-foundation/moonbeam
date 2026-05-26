@@ -56,21 +56,45 @@ const getRelayParentDescendantsLength = (extrinsic: any): number | undefined => 
   return typeof descendants?.length === "number" ? descendants.length : undefined;
 };
 
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const retryRpc = async <T>(
+  operation: () => Promise<T>,
+  options: { maxAttempts?: number; backoffMs?: number } = {}
+): Promise<T> => {
+  const maxAttempts = options.maxAttempts ?? 4;
+  const backoffMs = options.backoffMs ?? 500;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      if (attempt === maxAttempts) {
+        throw error;
+      }
+
+      await wait(backoffMs * 2 ** (attempt - 1));
+    }
+  }
+
+  throw new Error("RPC retry attempts exhausted");
+};
+
 const main = async () => {
   const endpoint = argv.endpoint ?? DEFAULT_ENDPOINTS[argv.chain];
   const provider = new WsProvider(endpoint);
   const api = await ApiPromise.create({ provider, noInitWarn: true });
 
   try {
-    const finalizedHash = await api.rpc.chain.getFinalizedHead();
-    const finalizedHeader = await api.rpc.chain.getHeader(finalizedHash);
+    const finalizedHash = await retryRpc(() => api.rpc.chain.getFinalizedHead());
+    const finalizedHeader = await retryRpc(() => api.rpc.chain.getHeader(finalizedHash));
     const finalizedNumber = finalizedHeader.number.toNumber();
 
     const oldestNumber = Math.max(0, finalizedNumber - argv.maxDepth);
 
     for (let number = finalizedNumber; number >= oldestNumber; number--) {
-      const hash = await api.rpc.chain.getBlockHash(number);
-      const block = await api.rpc.chain.getBlock(hash);
+      const hash = await retryRpc(() => api.rpc.chain.getBlockHash(number));
+      const block = await retryRpc(() => api.rpc.chain.getBlock(hash));
       const descendantsLength = block.block.extrinsics
         .map(getRelayParentDescendantsLength)
         .find((length) => length !== undefined);
