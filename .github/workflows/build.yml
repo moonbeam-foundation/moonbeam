@@ -468,6 +468,7 @@ jobs:
       needs.check-forbid-evm-reentrancy.result == 'success' &&
       needs.check-rust-fmt.result == 'success'
     runs-on: blacksmith-16vcpu-ubuntu-2404
+    timeout-minutes: 30
     permissions:
       contents: read
     needs:
@@ -481,12 +482,20 @@ jobs:
       RUSTC_WRAPPER: "sccache"
       CARGO_INCREMENTAL: "0"
       SCCACHE_CACHE_SIZE: "100GB"
-      SCCACHE_GHA_ENABLED: true
+      SCCACHE_DIR: ${{ github.workspace }}/.sccache
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+      - name: Read Rust toolchain cache key
+        id: rust-toolchain-cache-key
+        uses: ./.github/workflow-templates/rust-toolchain-cache-key
+      - name: Mount Blacksmith sccache disk
+        uses: useblacksmith/stickydisk@d58829ad6f9be8822ec5efe74256c82cd62915ab
+        with:
+          key: ${{ github.repository }}-sccache-xcm-emulator-${{ runner.os }}-${{ steps.rust-toolchain-cache-key.outputs.cache-key }}
+          path: .sccache
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@1583d6b38d7be47f593cb472781bbb21cab4321e
       - name: Setup Variables
@@ -498,14 +507,10 @@ jobs:
         run: |
           mkdir -p mold
           curl -L --retry 10 --silent --show-error https://github.com/rui314/mold/releases/download/v2.39.0/mold-2.39.0-$(uname -m)-linux.tar.gz | tar -C $(realpath mold) --strip-components=1 -xzf -
+      - name: Install native build dependencies
+        uses: ./.github/workflow-templates/native-build-deps
       - name: Setup Rust toolchain
-        run: |
-          if ! which "rustup" > /dev/null; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-          fi
-          rustup override unset
-          rustup show
-          rustup target add wasm32-unknown-unknown
+        uses: ./.github/workflow-templates/rust-toolchain
       - name: xcm-emulator integration tests (moonbeam, moonriver, moonbase)
         run: |
           cargo test --profile testnet \
