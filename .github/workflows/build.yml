@@ -476,7 +476,11 @@ jobs:
   dev-test:
     # Moonbase dev tests are the required fast gate. Moonriver and moonbeam still
     # run for signal, but their failures are tolerated because they are flakier.
+    # always() is required because TS-only changes intentionally skip the Rust
+    # check jobs that the build job depends on.
     if: |
+      always() &&
+      needs.build.result == 'success' &&
       (needs.set-tags.outputs.rust_changed == 'true' || needs.set-tags.outputs.ts_tests_changed == 'true') &&
       needs.set-tags.outputs.blacksmith_allowed == 'true'
     runs-on: blacksmith-4vcpu-ubuntu-2404
@@ -535,6 +539,8 @@ jobs:
     # Tracing tests are expensive, so run them on master or when explicitly
     # requested on PRs.
     if: |
+      always() &&
+      needs.build.result == 'success' &&
       (needs.set-tags.outputs.rust_changed == 'true' || needs.set-tags.outputs.ts_tests_changed == 'true') &&
       needs.set-tags.outputs.blacksmith_allowed == 'true' &&
       needs.dev-test.result == 'success' &&
@@ -597,6 +603,8 @@ jobs:
     # Lazy-loading tests are expensive, so skip them when the required moonbase
     # dev-test gate has already failed.
     if: |
+      always() &&
+      needs.build.result == 'success' &&
       (needs.set-tags.outputs.rust_changed == 'true' || needs.set-tags.outputs.ts_tests_changed == 'true') &&
       needs.set-tags.outputs.blacksmith_allowed == 'true' &&
       needs.dev-test.result == 'success'
@@ -665,6 +673,8 @@ jobs:
     # Upgrade tests consume larger runners, so only start them after moonbase
     # dev tests prove the PR is worth the heavier checks.
     if: |
+      always() &&
+      needs.build.result == 'success' &&
       (needs.set-tags.outputs.rust_changed == 'true' || needs.set-tags.outputs.ts_tests_changed == 'true') &&
       needs.set-tags.outputs.blacksmith_allowed == 'true' &&
       needs.dev-test.result == 'success'
@@ -725,6 +735,8 @@ jobs:
     # Zombie upgrade tests are expensive and run serially; run all runtimes on
     # master, but keep PRs to moonbeam only.
     if: |
+      always() &&
+      needs.build.result == 'success' &&
       (needs.set-tags.outputs.rust_changed == 'true' || needs.set-tags.outputs.ts_tests_changed == 'true') &&
       needs.set-tags.outputs.blacksmith_allowed == 'true' &&
       needs.dev-test.result == 'success'
