@@ -1418,3 +1418,93 @@ fn test_multiple_claims_during_vesting() {
 			assert_eq!(reward_info.claimed_reward, total_reward);
 		});
 }
+
+#[test]
+fn test_complete_unclaimed_rewards_drains_remaining_balance() {
+	let reward_account = account(1);
+	let caller = account(2);
+	let relay_account = account(10);
+	let total_reward = 10_000u128;
+
+	ExtBuilder::default()
+		.with_funded_accounts(vec![(
+			relay_account.clone(),
+			Some(reward_account.clone()),
+			total_reward,
+		)])
+		.build()
+		.execute_with(|| {
+			// Mid-vesting: the standard claim() path would only release a fraction;
+			// complete_unclaimed_rewards must release everything outstanding regardless.
+			run_to_block(50);
+
+			let initialization_payment = InitializationPayment::get() * total_reward;
+			let outstanding = total_reward - initialization_payment;
+
+			let target_initial_balance = Balances::free_balance(&reward_account);
+			let pallet_initial_balance = Balances::free_balance(&CrowdloanRewards::account_id());
+
+			// Anyone can call — here `caller` is not the reward target.
+			assert_ok!(CrowdloanRewards::complete_unclaimed_rewards(
+				RuntimeOrigin::signed(caller),
+				reward_account.clone(),
+			));
+
+			// AccountsPayable entry is gone.
+			assert!(AccountsPayable::<Test>::get(&reward_account).is_none());
+
+			// Full outstanding amount has been transferred from the pallet account.
+			assert_eq!(
+				Balances::free_balance(&reward_account),
+				target_initial_balance + outstanding,
+			);
+			assert_eq!(
+				Balances::free_balance(&CrowdloanRewards::account_id()),
+				pallet_initial_balance - outstanding,
+			);
+		});
+}
+
+#[test]
+fn test_complete_unclaimed_rewards_fails_when_target_has_no_claim() {
+	ExtBuilder::empty().execute_with(|| {
+		let caller = account(1);
+		let unknown_target = account(99);
+
+		assert_noop!(
+			CrowdloanRewards::complete_unclaimed_rewards(
+				RuntimeOrigin::signed(caller),
+				unknown_target,
+			),
+			Error::<Test>::NoAssociatedClaim
+		);
+	});
+}
+
+#[test]
+fn test_complete_unclaimed_rewards_fails_when_rewards_already_claimed() {
+	ExtBuilder::default().build().execute_with(|| {
+		let caller = account(2);
+		let reward_account = account(1);
+		let relay_account = account(10);
+		let total_reward = 10_000u128;
+
+		// Pre-seed an entry that is already fully claimed.
+		AccountsPayable::<Test>::insert(
+			&reward_account,
+			RewardInfo {
+				total_reward,
+				claimed_reward: total_reward,
+				contributed_relay_addresses: vec![relay_account],
+			},
+		);
+
+		assert_noop!(
+			CrowdloanRewards::complete_unclaimed_rewards(
+				RuntimeOrigin::signed(caller),
+				reward_account,
+			),
+			Error::<Test>::RewardsAlreadyClaimed
+		);
+	});
+}

@@ -1,4 +1,5 @@
 self-hosted-runner:
   labels:
-    - bare-metal
+    - blacksmith-4vcpu-ubuntu-2404
+    - blacksmith-16vcpu-ubuntu-2404
     - moonbeam-release-medium
