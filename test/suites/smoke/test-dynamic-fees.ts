@@ -31,7 +31,6 @@ type BlockFilteredRecord = {
   nextFeeMultiplier: u128;
   ethBlock: EthereumBlock;
   extrinsics: GenericExtrinsic<AnyTuple>[];
-  ethersTransactionsFees: bigint[];
   baseFeePerGasInGwei: string;
   transactionStatuses: FpRpcTransactionStatus[];
   weights: FrameSupportDispatchPerDispatchClassWeight;
@@ -160,11 +159,6 @@ describeSuite({
         const transactionStatuses = (
           await apiAt.query.ethereum.currentTransactionStatuses()
         ).unwrapOrDefault();
-        const ethersTransactionsFees = await Promise.all(
-          ethersBlock!.transactions.map(
-            async (hash) => (await context.ethers().provider!.getTransactionReceipt(hash))!.gasUsed
-          )
-        );
         const weights = await apiAt.query.system.blockWeight();
         const receipts = (await apiAt.query.ethereum.currentReceipts()).unwrapOr([]);
         const events = await apiAt.query.system.events();
@@ -224,7 +218,6 @@ describeSuite({
           blockNum,
           nextFeeMultiplier,
           ethBlock,
-          ethersTransactionsFees,
           transactionStatuses,
           extrinsics: signedBlock.block.extrinsics,
           baseFeePerGasInGwei: ethers.formatUnits(ethersBlock!.baseFeePerGas!, "gwei"),
