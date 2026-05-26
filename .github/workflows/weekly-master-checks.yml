@@ -1,0 +1,213 @@
+name: Weekly master checks
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 5 * * 0" # Runs every Sunday at 5:00 AM UTC
+
+env:
+  FRAME_OMNI_BENCHER_RELEASE_VERSION: polkadot-stable2509-2
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  check-benchmarks:
+    if: github.ref == 'refs/heads/master'
+    runs-on: blacksmith-16vcpu-ubuntu-2404
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        runtime: [moonbeam, moonbase, moonriver]
+    env:
+      RUSTC_WRAPPER: "sccache"
+      CARGO_INCREMENTAL: "0"
+      SCCACHE_CACHE_SIZE: "100GB"
+      SCCACHE_DIR: ${{ github.workspace }}/.sccache
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: master
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Read Rust toolchain cache key
+        id: rust-toolchain-cache-key
+        uses: ./.github/workflow-templates/rust-toolchain-cache-key
+      - name: Mount Blacksmith sccache disk
+        uses: useblacksmith/stickydisk@d58829ad6f9be8822ec5efe74256c82cd62915ab
+        with:
+          key: ${{ github.repository }}-sccache-bench-${{ matrix.runtime }}-${{ runner.os }}-${{ steps.rust-toolchain-cache-key.outputs.cache-key }}
+          path: .sccache
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@1583d6b38d7be47f593cb472781bbb21cab4321e
+      - name: Setup Variables
+        run: |
+          echo "RUSTFLAGS=-C opt-level=3 -D warnings -C linker=clang -C link-arg=-fuse-ld=$(pwd)/mold/bin/mold" >> "$GITHUB_ENV"
+      - name: Setup Mold Linker
+        run: |
+          mkdir -p mold
+          ARCH="$(uname -m)"
+          curl -L --retry 10 --silent --show-error "https://github.com/rui314/mold/releases/download/v2.39.0/mold-2.39.0-${ARCH}-linux.tar.gz" | tar -C "$(realpath mold)" --strip-components=1 -xzf -
+      - name: Install native build dependencies
+        uses: ./.github/workflow-templates/native-build-deps
+      - name: Setup Rust toolchain
+        uses: ./.github/workflow-templates/rust-toolchain
+      - name: Install frame-omni-bencher
+        shell: bash
+        run: |
+          curl -sL "https://github.com/paritytech/polkadot-sdk/releases/download/${FRAME_OMNI_BENCHER_RELEASE_VERSION}/frame-omni-bencher" -o frame-omni-bencher
+          chmod +x ./frame-omni-bencher
+          ./frame-omni-bencher --version
+      - name: Run benchmarks
+        shell: bash
+        run: |
+          ./scripts/run-benches-for-runtime.sh ${{ matrix.runtime }} release
+          if test -f "benchmarking_errors.txt"; then
+            cat benchmarking_errors.txt
+            exit 1
+          fi
+          cargo build -r -p ${{ matrix.runtime }}-runtime
+
+  check-unused-dependencies:
+    if: github.ref == 'refs/heads/master'
+    runs-on: moonbeam-release-medium
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: master
+          persist-credentials: false
+      - name: Setup Rust toolchain
+        uses: ./.github/workflow-templates/rust-toolchain
+        with:
+          toolchain: nightly-2026-04-01
+          components: rust-src
+      - name: Install native build dependencies
+        uses: ./.github/workflow-templates/native-build-deps
+      - name: Install required dependencies
+        run: |
+          cargo +nightly-2026-04-01 install cargo-udeps
+      - name: Check for unused dependencies
+        run: |
+          # There may be false negatives/positives
+          # In case of false positives, check https://github.com/est31/cargo-udeps?tab=readme-ov-file#ignoring-some-of-the-dependencies
+          cargo +nightly-2026-04-01 udeps --workspace --features runtime-benchmarks,evm-tracing,try-runtime --all-targets
+
+  build-runtimes-for-size-check:
+    if: github.ref == 'refs/heads/master'
+    runs-on: blacksmith-16vcpu-ubuntu-2404
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: master
+          persist-credentials: false
+      - name: Read Rust toolchain cache key
+        id: rust-toolchain-cache-key
+        uses: ./.github/workflow-templates/rust-toolchain-cache-key
+      - name: Cargo build
+        uses: ./.github/workflow-templates/cargo-build
+        with:
+          features: metadata-hash
+          blacksmith-sticky-sccache: "true"
+          blacksmith-sticky-sccache-key: ${{ github.repository }}-sccache-weekly-size-${{ runner.os }}-${{ steps.rust-toolchain-cache-key.outputs.cache-key }}
+      - name: Upload runtimes
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: runtimes
+          path: runtimes
+      - name: Upload uncompressed runtimes
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: uncompressed-runtimes
+          path: uncompressed-runtimes
+
+  check-wasm-size:
+    if: github.ref == 'refs/heads/master'
+    name: Check WASM runtime sizes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    needs: ["build-runtimes-for-size-check"]
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: master
+          persist-credentials: false
+      - name: Download current master runtimes
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: runtimes
+          path: runtimes-current-master
+          merge-multiple: true
+      - name: Check current master runtimes size
+        run: |
+          CURRENT_MOONBASE=$(du -k runtimes-current-master/* | awk '/moonbase_runtime/ {print $1}')
+          CURRENT_MOONBEAM=$(du -k runtimes-current-master/* | awk '/moonbeam_runtime/ {print $1}')
+          CURRENT_MOONRIVER=$(du -k runtimes-current-master/* | awk '/moonriver_runtime/ {print $1}')
+          {
+            echo "CURRENT_MOONBASE=$CURRENT_MOONBASE"
+            echo "CURRENT_MOONBEAM=$CURRENT_MOONBEAM"
+            echo "CURRENT_MOONRIVER=$CURRENT_MOONRIVER"
+          } >> "$GITHUB_ENV"
+      - name: Fetch latest release tag
+        run: |
+          LATEST_RELEASE_TAG=$(gh api repos/moonbeam-foundation/moonbeam/releases --paginate --jq '.[] | select(.tag_name | test("^runtime-\\d+$")) | .tag_name' | sort -V | tail -n 1)
+          echo "LATEST_RELEASE_TAG=$LATEST_RELEASE_TAG" >> "$GITHUB_ENV"
+          echo "$LATEST_RELEASE_TAG"
+      - name: Download latest release runtimes
+        run: |
+          gh release download "$LATEST_RELEASE_TAG" -R moonbeam-foundation/moonbeam -p "moonbeam-runtime-${LATEST_RELEASE_TAG#runtime-}.wasm" -p "moonbase-runtime-${LATEST_RELEASE_TAG#runtime-}.wasm" -p "moonriver-runtime-${LATEST_RELEASE_TAG#runtime-}.wasm" --dir runtimes-latest-release
+      - name: Check latest release runtimes size
+        run: |
+          LATEST_MOONBASE=$(du -k runtimes-latest-release/* | awk '/moonbase-runtime/ {print $1}')
+          LATEST_MOONBEAM=$(du -k runtimes-latest-release/* | awk '/moonbeam-runtime/ {print $1}')
+          LATEST_MOONRIVER=$(du -k runtimes-latest-release/* | awk '/moonriver-runtime/ {print $1}')
+          {
+            echo "LATEST_MOONBASE=$LATEST_MOONBASE"
+            echo "LATEST_MOONBEAM=$LATEST_MOONBEAM"
+            echo "LATEST_MOONRIVER=$LATEST_MOONRIVER"
+          } >> "$GITHUB_ENV"
+      - name: Compare runtime sizes
+        run: |
+          MOONBASE_DIFF=$((CURRENT_MOONBASE - LATEST_MOONBASE))
+          MOONBEAM_DIFF=$((CURRENT_MOONBEAM - LATEST_MOONBEAM))
+          MOONRIVER_DIFF=$((CURRENT_MOONRIVER - LATEST_MOONRIVER))
+
+          get_status() {
+            local size=$1
+            local diff=$2
+            if [ "$size" -gt 3000 ]; then
+              echo "too large"
+            elif [ "$diff" -gt 0 ]; then
+              echo "increased"
+            else
+              echo "ok"
+            fi
+          }
+
+          {
+            echo "### WASM runtime size check"
+            echo ""
+            echo "Compared to latest release (${LATEST_RELEASE_TAG})"
+            echo ""
+            echo "Moonbase runtime: ${CURRENT_MOONBASE} KB ($( [ "$MOONBASE_DIFF" -eq 0 ] && echo "no changes" || echo "$( [ "$MOONBASE_DIFF" -gt 0 ] && echo "+" )${MOONBASE_DIFF} KB")) - $(get_status "$CURRENT_MOONBASE" "$MOONBASE_DIFF")"
+            echo ""
+            echo "Moonbeam runtime: ${CURRENT_MOONBEAM} KB ($( [ "$MOONBEAM_DIFF" -eq 0 ] && echo "no changes" || echo "$( [ "$MOONBEAM_DIFF" -gt 0 ] && echo "+" )${MOONBEAM_DIFF} KB")) - $(get_status "$CURRENT_MOONBEAM" "$MOONBEAM_DIFF")"
+            echo ""
+            echo "Moonriver runtime: ${CURRENT_MOONRIVER} KB ($( [ "$MOONRIVER_DIFF" -eq 0 ] && echo "no changes" || echo "$( [ "$MOONRIVER_DIFF" -gt 0 ] && echo "+" )${MOONRIVER_DIFF} KB")) - $(get_status "$CURRENT_MOONRIVER" "$MOONRIVER_DIFF")"
+          } > runtime_size_report.md
+          cat runtime_size_report.md

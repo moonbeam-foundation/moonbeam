@@ -9,12 +9,6 @@ proposal.
 You may also consider joining our [Discord server](https://discord.gg/PfpUATX) or
 [Element room](https://app.element.io/#/room/#moonbeam:matrix.org) to discuss your changes.
 
-### Generated Documentation
-
-You can explore our [crate-level documentation](https://moonbeam-foundation.github.io/moonbeam).
-This documentation is
-automatically built and reflects the latest `master` commit.
-
 ### Code style
 
 Moonbeam is following the

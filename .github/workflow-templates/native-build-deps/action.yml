@@ -1,0 +1,11 @@
+name: Native build dependencies
+description: Installs system packages required by Rust builds on ephemeral runners.
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install native build dependencies
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libclang-dev llvm-dev libprotobuf-dev protobuf-compiler

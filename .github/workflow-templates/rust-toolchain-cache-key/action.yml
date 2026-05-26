@@ -1,0 +1,25 @@
+name: Rust toolchain cache key
+description: Reads rust-toolchain and exposes the pinned Rust channel for cache keys.
+
+outputs:
+  cache-key:
+    description: Rust cache key suffix, for example rust-1.88.0.
+    value: ${{ steps.rust-toolchain.outputs.cache-key }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Read Rust toolchain
+      id: rust-toolchain
+      shell: bash
+      run: |
+        channel="$(awk -F '"' '/^channel =/ { print $2; exit }' rust-toolchain)"
+        if [ -z "$channel" ]; then
+          echo "Unable to read Rust channel from rust-toolchain" >&2
+          exit 1
+        fi
+        # Keep the Rust version visible in Blacksmith sticky disk keys. This makes
+        # it easy to identify which cache belongs to which Rust version in the
+        # Blacksmith dashboard, and to clean up obsolete caches after toolchain
+        # upgrades.
+        echo "cache-key=rust-${channel}" >> "$GITHUB_OUTPUT"
