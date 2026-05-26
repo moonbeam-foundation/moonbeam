@@ -451,18 +451,32 @@ jobs:
   #   - on push to `master`/`perm-*` (so master is at least eventually
   #     validated, since there's no merge queue to gate pre-merge).
   xcm-emulator-test:
+    # Keep this heavy job behind the cheap Rust checks so formatting or
+    # repository-rule failures stop the PR before it consumes the larger runner.
+    # always() is required on jobs with needs: otherwise GitHub skips the job before
+    # evaluating this condition when any dependency was skipped.
     if: |
+      always() &&
       (
         github.event_name == 'push'
         || github.event_name == 'workflow_dispatch'
         || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'XCM'))
       ) &&
       needs.set-tags.outputs.blacksmith_allowed == 'true' &&
-      needs.set-tags.outputs.rust_changed == 'true'
+      needs.set-tags.outputs.rust_changed == 'true' &&
+      needs.check-cargo-toml-format.result == 'success' &&
+      needs.check-forbid-evm-reentrancy.result == 'success' &&
+      needs.check-rust-fmt.result == 'success'
     runs-on: blacksmith-16vcpu-ubuntu-2404
     permissions:
       contents: read
-    needs: ["set-tags"]
+    needs:
+      [
+        "set-tags",
+        "check-cargo-toml-format",
+        "check-forbid-evm-reentrancy",
+        "check-rust-fmt",
+      ]
     env:
       RUSTC_WRAPPER: "sccache"
       CARGO_INCREMENTAL: "0"
