@@ -28,11 +28,11 @@
 
 use crate::xcm_common::*;
 use moonbeam_runtime::{
-	xcm_config::{SafeCallFilter, XcmOriginToTransactDispatchOrigin},
-	RuntimeCall, RuntimeOrigin,
+	xcm_config::{LocationToAccountId, SafeCallFilter, XcmOriginToTransactDispatchOrigin},
+	AccountId, RuntimeCall, RuntimeOrigin,
 };
 use xcm::latest::prelude::*;
-use xcm_executor::traits::ConvertOrigin;
+use xcm_executor::traits::{ConvertLocation, ConvertOrigin};
 
 #[test]
 fn origin_converts_relay_with_sovereign_kind() {
@@ -40,16 +40,20 @@ fn origin_converts_relay_with_sovereign_kind() {
 		// SovereignSignedViaLocation converts relay location + SovereignAccount kind
 		// into a Signed origin using the relay's sovereign account.
 		let relay = Location::parent();
+		let expected_account =
+			LocationToAccountId::convert_location(&relay).expect("relay has a sovereign account");
 
-		let result =
+		let origin =
 			<XcmOriginToTransactDispatchOrigin as ConvertOrigin<RuntimeOrigin>>::convert_origin(
 				relay,
 				OriginKind::SovereignAccount,
-			);
+			)
+			.expect("Relay + SovereignAccount should convert to dispatch origin");
 
-		assert!(
-			result.is_ok(),
-			"Relay + SovereignAccount should convert to dispatch origin"
+		assert_eq!(
+			origin.caller,
+			RuntimeOrigin::signed(expected_account).caller,
+			"Relay + SovereignAccount must convert to the relay sovereign Signed origin"
 		);
 	});
 }
@@ -58,16 +62,20 @@ fn origin_converts_relay_with_sovereign_kind() {
 fn origin_converts_sibling_with_sovereign_kind() {
 	ExtBuilder::default().build().execute_with(|| {
 		let sibling = Location::new(1, [Parachain(2000)]);
+		let expected_account = LocationToAccountId::convert_location(&sibling)
+			.expect("sibling has a sovereign account");
 
-		let result =
+		let origin =
 			<XcmOriginToTransactDispatchOrigin as ConvertOrigin<RuntimeOrigin>>::convert_origin(
 				sibling,
 				OriginKind::SovereignAccount,
-			);
+			)
+			.expect("Sibling + SovereignAccount should convert to dispatch origin");
 
-		assert!(
-			result.is_ok(),
-			"Sibling + SovereignAccount should convert to dispatch origin"
+		assert_eq!(
+			origin.caller,
+			RuntimeOrigin::signed(expected_account).caller,
+			"Sibling + SovereignAccount must convert to the sibling sovereign Signed origin"
 		);
 	});
 }
@@ -79,15 +87,17 @@ fn origin_converts_relay_with_native_kind() {
 		// relay chain origin (used for governance-like calls).
 		let relay = Location::parent();
 
-		let result =
+		let origin =
 			<XcmOriginToTransactDispatchOrigin as ConvertOrigin<RuntimeOrigin>>::convert_origin(
 				relay,
 				OriginKind::Native,
-			);
+			)
+			.expect("Relay + Native should convert via RelayChainAsNative");
 
-		assert!(
-			result.is_ok(),
-			"Relay + Native should convert via RelayChainAsNative"
+		let expected: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
+		assert_eq!(
+			origin.caller, expected.caller,
+			"Relay + Native must convert to the cumulus Relay origin"
 		);
 	});
 }
@@ -98,15 +108,17 @@ fn origin_converts_relay_with_xcm_kind() {
 		// XcmPassthrough converts any location + Xcm kind into a pallet_xcm origin.
 		let relay = Location::parent();
 
-		let result =
+		let origin =
 			<XcmOriginToTransactDispatchOrigin as ConvertOrigin<RuntimeOrigin>>::convert_origin(
-				relay,
+				relay.clone(),
 				OriginKind::Xcm,
-			);
+			)
+			.expect("Relay + Xcm should convert via XcmPassthrough");
 
-		assert!(
-			result.is_ok(),
-			"Relay + Xcm should convert via XcmPassthrough"
+		let expected: RuntimeOrigin = pallet_xcm::Origin::Xcm(relay).into();
+		assert_eq!(
+			origin.caller, expected.caller,
+			"Relay + Xcm must convert to a pallet_xcm Xcm origin carrying the source location"
 		);
 	});
 }
@@ -124,15 +136,17 @@ fn origin_converts_account_key20_with_native_kind() {
 			}],
 		);
 
-		let result =
+		let origin =
 			<XcmOriginToTransactDispatchOrigin as ConvertOrigin<RuntimeOrigin>>::convert_origin(
 				account_location,
 				OriginKind::Native,
-			);
+			)
+			.expect("AccountKey20 + Native should convert via SignedAccountKey20AsNative");
 
-		assert!(
-			result.is_ok(),
-			"AccountKey20 + Native should convert via SignedAccountKey20AsNative"
+		assert_eq!(
+			origin.caller,
+			RuntimeOrigin::signed(AccountId::from(ALICE)).caller,
+			"AccountKey20 + Native must convert to a Signed origin for that key"
 		);
 	});
 }

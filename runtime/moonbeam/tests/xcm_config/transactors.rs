@@ -360,12 +360,22 @@ fn transactor_handles_relay_sovereign_account() {
 			};
 
 			// Withdraw from relay sovereign account
+			let balance_before = Balances::free_balance(&sovereign_account);
 			let result =
 				<AssetTransactors as TransactAsset>::withdraw_asset(&asset, &relay_location, None);
 
 			assert!(
 				result.is_ok(),
 				"Should withdraw from relay sovereign account"
+			);
+
+			// The withdrawal must actually debit the mapped sovereign account by
+			// exactly ONE_GLMR, not merely return Ok.
+			let balance_after = Balances::free_balance(&sovereign_account);
+			assert_eq!(
+				balance_before - balance_after,
+				ONE_GLMR,
+				"withdraw_asset must debit exactly ONE_GLMR from the relay sovereign account"
 			);
 		});
 }
