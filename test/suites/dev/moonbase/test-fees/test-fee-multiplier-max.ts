@@ -33,17 +33,21 @@ describeSuite({
 
       // set transaction-payment's multiplier to something above max in storage. on the next round,
       // it should enforce its upper bound and reset it.
-      await context
-        .polkadotJs()
-        .tx.sudo.sudo(
-          context
-            .polkadotJs()
-            .tx.system.setStorage([
-              [MULTIPLIER_STORAGE_KEY, nToHex(U128_MAX, { isLe: true, bitLength: 128 })],
-            ])
-        )
-        .signAndSend(alith);
-      await context.createBlock();
+      const nonce = (
+        await context.polkadotJs().query.system.account(alith.address)
+      ).nonce.toNumber();
+      await context.createBlock(
+        await context
+          .polkadotJs()
+          .tx.sudo.sudo(
+            context
+              .polkadotJs()
+              .tx.system.setStorage([
+                [MULTIPLIER_STORAGE_KEY, nToHex(U128_MAX, { isLe: true, bitLength: 128 })],
+              ])
+          )
+          .signAsync(alith, { nonce, era: 0 })
+      );
     });
 
     it({
@@ -79,8 +83,15 @@ describeSuite({
 
         // send an applyAuthorizedUpgrade. we expect this to fail, but we just want to see that it
         // was included in a block (not rejected) and was charged based on its length
-        await context.polkadotJs().tx.system.applyAuthorizedUpgrade(hex).signAndSend(baltathar);
-        await context.createBlock();
+        const nonce = (
+          await context.polkadotJs().query.system.account(baltathar.address)
+        ).nonce.toNumber();
+        await context.createBlock(
+          await context
+            .polkadotJs()
+            .tx.system.applyAuthorizedUpgrade(hex)
+            .signAsync(baltathar, { nonce, era: 0 })
+        );
 
         const afterBalance = (
           await context.polkadotJs().query.system.account(baltathar.address as string)
@@ -89,7 +100,7 @@ describeSuite({
         // note that this is not really affected by the high multiplier because most of its fee is
         // derived from the length_fee, which is not scaled by the multiplier
         // ~/4 to compensate for the ref time XCM fee changes
-        expect(initialBalance - afterBalance).toMatchInlineSnapshot(`150888033314090313277n`);
+        expect(initialBalance - afterBalance).toMatchInlineSnapshot(`150888020117686167008n`);
       },
     });
 
@@ -113,11 +124,12 @@ describeSuite({
           { allowFailures: true }
         );
 
-        // grab the first withdraw event and hope it's the right one...
-        const withdrawEvent = result?.events.filter(({ event }) => event.method === "Withdraw")[0];
-        const amount = (withdrawEvent!.event.data as any).amount.toBigInt();
-        // ~/4 to compensate for the ref time XCM fee changes
-        // Previous value: 6_000_000_012_598_000_941_192n
+        const withdrawAmounts =
+          result?.events
+            .filter(({ event }) => event.method === "Withdraw")
+            .map(({ event }) => (event.data as any).amount.toBigInt()) ?? [];
+        expect(withdrawAmounts.length).to.be.greaterThan(0);
+        const amount = withdrawAmounts.reduce((max, value) => (value > max ? value : max));
         expect(amount).to.equal(1_500_000_003_224_000_970_299n);
       },
     });

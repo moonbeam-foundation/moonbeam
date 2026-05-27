@@ -21,17 +21,21 @@ describeSuite({
 
       // set transaction-payment's multiplier to something above max in storage. on the next round,
       // it should enforce its upper bound and reset it.
-      await context
-        .polkadotJs()
-        .tx.sudo.sudo(
-          context
-            .polkadotJs()
-            .tx.system.setStorage([
-              [MULTIPLIER_STORAGE_KEY, nToHex(1n, { isLe: true, bitLength: 128 })],
-            ])
-        )
-        .signAndSend(alith);
-      await context.createBlock();
+      const nonce = (
+        await context.polkadotJs().query.system.account(alith.address)
+      ).nonce.toNumber();
+      await context.createBlock(
+        await context
+          .polkadotJs()
+          .tx.sudo.sudo(
+            context
+              .polkadotJs()
+              .tx.system.setStorage([
+                [MULTIPLIER_STORAGE_KEY, nToHex(1n, { isLe: true, bitLength: 128 })],
+              ])
+          )
+          .signAsync(alith, { nonce, era: 0 })
+      );
     });
 
     it({
