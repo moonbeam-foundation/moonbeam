@@ -80,6 +80,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ steps.check-git-ref.outputs.git_ref }}
+          persist-credentials: false
       - name: Display variables
         run: |
           echo git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
@@ -147,6 +148,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+          persist-credentials: false
       - name: Find un-copyrighted files
         run: |
           find . \! -name '*.expanded.rs' -name '*.rs' -exec grep  -H -E -o -c Copyright {} \; | grep ':0' || true
@@ -168,6 +170,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+          persist-credentials: false
       - uses: umbrelladocs/action-linkspector@ec40914b4aaecb3c7648033eac41abbb0a6a33b8
         with:
           reporter: github-pr-review
@@ -187,6 +190,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+          persist-credentials: false
       - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
         with:
           version: 9
@@ -214,6 +218,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+          persist-credentials: false
       - name: Setup Rust toolchain
         uses: ./.github/workflow-templates/rust-toolchain
       - name: Check Cargo.toml files format with toml_sort
@@ -232,6 +237,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+          persist-credentials: false
       - name: Setup Rust toolchain
         uses: ./.github/workflow-templates/rust-toolchain
       - name: Verifies all 'pallet-evm/ethereum' use 'forbid-evm-reentrancy' feature
@@ -250,6 +256,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+          persist-credentials: false
       - name: Setup Rust toolchain
         uses: ./.github/workflow-templates/rust-toolchain
       - name: Format code with rustfmt
@@ -331,6 +338,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+          persist-credentials: false
       - name: Read Rust toolchain cache key
         id: rust-toolchain-cache-key
         uses: ./.github/workflow-templates/rust-toolchain-cache-key
@@ -394,6 +402,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+          persist-credentials: false
       - name: Read Rust toolchain cache key
         id: rust-toolchain-cache-key
         uses: ./.github/workflow-templates/rust-toolchain-cache-key
@@ -455,6 +464,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+          persist-credentials: false
       - name: Read Rust toolchain cache key
         id: rust-toolchain-cache-key
         uses: ./.github/workflow-templates/rust-toolchain-cache-key
@@ -561,6 +571,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+          persist-credentials: false
       - name: Create local folders
         run: |
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
@@ -617,6 +628,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+          persist-credentials: false
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: moonbeam
@@ -686,6 +698,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+          persist-credentials: false
       - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
         with:
           version: 9
@@ -752,6 +765,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+          persist-credentials: false
       - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
         with:
           version: 9
@@ -816,6 +830,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+          persist-credentials: false
       - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
         with:
           version: 9
@@ -892,6 +907,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - name: "Download branch built runtime"
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
