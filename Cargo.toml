@@ -481,9 +481,9 @@ codegen-units = 1
 incremental = false
 lto = true
 
-[profile.release]
+[profile.dev]
 debug-assertions = true # Enable debug-assert! for non-production profiles
-opt-level = 3
+opt-level = 1
 # Moonbeam runtime requires unwinding.
 panic = "unwind"
 

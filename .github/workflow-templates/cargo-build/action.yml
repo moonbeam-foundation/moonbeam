@@ -59,7 +59,7 @@ runs:
     - name: Build Node
       shell: bash
       run: |
-        params=" --locked --release -p moonbeam"
+        params=" --locked -p moonbeam"
         if [ -n "${{ inputs.features }}" ]; then
           params="$params --features ${{ inputs.features }}"
         fi
@@ -68,8 +68,8 @@ runs:
     - name: Display binary comments
       shell: bash
       run: |
-        readelf -p .comment ./target/release/moonbeam
-        GLIBC_VERSION="$(objdump -T ./target/release/moonbeam | grep "GLIBC_" | sed 's/.*GLIBC_\([.0-9]*\).*/\1/g' | sort -Vu | tail -1)"
+        readelf -p .comment ./target/debug/moonbeam
+        GLIBC_VERSION="$(objdump -T ./target/debug/moonbeam | grep "GLIBC_" | sed 's/.*GLIBC_\([.0-9]*\).*/\1/g' | sort -Vu | tail -1)"
         echo "GLIBC Version: $GLIBC_VERSION"
     - name: Display sccache stats
       shell: bash
@@ -78,18 +78,18 @@ runs:
       shell: bash
       run: |
         GIT_COMMIT="$(git log -1 --format="%H" | cut -c1-7)"
-        MB_VERSION="$(./target/release/moonbeam --version)"
+        MB_VERSION="$(./target/debug/moonbeam --version)"
         echo "Checking $MB_VERSION contains $GIT_COMMIT"
         echo "$MB_VERSION" | grep "$GIT_COMMIT"
     - name: Save runtimes wasm
       shell: bash
       run: |
         mkdir -p runtimes
-        cp target/release/wbuild/moon*/moon*_runtime.compact.compressed.wasm runtimes/
+        cp target/debug/wbuild/moon*/moon*_runtime.compact.compressed.wasm runtimes/
         mkdir -p uncompressed-runtimes
-        cp target/release/wbuild/moon*/moon*_runtime.wasm uncompressed-runtimes/
+        cp target/debug/wbuild/moon*/moon*_runtime.wasm uncompressed-runtimes/
     - name: Save moonbeam binary
       shell: bash
       run: |
         mkdir -p build
-        cp target/release/moonbeam build/moonbeam
+        cp target/debug/moonbeam build/moonbeam
