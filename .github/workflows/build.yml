@@ -493,11 +493,11 @@ jobs:
       - name: Check runtime-benchmarks compilation
         if: github.ref == 'refs/heads/master' || needs.set-tags.outputs.benchmarks_changed == 'true'
         run: |
-          cargo check --profile testnet --workspace --features=runtime-benchmarks
+          cargo check --profile rust-tests --workspace --features=runtime-benchmarks
       # Checks are run after uploading artifacts since they are modified by the tests
       - name: Unit tests
         run: |
-          cargo test --profile testnet --workspace --features=evm-tracing
+          cargo test --profile rust-tests --workspace --features=evm-tracing
 
   # Renable typegen_check when we have a bot in place to update PR for us in case of missing it
 
