@@ -4,7 +4,6 @@ import {
   ALITH_PRIVATE_KEY,
   beforeAll,
   createViemTransaction,
-  createViemTransaction,
   deployCreateCompiledContract,
   describeSuite,
   expect,
@@ -65,7 +64,6 @@ describeSuite({
         });
 
         const rawTx = await createViemTransaction(context, {
-        const rawTx = await createViemTransaction(context, {
           to: subCallOogAddress,
           data: encodeFunctionData({
             abi: subCallOogAbi,
@@ -109,7 +107,6 @@ describeSuite({
 
         log(`Estimated gas: ${estimatedGas}`);
 
-        const rawTx = await createViemTransaction(context, {
         const rawTx = await createViemTransaction(context, {
           to: subCallOogAddress,
           data: encodeFunctionData({
