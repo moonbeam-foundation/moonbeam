@@ -73,13 +73,13 @@ describeSuite({
           privateKey: ALITH_PRIVATE_KEY,
           txnType: "eip1559",
           gas: estimatedGas,
+          maxPriorityFeePerGas: 0n,
         });
-
-        const { result } = await context.createBlock([rawTx]);
+        const { result } = await context.createBlock(rawTx);
 
         const receipt = await context
-          .viem()
-          .getTransactionReceipt({ hash: result![0].hash as `0x${string}` });
+          .viem("public")
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
 
         const decoded = decodeEventLog({
           abi: subCallOogAbi,
@@ -117,13 +117,13 @@ describeSuite({
           privateKey: ALITH_PRIVATE_KEY,
           txnType: "eip1559",
           gas: estimatedGas,
+          maxPriorityFeePerGas: 0n,
         });
-
-        const { result } = await context.createBlock([rawTx]);
+        const { result } = await context.createBlock(rawTx);
 
         const receipt = await context
-          .viem()
-          .getTransactionReceipt({ hash: result![0].hash as `0x${string}` });
+          .viem("public")
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         const decoded = decodeEventLog({
           abi: subCallOogAbi,
           data: receipt.logs[bloatedContracts.length - 1].data,
