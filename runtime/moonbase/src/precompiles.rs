@@ -21,6 +21,7 @@ use frame_support::parameter_types;
 use moonkit_xcm_primitives::location_matcher::{
 	Erc20PalletMatcher, ForeignAssetMatcher, SingleAddressMatcher,
 };
+use pallet_evm::GasWeightMapping;
 use pallet_evm_precompile_author_mapping::AuthorMappingPrecompile;
 use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
 use pallet_evm_precompile_batch::BatchPrecompile;
@@ -60,6 +61,8 @@ use precompile_utils::precompile_set::*;
 parameter_types! {
 	pub P256VerifyWeight: frame_support::weights::Weight =
 		moonbase_weights::pallet_precompile_benchmarks::WeightInfo::<Runtime>::p256_verify();
+	pub P256VerifyGas: u64 =
+		<Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(P256VerifyWeight::get());
 	pub AssetHubTransactor: crate::xcm_config::Transactors = crate::xcm_config::Transactors::AssetHub;
 }
 
@@ -141,7 +144,11 @@ type MoonbasePrecompilesAt<R> = (
 	PrecompileAt<AddressU64<16>, Bls12381MapG1, EthereumPrecompilesChecks>,
 	PrecompileAt<AddressU64<17>, Bls12381MapG2, EthereumPrecompilesChecks>,
 	// (0x100 => 256) https://github.com/ethereum/RIPs/blob/master/RIPS/rip-7212.md
-	PrecompileAt<AddressU64<256>, P256Verify<P256VerifyWeight>, EthereumPrecompilesChecks>,
+	PrecompileAt<
+		AddressU64<256>,
+		P256Verify<P256VerifyWeight, P256VerifyGas>,
+		EthereumPrecompilesChecks,
+	>,
 	// Non-Moonbeam specific nor Ethereum precompiles :
 	PrecompileAt<
 		AddressU64<1024>,
