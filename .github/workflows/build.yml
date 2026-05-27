@@ -422,7 +422,6 @@ jobs:
   rust-test:
     # Rust tests are one of the most expensive PR jobs, so only run them after the
     # quick Rust checks and the moonbase dev-test gate have passed.
-    name: Rust tests (${{ matrix.shard.name }})
     if: |
       always() &&
       needs.set-tags.outputs.rust_changed == 'true' &&
@@ -434,18 +433,6 @@ jobs:
       needs.dev-test.result == 'success'
     runs-on: blacksmith-16vcpu-ubuntu-2404
     timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        shard:
-          - name: moonbase runtime
-            cargo_args: -p moonbase-runtime
-          - name: moonbeam runtime
-            cargo_args: -p moonbeam-runtime
-          - name: moonriver runtime
-            cargo_args: -p moonriver-runtime
-          - name: workspace except runtimes
-            cargo_args: --workspace --exclude moonbase-runtime --exclude moonbeam-runtime --exclude moonriver-runtime
     permissions:
       contents: read
     needs:
@@ -487,7 +474,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p mold
-          curl -L --retry 10 --silent --show-error "https://github.com/rui314/mold/releases/download/v2.39.0/mold-2.39.0-$(uname -m)-linux.tar.gz" | tar -C "$(realpath mold)" --strip-components=1 -xzf -
+          curl -L --retry 10 --silent --show-error https://github.com/rui314/mold/releases/download/v2.39.0/mold-2.39.0-$(uname -m)-linux.tar.gz | tar -C $(realpath mold) --strip-components=1 -xzf -
       - name: Install native build dependencies
         uses: ./.github/workflow-templates/native-build-deps
       - name: Setup Rust toolchain
@@ -500,7 +487,7 @@ jobs:
       # Checks are run after uploading artifacts since they are modified by the tests
       - name: Unit tests
         run: |
-          cargo test --profile testnet ${{ matrix.shard.cargo_args }} --features=evm-tracing
+          cargo test --profile testnet --workspace --features=evm-tracing
 
   # Renable typegen_check when we have a bot in place to update PR for us in case of missing it
 
