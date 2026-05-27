@@ -255,6 +255,45 @@ jobs:
       - name: Format code with rustfmt
         run: cargo fmt -- --check
 
+  check-rust-feature-propagation:
+    if: ${{ needs.set-tags.outputs.rust_changed == 'true' }}
+    name: "Check Feature Propagation"
+    runs-on:
+      labels: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    needs: ["set-tags"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Check features
+        run: |
+          # Install zepter
+          cargo install zepter -f --locked --version 0.13.2
+          # Run checks
+          zepter_output="$(mktemp)"
+          set +e
+          zepter run check 2>&1 | tee "$zepter_output"
+          zepter_status=${PIPESTATUS[0]}
+          set -e
+
+          if [[ "$zepter_status" -ne 0 ]]; then
+            exit "$zepter_status"
+          fi
+
+          # Zepter 0.13.2 can print failed workflow checks while still exiting
+          # successfully. Treat those diagnostics as failures so CI does not
+          # pass Cargo.toml-only changes with feature propagation issues.
+          if grep -Eq "Found [1-9][0-9]* issues|Error: Command '.+' failed" "$zepter_output"; then
+            echo "::error::Zepter reported failed checks but exited successfully"
+            exit 1
+          fi
+
   ####### Building and Testing binaries #######
 
   cargo-clippy:
@@ -268,7 +307,8 @@ jobs:
       needs.set-tags.outputs.blacksmith_allowed == 'true' &&
       needs.check-cargo-toml-format.result == 'success' &&
       needs.check-forbid-evm-reentrancy.result == 'success' &&
-      needs.check-rust-fmt.result == 'success'
+      needs.check-rust-fmt.result == 'success' &&
+      needs.check-rust-feature-propagation.result == 'success'
     runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 30
     permissions:
@@ -284,6 +324,7 @@ jobs:
         "check-cargo-toml-format",
         "check-forbid-evm-reentrancy",
         "check-rust-fmt",
+        "check-rust-feature-propagation",
       ]
     steps:
       - name: Checkout
@@ -328,7 +369,8 @@ jobs:
           needs.set-tags.outputs.rust_changed == 'true' &&
           needs.check-cargo-toml-format.result == 'success' &&
           needs.check-forbid-evm-reentrancy.result == 'success' &&
-          needs.check-rust-fmt.result == 'success'
+          needs.check-rust-fmt.result == 'success' &&
+          needs.check-rust-feature-propagation.result == 'success'
         ) ||
         (
           needs.set-tags.outputs.ts_tests_changed == 'true' &&
@@ -345,6 +387,7 @@ jobs:
         "check-cargo-toml-format",
         "check-forbid-evm-reentrancy",
         "check-rust-fmt",
+        "check-rust-feature-propagation",
       ]
     steps:
       - name: Checkout
@@ -387,6 +430,7 @@ jobs:
       needs.check-cargo-toml-format.result == 'success' &&
       needs.check-forbid-evm-reentrancy.result == 'success' &&
       needs.check-rust-fmt.result == 'success' &&
+      needs.check-rust-feature-propagation.result == 'success' &&
       needs.dev-test.result == 'success'
     runs-on: blacksmith-16vcpu-ubuntu-2404
     timeout-minutes: 30
@@ -410,6 +454,7 @@ jobs:
         "check-cargo-toml-format",
         "check-forbid-evm-reentrancy",
         "check-rust-fmt",
+        "check-rust-feature-propagation",
         "dev-test",
       ]
     env:
