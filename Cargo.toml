@@ -422,15 +422,16 @@ ed25519-dalek = { version = "2.1", default-features = false }
 #
 # This list is ordered alphabetically.
 [profile.dev.package]
+ark-vrf = { opt-level = 3 }
 blake2 = { opt-level = 3 }
 blake2b_simd = { opt-level = 3 }
 chacha20poly1305 = { opt-level = 3 }
 cranelift-codegen = { opt-level = 3 }
-cranelift-wasm = { opt-level = 3 }
 crc32fast = { opt-level = 3 }
 crossbeam-deque = { opt-level = 3 }
 crypto-mac = { opt-level = 3 }
 curve25519-dalek = { opt-level = 3 }
+ed25519-dalek = { opt-level = 3 }
 ed25519-zebra = { opt-level = 3 }
 futures-channel = { opt-level = 3 }
 hash-db = { opt-level = 3 }
@@ -450,7 +451,9 @@ num-bigint = { opt-level = 3 }
 parking_lot = { opt-level = 3 }
 parking_lot_core = { opt-level = 3 }
 percent-encoding = { opt-level = 3 }
+polkavm-linker = { opt-level = 3 }
 primitive-types = { opt-level = 3 }
+reed-solomon-novelpoly = { opt-level = 3 }
 ring = { opt-level = 3 }
 rustls = { opt-level = 3 }
 secp256k1 = { opt-level = 3 }
@@ -458,6 +461,7 @@ sha2 = { opt-level = 3 }
 sha3 = { opt-level = 3 }
 smallvec = { opt-level = 3 }
 snow = { opt-level = 3 }
+substrate-bip39 = { opt-level = 3 }
 twox-hash = { opt-level = 3 }
 uint = { opt-level = 3 }
 wasmi = { opt-level = 3 }
