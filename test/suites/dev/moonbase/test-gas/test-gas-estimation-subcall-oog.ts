@@ -77,7 +77,7 @@ describeSuite({
 
         const receipt = await context
           .viem("public")
-          .getTransactionReceipt({ hash: result?.hash as `0x${string}` });
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
 
         const decoded = decodeEventLog({
           abi: subCallOogAbi,
@@ -120,7 +120,7 @@ describeSuite({
 
         const receipt = await context
           .viem("public")
-          .getTransactionReceipt({ hash: result?.hash as `0x${string}` });
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         const decoded = decodeEventLog({
           abi: subCallOogAbi,
           data: receipt.logs[bloatedContracts.length - 1].data,

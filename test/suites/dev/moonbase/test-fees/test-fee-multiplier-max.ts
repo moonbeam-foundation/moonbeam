@@ -10,6 +10,7 @@ import {
 } from "moonwall";
 import { nToHex } from "@polkadot/util";
 import { encodeFunctionData } from "viem";
+import { sealExtrinsic } from "../../../../helpers";
 
 // Note on the values from 'transactionPayment.nextFeeMultiplier': this storage item is actually a
 // FixedU128, which is basically a u128 with an implicit denominator of 10^18. However, this
@@ -33,20 +34,15 @@ describeSuite({
 
       // set transaction-payment's multiplier to something above max in storage. on the next round,
       // it should enforce its upper bound and reset it.
-      const nonce = (
-        await context.polkadotJs().query.system.account(alith.address)
-      ).nonce.toNumber();
-      await context.createBlock(
-        await context
-          .polkadotJs()
-          .tx.sudo.sudo(
-            context
-              .polkadotJs()
-              .tx.system.setStorage([
-                [MULTIPLIER_STORAGE_KEY, nToHex(U128_MAX, { isLe: true, bitLength: 128 })],
-              ])
-          )
-          .signAsync(alith, { nonce, era: 0 })
+      const api = context.polkadotJs();
+      await sealExtrinsic(
+        context,
+        api.tx.sudo.sudo(
+          api.tx.system.setStorage([
+            [MULTIPLIER_STORAGE_KEY, nToHex(U128_MAX, { isLe: true, bitLength: 128 })],
+          ])
+        ),
+        alith
       );
     });
 
@@ -83,14 +79,10 @@ describeSuite({
 
         // send an applyAuthorizedUpgrade. we expect this to fail, but we just want to see that it
         // was included in a block (not rejected) and was charged based on its length
-        const nonce = (
-          await context.polkadotJs().query.system.account(baltathar.address)
-        ).nonce.toNumber();
-        await context.createBlock(
-          await context
-            .polkadotJs()
-            .tx.system.applyAuthorizedUpgrade(hex)
-            .signAsync(baltathar, { nonce, era: 0 })
+        await sealExtrinsic(
+          context,
+          context.polkadotJs().tx.system.applyAuthorizedUpgrade(hex),
+          baltathar
         );
 
         const afterBalance = (
@@ -119,9 +111,11 @@ describeSuite({
 
         const fillAmount = 600_000_000; // equal to 60% Perbill
 
-        const { result } = await context.createBlock(
+        const { result } = await sealExtrinsic(
+          context,
           context.polkadotJs().tx.rootTesting.fillBlock(fillAmount),
-          { allowFailures: true }
+          alith,
+          { createBlock: { allowFailures: true } }
         );
 
         const withdrawAmounts =
@@ -130,7 +124,7 @@ describeSuite({
             .map(({ event }) => (event.data as any).amount.toBigInt()) ?? [];
         expect(withdrawAmounts.length).to.be.greaterThan(0);
         const amount = withdrawAmounts.reduce((max, value) => (value > max ? value : max));
-        expect(amount).to.equal(1_500_000_003_224_000_970_299n);
+        expect(amount).to.equal(1_500_000_003_223_000_941_192n);
       },
     });
 

@@ -1,5 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { BALTATHAR_ADDRESS, baltathar, describeSuite, expect, type DevModeContext } from "moonwall";
+import { sealExtrinsic } from "../../../../helpers";
 
 //TODO: Change these to be less literal
 describeSuite({
@@ -35,14 +36,10 @@ const testBalanceTransfer = async (context: DevModeContext) => {
     await context.polkadotJs().query.system.account(BALTATHAR_ADDRESS)
   ).data.free.toBigInt();
 
-  const transferNonce = (
-    await context.polkadotJs().query.system.account(baltathar.address)
-  ).nonce.toNumber();
-  await context.createBlock(
-    await context
-      .polkadotJs()
-      .tx.balances.transferAllowDeath(BALTATHAR_ADDRESS, 1)
-      .signAsync(baltathar, { nonce: transferNonce, era: 0 })
+  await sealExtrinsic(
+    context,
+    context.polkadotJs().tx.balances.transferAllowDeath(BALTATHAR_ADDRESS, 1),
+    baltathar
   );
 
   const afterBalance = (
@@ -64,14 +61,10 @@ const testRuntimeUpgrade = async (context: DevModeContext) => {
 
   // send an applyAuthorizedUpgrade. we expect this to fail, but we just want to see that it was
   // included in a block (not rejected) and was charged based on its length
-  const upgradeNonce = (
-    await context.polkadotJs().query.system.account(baltathar.address)
-  ).nonce.toNumber();
-  await context.createBlock(
-    await context
-      .polkadotJs()
-      .tx.system.applyAuthorizedUpgrade(hex)
-      .signAsync(baltathar, { nonce: upgradeNonce, era: 0 })
+  await sealExtrinsic(
+    context,
+    context.polkadotJs().tx.system.applyAuthorizedUpgrade(hex),
+    baltathar
   );
 
   const afterBalance = (

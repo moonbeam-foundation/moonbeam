@@ -51,7 +51,7 @@ describeSuite({
 
         const receipt = await context
           .viem("public")
-          .getTransactionReceipt({ hash: result?.hash as `0x${string}` });
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
 
         const rawTx2 = await createViemTransaction(context, {

@@ -44,7 +44,7 @@ describeSuite({
         });
 
         const { result } = await context.createBlock(batchAllTx);
-        const hash = result?.hash as `0x${string}`;
+        const hash = result!.hash as `0x${string}`;
         const batchAllReceipt = await context.viem("public").getTransactionReceipt({ hash });
         expect(batchAllReceipt.status).toBe("reverted");
         expect(await extractRevertReason(context, hash)).toContain("Value is too large for uint64");

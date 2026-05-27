@@ -1,6 +1,7 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { alith, beforeEach, describeSuite, expect } from "moonwall";
 import { nToHex } from "@polkadot/util";
+import { sealExtrinsic } from "../../../../helpers";
 
 // Note on the values from 'transactionPayment.nextFeeMultiplier': this storage item is actually a
 // FixedU128, which is basically a u128 with an implicit denominator of 10^18. However, this
@@ -21,20 +22,15 @@ describeSuite({
 
       // set transaction-payment's multiplier to something above max in storage. on the next round,
       // it should enforce its upper bound and reset it.
-      const nonce = (
-        await context.polkadotJs().query.system.account(alith.address)
-      ).nonce.toNumber();
-      await context.createBlock(
-        await context
-          .polkadotJs()
-          .tx.sudo.sudo(
-            context
-              .polkadotJs()
-              .tx.system.setStorage([
-                [MULTIPLIER_STORAGE_KEY, nToHex(1n, { isLe: true, bitLength: 128 })],
-              ])
-          )
-          .signAsync(alith, { nonce, era: 0 })
+      const api = context.polkadotJs();
+      await sealExtrinsic(
+        context,
+        api.tx.sudo.sudo(
+          api.tx.system.setStorage([
+            [MULTIPLIER_STORAGE_KEY, nToHex(1n, { isLe: true, bitLength: 128 })],
+          ])
+        ),
+        alith
       );
     });
 

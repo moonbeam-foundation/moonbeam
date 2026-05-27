@@ -21,6 +21,7 @@ import {
   genAssetMeta,
   genRegisterChainVAA,
   genTransferWithPayloadVAA,
+  sealExtrinsic,
 } from "../../../../helpers";
 
 /*
@@ -332,11 +333,10 @@ describeSuite({
       );
 
       const api = context.polkadotJs();
-      let setupNonce = (await api.query.system.account(alith.address)).nonce.toNumber();
-      await context.createBlock(
-        await api.tx.sudo
-          .sudo(api.tx.system.setStorage([[CORE_CONTRACT_STORAGE_ADDRESS, wormholeAddr]]))
-          .signAsync(alith, { nonce: setupNonce++, era: 0 })
+      await sealExtrinsic(
+        context,
+        api.tx.sudo.sudo(api.tx.system.setStorage([[CORE_CONTRACT_STORAGE_ADDRESS, wormholeAddr]])),
+        alith
       );
 
       const BRIDGE_CONTRACT_STORAGE_ADDRESS = u8aToHex(
@@ -346,10 +346,10 @@ describeSuite({
         "0xb7f047395bba5df0367b45771c00de50c1586bde54b249fb7f521faf831ade45"
       );
 
-      await context.createBlock(
-        await api.tx.sudo
-          .sudo(api.tx.system.setStorage([[BRIDGE_CONTRACT_STORAGE_ADDRESS, bridgeAddr]]))
-          .signAsync(alith, { nonce: setupNonce++, era: 0 })
+      await sealExtrinsic(
+        context,
+        api.tx.sudo.sudo(api.tx.system.setStorage([[BRIDGE_CONTRACT_STORAGE_ADDRESS, bridgeAddr]])),
+        alith
       );
 
       // we also need to disable the killswitch by setting the 'enabled' flag to Some(true)
@@ -360,14 +360,14 @@ describeSuite({
         "0xb7f047395bba5df0367b45771c00de502551bba17abb82ef3498bab688e470b8"
       );
 
-      await context.createBlock(
-        await api.tx.sudo
-          .sudo(
-            api.tx.system.setStorage([
-              [ENABLED_FLAG_STORAGE_ADDRESS, api.createType("Option<bool>", true).toHex()],
-            ])
-          )
-          .signAsync(alith, { nonce: setupNonce++, era: 0 })
+      await sealExtrinsic(
+        context,
+        api.tx.sudo.sudo(
+          api.tx.system.setStorage([
+            [ENABLED_FLAG_STORAGE_ADDRESS, api.createType("Option<bool>", true).toHex()],
+          ])
+        ),
+        alith
       );
     });
 

@@ -43,7 +43,7 @@ describeSuite({
 
         const receipt = await context
           .viem("public")
-          .getTransactionReceipt({ hash: result?.hash as `0x${string}` });
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(BigInt(receipt.gasUsed)).to.equal(EXPECTED_GAS_USED);
 
         const apiAt = await context.polkadotJs().at(block.hash);

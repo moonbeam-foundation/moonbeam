@@ -17,6 +17,8 @@ import {
   expectOk,
   injectHrmpMessage,
   ConstantStore,
+  sealExtrinsic,
+  sealExtrinsics,
 } from "../../../../helpers";
 
 // Below should be the calculation:
@@ -29,15 +31,14 @@ const TARGET_FILL_AMOUNT = 262_349_219;
 async function setFeeMultiplier(context: any, value: bigint) {
   const api = context.polkadotJs();
   const MULTIPLIER_STORAGE_KEY = api.query.transactionPayment.nextFeeMultiplier.key(0).toString();
-  const nonce = (await api.query.system.account(alith.address)).nonce.toNumber();
-  await context.createBlock(
-    await api.tx.sudo
-      .sudo(
-        api.tx.system.setStorage([
-          [MULTIPLIER_STORAGE_KEY, bnToHex(value, { isLe: true, bitLength: 128 })],
-        ])
-      )
-      .signAsync(alith, { nonce, era: 0 })
+  await sealExtrinsic(
+    context,
+    api.tx.sudo.sudo(
+      api.tx.system.setStorage([
+        [MULTIPLIER_STORAGE_KEY, bnToHex(value, { isLe: true, bitLength: 128 })],
+      ])
+    ),
+    alith
   );
 }
 
@@ -106,15 +107,14 @@ describeSuite({
           .query.transactionPayment.nextFeeMultiplier();
 
         const api = context.polkadotJs();
-        let nonce = (await api.query.system.account(alith.address)).nonce.toNumber();
-        await context.createBlock([
-          await api.tx.balances
-            .transferAllowDeath(BALTATHAR_ADDRESS, 1_000_000_000_000_000_000n)
-            .signAsync(alith, { nonce: nonce++, era: 0 }),
-          await api.tx.sudo
-            .sudo(api.tx.rootTesting.fillBlock(TARGET_FILL_AMOUNT))
-            .signAsync(alith, { nonce: nonce++, era: 0 }),
-        ]);
+        await sealExtrinsics(
+          context,
+          [
+            api.tx.balances.transferAllowDeath(BALTATHAR_ADDRESS, 1_000_000_000_000_000_000n),
+            api.tx.sudo.sudo(api.tx.rootTesting.fillBlock(TARGET_FILL_AMOUNT)),
+          ],
+          alith
+        );
 
         const postValue = await context.polkadotJs().query.transactionPayment.nextFeeMultiplier();
         expect(

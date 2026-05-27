@@ -15,6 +15,7 @@ import {
   expectEVMResult,
   injectHrmpMessage,
   sovereignAccountOfSibling,
+  sealExtrinsic,
 } from "../../helpers";
 
 describeSuite({
@@ -47,11 +48,11 @@ describeSuite({
         .index.toNumber();
 
       // Send some native tokens to the sovereign account of paraId (to pay fees)
-      await context
-        .polkadotJs()
-        .tx.balances.transferAllowDeath(paraSovereign, parseEther("1"))
-        .signAndSend(alith);
-      await context.createBlock();
+      await sealExtrinsic(
+        context,
+        context.polkadotJs().tx.balances.transferAllowDeath(paraSovereign, parseEther("1")),
+        alith
+      );
 
       // Send some erc20 tokens to the sovereign account of paraId
       const rawTx = await context.writeContract!({

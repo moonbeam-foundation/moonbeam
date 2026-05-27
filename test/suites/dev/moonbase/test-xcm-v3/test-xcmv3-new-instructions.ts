@@ -8,6 +8,7 @@ import {
   type XcmFragmentConfig,
   injectHrmpMessageAndSeal,
 } from "../../../../helpers/xcm.js";
+import { sealExtrinsic } from "../../../../helpers";
 import { parseEther } from "ethers";
 import type { ApiPromise } from "@polkadot/api";
 
@@ -33,8 +34,11 @@ describeSuite({
         .index.toNumber();
 
       // Send some native tokens to the sovereign account of paraId (to pay fees)
-      await api.tx.balances.transferAllowDeath(paraSovereign, parseEther("1")).signAndSend(alith);
-      await context.createBlock();
+      await sealExtrinsic(
+        context,
+        api.tx.balances.transferAllowDeath(paraSovereign, parseEther("1")),
+        alith
+      );
 
       amount = 1_000_000_000_000_000n;
       dotAsset = {
