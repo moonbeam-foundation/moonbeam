@@ -7,9 +7,6 @@ license = "GPL-3.0-only"
 repository = { workspace = true }
 version = "0.1.0"
 
-[lints]
-workspace = true
-
 [dependencies]
 # Substrate
 frame-support = { workspace = true }
@@ -28,11 +25,15 @@ std = [
 	"frame-support/std",
 	"sp-runtime/std",
 	"sp-std/std",
-	"xcm/std",
 	"xcm-primitives/std",
+	"xcm/std",
 ]
 runtime-benchmarks = [
 	"frame-support/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
+	"xcm-primitives/runtime-benchmarks",
+	"xcm/runtime-benchmarks",
 ]
 
+[lints]
+workspace = true

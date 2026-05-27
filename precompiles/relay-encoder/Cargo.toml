@@ -15,14 +15,14 @@ xcm-primitives = { workspace = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
 pallet-staking = { workspace = true }
-parity-scale-codec = { workspace = true, features = ["derive"] }
+parity-scale-codec = { workspace = true, features = [ "derive" ] }
 sp-core = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
 
 # Frontier
 fp-evm = { workspace = true }
-pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
+pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
 precompile-utils = { workspace = true }
 
 # Cumulus
@@ -31,47 +31,24 @@ cumulus-primitives-core = { workspace = true }
 [dev-dependencies]
 
 # Moonbeam
-precompile-utils = { workspace = true, features = ["std", "testing"] }
 moonbeam-tests-primitives = { workspace = true }
+precompile-utils = { workspace = true, features = [ "std", "testing" ] }
 
 # Substrate
-pallet-balances = { workspace = true, features = ["std"] }
-pallet-timestamp = { workspace = true, features = ["std"] }
-pallet-message-queue = { workspace = true, features = ["std"] }
-scale-info = { workspace = true, features = ["std", "derive"] }
-sp-io = { workspace = true, features = ["std"] }
+pallet-balances = { workspace = true, features = [ "std" ] }
+pallet-message-queue = { workspace = true, features = [ "std" ] }
+pallet-timestamp = { workspace = true, features = [ "std" ] }
+scale-info = { workspace = true, features = [ "derive", "std" ] }
+sp-io = { workspace = true, features = [ "std" ] }
 
 # Cumulus
-cumulus-pallet-parachain-system = { workspace = true, features = ["std"] }
+cumulus-pallet-parachain-system = { workspace = true, features = [ "std" ] }
 
 # Polkadot
-xcm = { workspace = true, features = ["std"] }
-xcm-builder = { workspace = true, features = ["std"] }
-xcm-executor = { workspace = true, features = ["std"] }
+xcm = { workspace = true, features = [ "std" ] }
+xcm-builder = { workspace = true, features = [ "std" ] }
+xcm-executor = { workspace = true, features = [ "std" ] }
 
 [features]
-default = ["std"]
-std = [
-	"cumulus-primitives-core/std",
-	"fp-evm/std",
-	"frame-support/std",
-	"frame-system/std",
-	"sp-core/std",
-	"pallet-evm/std",
-	"pallet-staking/std",
-	"pallet-xcm-transactor/std",
-	"parity-scale-codec/std",
-	"precompile-utils/std",
-	"sp-runtime/std",
-	"sp-std/std",
-	"xcm-primitives/std",
-	"cumulus-pallet-parachain-system/std",
-	"pallet-balances/std",
-	"pallet-message-queue/std",
-	"pallet-timestamp/std",
-	"sp-io/std",
-	"xcm-builder/std",
-	"xcm-executor/std",
-	"xcm/std",
-	"scale-info/std"
-]
+default = [ "std" ]
+std = [ "cumulus-pallet-parachain-system/std", "cumulus-primitives-core/std", "fp-evm/std", "frame-support/std", "frame-system/std", "moonbeam-tests-primitives/std", "pallet-balances/std", "pallet-evm/std", "pallet-message-queue/std", "pallet-staking/std", "pallet-timestamp/std", "pallet-xcm-transactor/std", "parity-scale-codec/std", "precompile-utils/std", "scale-info/std", "sp-core/std", "sp-io/std", "sp-runtime/std", "sp-std/std", "xcm-builder/std", "xcm-executor/std", "xcm-primitives/std", "xcm/std" ]
