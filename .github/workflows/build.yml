@@ -461,7 +461,7 @@ jobs:
       - name: Mount Blacksmith sccache disk
         uses: useblacksmith/stickydisk@d58829ad6f9be8822ec5efe74256c82cd62915ab
         with:
-          key: ${{ github.repository }}-sccache-release-${{ runner.os }}-${{ steps.rust-toolchain-cache-key.outputs.cache-key }}
+          key: ${{ github.repository }}-sccache-rust-test-${{ runner.os }}-${{ steps.rust-toolchain-cache-key.outputs.cache-key }}
           path: .sccache
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@1583d6b38d7be47f593cb472781bbb21cab4321e
