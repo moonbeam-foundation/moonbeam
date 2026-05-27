@@ -1,11 +1,5 @@
 import "@moonbeam-network/api-augment";
-import {
-  PRECOMPILES,
-  describeSuite,
-  expect,
-  generateKeyringPair,
-  sendRawTransaction,
-} from "moonwall";
+import { PRECOMPILES, describeSuite, expect, generateKeyringPair } from "moonwall";
 import { encodeFunctionData, parseAbiItem } from "viem";
 import { extractRevertReason } from "../../../../helpers";
 
@@ -49,9 +43,9 @@ describeSuite({
           data: (abiHeader + secondAbiPart) as `0x${string}`,
         });
 
-        const hash = await sendRawTransaction(context, batchAllTx);
-        await context.createBlock();
-        const batchAllReceipt = await context.viem().getTransactionReceipt({ hash });
+        const { result } = await context.createBlock(batchAllTx);
+        const hash = result?.hash as `0x${string}`;
+        const batchAllReceipt = await context.viem("public").getTransactionReceipt({ hash });
         expect(batchAllReceipt.status).toBe("reverted");
         expect(await extractRevertReason(context, hash)).toContain("Value is too large for uint64");
       },

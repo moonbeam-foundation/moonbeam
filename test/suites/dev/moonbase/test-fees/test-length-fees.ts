@@ -35,9 +35,14 @@ const testBalanceTransfer = async (context: DevModeContext) => {
     await context.polkadotJs().query.system.account(BALTATHAR_ADDRESS)
   ).data.free.toBigInt();
 
-  // send a balance transfer to self and see what our fees end up being
+  const transferNonce = (
+    await context.polkadotJs().query.system.account(baltathar.address)
+  ).nonce.toNumber();
   await context.createBlock(
-    context.polkadotJs().tx.balances.transferAllowDeath(BALTATHAR_ADDRESS, 1).signAsync(baltathar)
+    await context
+      .polkadotJs()
+      .tx.balances.transferAllowDeath(BALTATHAR_ADDRESS, 1)
+      .signAsync(baltathar, { nonce: transferNonce, era: 0 })
   );
 
   const afterBalance = (
@@ -59,8 +64,15 @@ const testRuntimeUpgrade = async (context: DevModeContext) => {
 
   // send an applyAuthorizedUpgrade. we expect this to fail, but we just want to see that it was
   // included in a block (not rejected) and was charged based on its length
-  await context.polkadotJs().tx.system.applyAuthorizedUpgrade(hex).signAndSend(baltathar);
-  await context.createBlock();
+  const upgradeNonce = (
+    await context.polkadotJs().query.system.account(baltathar.address)
+  ).nonce.toNumber();
+  await context.createBlock(
+    await context
+      .polkadotJs()
+      .tx.system.applyAuthorizedUpgrade(hex)
+      .signAsync(baltathar, { nonce: upgradeNonce, era: 0 })
+  );
 
   const afterBalance = (
     await context.polkadotJs().query.system.account(BALTATHAR_ADDRESS)

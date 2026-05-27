@@ -27,21 +27,18 @@ const TARGET_FILL_AMOUNT = 262_349_219;
 // const TARGET_FILL_AMOUNT = 262_349_210;
 
 async function setFeeMultiplier(context: any, value: bigint) {
-  const MULTIPLIER_STORAGE_KEY = context
-    .polkadotJs()
-    .query.transactionPayment.nextFeeMultiplier.key(0)
-    .toString();
-  await context
-    .polkadotJs()
-    .tx.sudo.sudo(
-      context
-        .polkadotJs()
-        .tx.system.setStorage([
+  const api = context.polkadotJs();
+  const MULTIPLIER_STORAGE_KEY = api.query.transactionPayment.nextFeeMultiplier.key(0).toString();
+  const nonce = (await api.query.system.account(alith.address)).nonce.toNumber();
+  await context.createBlock(
+    await api.tx.sudo
+      .sudo(
+        api.tx.system.setStorage([
           [MULTIPLIER_STORAGE_KEY, bnToHex(value, { isLe: true, bitLength: 128 })],
         ])
-    )
-    .signAndSend(alith);
-  await context.createBlock();
+      )
+      .signAsync(alith, { nonce, era: 0 })
+  );
 }
 
 // Note on the values from 'transactionPayment.nextFeeMultiplier': this storage item is actually a
@@ -108,18 +105,16 @@ describeSuite({
           .polkadotJs()
           .query.transactionPayment.nextFeeMultiplier();
 
-        let nonce = (
-          await context.polkadotJs().query.system.account(alith.address)
-        ).nonce.toNumber();
-        await context
-          .polkadotJs()
-          .tx.balances.transferAllowDeath(BALTATHAR_ADDRESS, 1_000_000_000_000_000_000n)
-          .signAndSend(alith, { nonce: nonce++ });
-        await context
-          .polkadotJs()
-          .tx.sudo.sudo(context.polkadotJs().tx.rootTesting.fillBlock(TARGET_FILL_AMOUNT))
-          .signAndSend(alith, { nonce: nonce++ });
-        await context.createBlock();
+        const api = context.polkadotJs();
+        let nonce = (await api.query.system.account(alith.address)).nonce.toNumber();
+        await context.createBlock([
+          await api.tx.balances
+            .transferAllowDeath(BALTATHAR_ADDRESS, 1_000_000_000_000_000_000n)
+            .signAsync(alith, { nonce: nonce++, era: 0 }),
+          await api.tx.sudo
+            .sudo(api.tx.rootTesting.fillBlock(TARGET_FILL_AMOUNT))
+            .signAsync(alith, { nonce: nonce++, era: 0 }),
+        ]);
 
         const postValue = await context.polkadotJs().query.transactionPayment.nextFeeMultiplier();
         expect(

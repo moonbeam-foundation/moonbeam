@@ -2,6 +2,7 @@ import "@moonbeam-network/api-augment";
 import {
   ALITH_ADDRESS,
   beforeAll,
+  createViemTransaction,
   deployCreateCompiledContract,
   describeSuite,
   expect,
@@ -61,7 +62,7 @@ describeSuite({
           value: 0n,
         });
 
-        const txHash = await context.viem().sendTransaction({
+        const rawTx = await createViemTransaction(context, {
           to: subCallOogAddress,
           data: encodeFunctionData({
             abi: subCallOogAbi,
@@ -69,12 +70,14 @@ describeSuite({
             args: [looperAddress, 999],
           }),
           txnType: "eip1559",
-          gasLimit: estimatedGas,
+          gas: estimatedGas,
+          maxPriorityFeePerGas: 0n,
         });
+        const { result } = await context.createBlock(rawTx);
 
-        await context.createBlock();
-
-        const receipt = await context.viem().getTransactionReceipt({ hash: txHash });
+        const receipt = await context
+          .viem("public")
+          .getTransactionReceipt({ hash: result?.hash as `0x${string}` });
 
         const decoded = decodeEventLog({
           abi: subCallOogAbi,
@@ -102,7 +105,7 @@ describeSuite({
 
         log(`Estimated gas: ${estimatedGas}`);
 
-        const txHash = await context.viem().sendTransaction({
+        const rawTx = await createViemTransaction(context, {
           to: subCallOogAddress,
           data: encodeFunctionData({
             abi: subCallOogAbi,
@@ -110,12 +113,14 @@ describeSuite({
             args: [bloatedContracts],
           }),
           txnType: "eip1559",
-          gasLimit: estimatedGas,
+          gas: estimatedGas,
+          maxPriorityFeePerGas: 0n,
         });
+        const { result } = await context.createBlock(rawTx);
 
-        await context.createBlock();
-
-        const receipt = await context.viem().getTransactionReceipt({ hash: txHash });
+        const receipt = await context
+          .viem("public")
+          .getTransactionReceipt({ hash: result?.hash as `0x${string}` });
         const decoded = decodeEventLog({
           abi: subCallOogAbi,
           data: receipt.logs[bloatedContracts.length - 1].data,
