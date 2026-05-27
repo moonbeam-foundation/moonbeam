@@ -393,6 +393,7 @@ jobs:
       CARGO_INCREMENTAL: "0"
       SCCACHE_CACHE_SIZE: "100GB"
       SCCACHE_DIR: ${{ github.workspace }}/.sccache
+      SKIP_WASM_BUILD: "1"
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -411,7 +412,8 @@ jobs:
       - name: Setup Variables
         shell: bash
         run: |
-          echo "RUSTFLAGS=-C opt-level=3 -D warnings -C linker=clang -C link-arg=-fuse-ld=$(pwd)/mold/bin/mold" >> $GITHUB_ENV
+          mold_path="$(pwd)/mold/bin/mold"
+          echo "RUSTFLAGS=-D warnings -C linker=clang -C link-arg=-fuse-ld=${mold_path}" >> "$GITHUB_ENV"
       - name: Setup Mold Linker
         shell: bash
         run: |

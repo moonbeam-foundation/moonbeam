@@ -488,7 +488,13 @@ opt-level = 3
 panic = "unwind"
 
 [profile.testnet]
-debug = 1               # debug symbols are useful for profilers
+inherits = "dev"
+codegen-units = 256
+debug = 0
 debug-assertions = true # Enable debug-assert! for non-production profiles
-inherits = "release"
+incremental = false
+lto = false
+opt-level = 1
 overflow-checks = true
+# Moonbeam runtime requires unwinding.
+panic = "unwind"
