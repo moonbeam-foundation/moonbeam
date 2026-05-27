@@ -47,6 +47,7 @@ jobs:
       git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
       any_changed: ${{ steps.changed-files.outputs.any_changed == 'true' || steps.changed-files.outputs.any_deleted == 'true' }}
       rust_changed: ${{ steps.rust-changed.outputs.any_changed == 'true' || steps.rust-changed.outputs.any_deleted == 'true' }}
+      benchmarks_changed: ${{ steps.benchmarks-changed.outputs.any_changed == 'true' || steps.benchmarks-changed.outputs.any_deleted == 'true' }}
       ts_tests_changed: ${{ steps.test-typescript-changed.outputs.any_changed == 'true' || steps.test-typescript-changed.outputs.any_deleted == 'true' }}
       blacksmith_allowed: ${{ steps.check-git-ref.outputs.blacksmith_allowed }}
     steps:
@@ -111,6 +112,16 @@ jobs:
             test/**/*.ts
             types-bundle/**
             typescript-api/**
+      - name: Get benchmark-relevant changed file(s)
+        id: benchmarks-changed
+        uses: tj-actions/changed-files@24d32ffd492484c1d75e0c0b894501ddb9d30d62
+        with:
+          files: |
+            Cargo.lock
+            **/weights.rs
+            **/benchmarks.rs
+            weights/**
+            **/weights/**
       - name: Get test and TypeScript API changed file(s)
         id: test-typescript-changed
         uses: tj-actions/changed-files@24d32ffd492484c1d75e0c0b894501ddb9d30d62
@@ -425,6 +436,7 @@ jobs:
         uses: ./.github/workflow-templates/rust-toolchain
       # Verify that the runtime-benchmarks feature compiles on its own
       - name: Check runtime-benchmarks compilation
+        if: github.ref == 'refs/heads/master' || needs.set-tags.outputs.benchmarks_changed == 'true'
         run: |
           cargo check --profile testnet --workspace --features=runtime-benchmarks
       # Checks are run after uploading artifacts since they are modified by the tests
