@@ -1,11 +1,11 @@
 [package]
+name = "moonriver-runtime"
 authors = { workspace = true }
 build = "build.rs"
 description = "Moonriver Runtime"
 edition = "2021"
 homepage = "https://moonbeam.network"
 license = "GPL-3.0-only"
-name = "moonriver-runtime"
 version = "0.8.4"
 
 [dependencies]
@@ -13,7 +13,7 @@ hex-literal = { workspace = true, optional = true }
 log = { workspace = true }
 num_enum = { workspace = true }
 rlp = { workspace = true, optional = true }
-serde = { workspace = true, features = ["derive"] }
+serde = { workspace = true, features = [ "derive" ] }
 serde_json = { workspace = true, default-features = false, features = [
 	"alloc",
 ] }
@@ -41,7 +41,7 @@ pallet-emergency-para-xcm = { workspace = true }
 pallet-erc20-xcm-bridge = { workspace = true }
 pallet-ethereum-xcm = { workspace = true }
 pallet-evm-chain-id = { workspace = true }
-pallet-maintenance-mode = { workspace = true, features = ["xcm-support"] }
+pallet-maintenance-mode = { workspace = true, features = [ "xcm-support" ] }
 pallet-migrations = { workspace = true }
 pallet-moonbeam-foreign-assets = { workspace = true }
 pallet-moonbeam-lazy-migrations = { workspace = true }
@@ -63,6 +63,7 @@ pallet-evm-precompile-conviction-voting = { workspace = true }
 pallet-evm-precompile-crowdloan-rewards = { workspace = true }
 pallet-evm-precompile-gmp = { workspace = true }
 pallet-evm-precompile-identity = { workspace = true }
+pallet-evm-precompile-p256verify = { workspace = true }
 pallet-evm-precompile-parachain-staking = { workspace = true }
 pallet-evm-precompile-preimage = { workspace = true }
 pallet-evm-precompile-proxy = { workspace = true }
@@ -74,7 +75,6 @@ pallet-evm-precompile-relay-verifier = { workspace = true }
 pallet-evm-precompile-xcm-transactor = { workspace = true }
 pallet-evm-precompile-xcm-utils = { workspace = true }
 pallet-evm-precompile-xtokens = { workspace = true }
-pallet-evm-precompile-p256verify = { workspace = true }
 
 # Moonbeam tracing
 evm-tracing-events = { workspace = true, optional = true }
@@ -89,13 +89,13 @@ frame-support = { workspace = true }
 frame-system = { workspace = true }
 frame-system-rpc-runtime-api = { workspace = true }
 pallet-assets = { workspace = true }
-pallet-balances = { workspace = true, features = ["insecure_zero_ed"] }
+pallet-balances = { workspace = true, features = [ "insecure_zero_ed" ] }
 pallet-collective = { workspace = true }
 pallet-conviction-voting = { workspace = true }
 pallet-identity = { workspace = true }
 pallet-multisig = { workspace = true }
-pallet-preimage = { workspace = true }
 pallet-parameters = { workspace = true }
+pallet-preimage = { workspace = true }
 pallet-proxy = { workspace = true }
 pallet-referenda = { workspace = true }
 pallet-root-testing = { workspace = true }
@@ -107,18 +107,19 @@ pallet-treasury = { workspace = true }
 pallet-utility = { workspace = true }
 pallet-whitelist = { workspace = true }
 parity-scale-codec = { workspace = true, features = [
+	"chain-error",
 	"derive",
 	"max-encoded-len",
-	"chain-error",
 ] }
-scale-info = { workspace = true, features = ["derive"] }
+scale-info = { workspace = true, features = [ "derive" ] }
 sp-api = { workspace = true }
 sp-block-builder = { workspace = true }
 sp-consensus-slots = { workspace = true }
 sp-core = { workspace = true }
 sp-debug-derive = { workspace = true }
+sp-genesis-builder = { workspace = true }
 sp-inherents = { workspace = true }
-sp-io = { workspace = true, features = ["improved_panic_error_reporting"] }
+sp-io = { workspace = true, features = [ "improved_panic_error_reporting" ] }
 sp-keyring = { workspace = true }
 sp-offchain = { workspace = true }
 sp-runtime = { workspace = true }
@@ -127,29 +128,28 @@ sp-std = { workspace = true }
 sp-transaction-pool = { workspace = true }
 sp-version = { workspace = true }
 sp-weights = { workspace = true }
-sp-genesis-builder = { workspace = true }
 
 # Bridge
-bridge-runtime-common = { workspace = true }
-bp-runtime = { workspace = true }
 bp-header-chain = { workspace = true }
-bp-parachains = { workspace = true }
 bp-messages = { workspace = true }
+bp-parachains = { workspace = true }
 bp-polkadot-core = { workspace = true }
-pallet-bridge-grandpa = { workspace = true }
-pallet-bridge-parachains = { workspace = true }
-pallet-bridge-messages = { workspace = true }
-pallet-xcm-bridge = { workspace = true }
+bp-runtime = { workspace = true }
 bridge-hub-common = { workspace = true }
+bridge-runtime-common = { workspace = true }
+pallet-bridge-grandpa = { workspace = true }
+pallet-bridge-messages = { workspace = true }
+pallet-bridge-parachains = { workspace = true }
+pallet-xcm-bridge = { workspace = true }
 
 # Frontier
 fp-evm = { workspace = true }
 fp-rpc = { workspace = true }
-fp-self-contained = { workspace = true, features = ["serde"] }
-pallet-ethereum = { workspace = true, features = ["forbid-evm-reentrancy"] }
-pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
+fp-self-contained = { workspace = true, features = [ "serde" ] }
+pallet-ethereum = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
+pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
 pallet-evm-precompile-blake2 = { workspace = true }
-pallet-evm-precompile-bls12381 = {workspace = true}
+pallet-evm-precompile-bls12381 = { workspace = true }
 pallet-evm-precompile-bn128 = { workspace = true }
 pallet-evm-precompile-modexp = { workspace = true }
 pallet-evm-precompile-sha3fips = { workspace = true }
@@ -157,6 +157,7 @@ pallet-evm-precompile-simple = { workspace = true }
 precompile-utils = { workspace = true }
 
 # Polkadot / XCM
+pallet-message-queue = { workspace = true }
 pallet-xcm = { workspace = true }
 pallet-xcm-benchmarks = { workspace = true, optional = true }
 polkadot-core-primitives = { workspace = true }
@@ -166,16 +167,15 @@ xcm = { workspace = true }
 xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
 xcm-runtime-apis = { workspace = true }
-pallet-message-queue = { workspace = true }
 
 # Cumulus
 cumulus-pallet-parachain-system = { workspace = true }
 cumulus-pallet-weight-reclaim = { workspace = true }
 cumulus-pallet-xcm = { workspace = true }
-cumulus-pallet-xcmp-queue = { workspace = true, features = ["bridging"] }
+cumulus-pallet-xcmp-queue = { workspace = true, features = [ "bridging" ] }
 cumulus-primitives-core = { workspace = true }
-cumulus-primitives-utility = { workspace = true }
 cumulus-primitives-storage-weight-reclaim = { workspace = true }
+cumulus-primitives-utility = { workspace = true }
 parachain-info = { workspace = true }
 parachains-common = { workspace = true }
 
@@ -196,357 +196,50 @@ frame-try-runtime = { workspace = true, optional = true }
 
 [dev-dependencies]
 frame-metadata = { workspace = true }
-hex = { workspace = true, features = ["std"] }
-sha3 = { workspace = true, features = ["std"] }
+hex = { workspace = true, features = [ "std" ] }
+sha3 = { workspace = true, features = [ "std" ] }
 
 cumulus-primitives-parachain-inherent = { workspace = true }
 cumulus-test-relay-sproof-builder = { workspace = true }
 
-sp-timestamp = { workspace = true }
 polkadot-runtime-parachains = { workspace = true }
+sp-timestamp = { workspace = true }
 xcm-simulator = { workspace = true }
 
-precompile-utils = { workspace = true, features = ["std", "testing"] }
 moonbeam-tests-primitives = { workspace = true }
+precompile-utils = { workspace = true, features = [ "std", "testing" ] }
 
 [build-dependencies]
 substrate-wasm-builder = { workspace = true }
 
 [features]
-default = ["std"]
-std = [
-	"account/std",
-	"async-backing-primitives/std",
-	"cumulus-pallet-parachain-system/std",
-	"cumulus-pallet-xcm/std",
-	"cumulus-pallet-xcmp-queue/std",
-	"cumulus-primitives-core/std",
-	"cumulus-primitives-utility/std",
-	"cumulus-primitives-storage-weight-reclaim/std",
-	"ethereum/std",
-	"cumulus-pallet-weight-reclaim/std",
-	"evm-tracing-events/std",
-	"fp-evm/std",
-	"fp-rpc/std",
-	"fp-self-contained/std",
-	"frame-benchmarking/std",
-	"frame-executive/std",
-	"frame-metadata-hash-extension/std",
-	"frame-support/std",
-	"frame-system-rpc-runtime-api/std",
-	"frame-system/std",
-	"moonbeam-core-primitives/std",
-	"moonbeam-evm-tracer/std",
-	"moonbeam-rpc-primitives-debug/std",
-	"moonbeam-rpc-primitives-txpool/std",
-	"moonbeam-runtime-common/std",
-	"moonkit-xcm-primitives/std",
-	"nimbus-primitives/std",
-	"pallet-async-backing/std",
-	"pallet-author-inherent/std",
-	"pallet-author-mapping/std",
-	"pallet-author-slot-filter/std",
-	"pallet-balances/std",
-	"pallet-collective/std",
-	"pallet-conviction-voting/std",
-	"pallet-crowdloan-rewards/std",
-	"pallet-emergency-para-xcm/std",
-	"pallet-erc20-xcm-bridge/std",
-	"pallet-evm-chain-id/std",
-	"pallet-ethereum-xcm/std",
-	"pallet-ethereum/std",
-	"pallet-evm-precompile-author-mapping/std",
-	"pallet-evm-precompile-balances-erc20/std",
-	"pallet-evm-precompile-batch/std",
-	"pallet-evm-precompile-bls12381/std",
-	"pallet-evm-precompile-call-permit/std",
-	"pallet-evm-precompile-collective/std",
-	"pallet-evm-precompile-conviction-voting/std",
-	"pallet-evm-precompile-parachain-staking/std",
-	"pallet-evm-precompile-preimage/std",
-	"pallet-evm-precompile-randomness/std",
-	"pallet-evm-precompile-referenda/std",
-	"pallet-evm-precompile-relay-encoder/std",
-	"pallet-evm-precompile-relay-verifier/std",
-	"pallet-evm-precompile-xcm/std",
-	"pallet-evm-precompile-xcm-transactor/std",
-	"pallet-evm-precompile-xcm-utils/std",
-	"pallet-evm-precompile-xtokens/std",
-	"pallet-evm-precompile-p256verify/std",
-	"pallet-evm/std",
-	"pallet-identity/std",
-	"pallet-maintenance-mode/std",
-	"pallet-migrations/std",
-	"pallet-moonbeam-foreign-assets/std",
-	"pallet-moonbeam-lazy-migrations/std",
-	"pallet-moonbeam-orbiters/std",
-	"pallet-multisig/std",
-	"pallet-parachain-staking/std",
-	"pallet-precompile-benchmarks/std",
-	"pallet-preimage/std",
-	"pallet-parameters/std",
-	"pallet-proxy-genesis-companion/std",
-	"pallet-proxy/std",
-	"pallet-randomness/std",
-	"pallet-referenda/std",
-	"pallet-relay-storage-roots/std",
-	"pallet-root-testing/std",
-	"pallet-scheduler/std",
-	"pallet-timestamp/std",
-	"pallet-transaction-payment-rpc-runtime-api/std",
-	"pallet-transaction-payment/std",
-	"pallet-treasury/std",
-	"pallet-utility/std",
-	"pallet-whitelist/std",
-	"pallet-xcm-transactor/std",
-	"pallet-xcm/std",
-	"pallet-xcm-weight-trader/std",
-	"pallet-bridge-grandpa/std",
-	"pallet-bridge-parachains/std",
-	"pallet-bridge-messages/std",
-	"pallet-xcm-bridge/std",
-	"bridge-hub-common/std",
-	"parachain-info/std",
-	"parachains-common/std",
-	"parity-scale-codec/std",
-	"precompile-utils/std",
-	"scale-info/std",
-	"serde_json/std",
-	"session-keys-primitives/std",
-	"sp-api/std",
-	"sp-block-builder/std",
-	"sp-consensus-slots/std",
-	"sp-core/std",
-	"sp-inherents/std",
-	"sp-io/std",
-	"sp-offchain/std",
-	"sp-runtime/std",
-	"sp-session/std",
-	"sp-std/std",
-	"sp-transaction-pool/std",
-	"sp-version/std",
-	"sp-genesis-builder/std",
-	"strum/std",
-	"xcm-builder/std",
-	"xcm-executor/std",
-	"xcm-runtime-apis/std",
-	"xcm-primitives/std",
-	"xcm/std",
-	"bp-runtime/std",
-	"bp-header-chain/std",
-	"bp-parachains/std",
-	"bp-messages/std",
-	"bp-moonbeam/std",
-	"bp-moonriver/std",
-	"bp-polkadot-core/std",
-	"bridge-runtime-common/std",
-	"pallet-evm-precompile-blake2/std",
-	"pallet-evm-precompile-bn128/std",
-	"pallet-evm-precompile-modexp/std",
-	"pallet-evm-precompile-sha3fips/std",
-	"pallet-evm-precompile-simple/std",
-	"cumulus-primitives-parachain-inherent/std",
-	"cumulus-test-relay-sproof-builder/std",
-	"frame-system-benchmarking?/std",
-	"frame-try-runtime?/std",
-	"pallet-assets/std",
-	"pallet-message-queue/std",
-	"pallet-xcm-benchmarks?/std",
-	"polkadot-core-primitives/std",
-	"polkadot-parachain/std",
-	"polkadot-runtime-common/std",
-	"polkadot-runtime-parachains/std",
-	"sp-debug-derive/std",
-	"sp-keyring/std",
-	"sp-weights/std",
-	"pallet-evm-precompile-crowdloan-rewards/std",
-	"pallet-evm-precompile-gmp/std",
-	"pallet-evm-precompile-identity/std",
-	"pallet-evm-precompile-registry/std",
-	"pallet-evm-precompile-proxy/std",
-	"frame-metadata/std",
-	"hex/std",
-	"log/std",
-	"num_enum/std",
-	"rlp?/std",
-	"serde/std",
-	"sha3?/std"
-]
+default = [ "std" ]
+std = [ "account/std", "async-backing-primitives/std", "bp-header-chain/std", "bp-messages/std", "bp-moonbeam/std", "bp-moonriver/std", "bp-parachains/std", "bp-polkadot-core/std", "bp-runtime/std", "bridge-hub-common/std", "bridge-runtime-common/std", "cumulus-pallet-parachain-system/std", "cumulus-pallet-weight-reclaim/std", "cumulus-pallet-xcm/std", "cumulus-pallet-xcmp-queue/std", "cumulus-primitives-core/std", "cumulus-primitives-parachain-inherent/std", "cumulus-primitives-storage-weight-reclaim/std", "cumulus-primitives-utility/std", "cumulus-test-relay-sproof-builder/std", "ethereum/std", "evm-tracing-events/std", "fp-evm/std", "fp-rpc/std", "fp-self-contained/std", "frame-benchmarking/std", "frame-executive/std", "frame-metadata-hash-extension/std", "frame-metadata/std", "frame-support/std", "frame-system-benchmarking?/std", "frame-system-rpc-runtime-api/std", "frame-system/std", "frame-try-runtime?/std", "hex/std", "log/std", "moonbeam-core-primitives/std", "moonbeam-evm-tracer/std", "moonbeam-rpc-primitives-debug/std", "moonbeam-rpc-primitives-txpool/std", "moonbeam-runtime-common/std", "moonbeam-tests-primitives/std", "moonkit-xcm-primitives/std", "nimbus-primitives/std", "num_enum/std", "pallet-assets/std", "pallet-async-backing/std", "pallet-author-inherent/std", "pallet-author-mapping/std", "pallet-author-slot-filter/std", "pallet-balances/std", "pallet-bridge-grandpa/std", "pallet-bridge-messages/std", "pallet-bridge-parachains/std", "pallet-collective/std", "pallet-conviction-voting/std", "pallet-crowdloan-rewards/std", "pallet-emergency-para-xcm/std", "pallet-erc20-xcm-bridge/std", "pallet-ethereum-xcm/std", "pallet-ethereum/std", "pallet-evm-chain-id/std", "pallet-evm-precompile-author-mapping/std", "pallet-evm-precompile-balances-erc20/std", "pallet-evm-precompile-batch/std", "pallet-evm-precompile-blake2/std", "pallet-evm-precompile-bls12381/std", "pallet-evm-precompile-bn128/std", "pallet-evm-precompile-call-permit/std", "pallet-evm-precompile-collective/std", "pallet-evm-precompile-conviction-voting/std", "pallet-evm-precompile-crowdloan-rewards/std", "pallet-evm-precompile-gmp/std", "pallet-evm-precompile-identity/std", "pallet-evm-precompile-modexp/std", "pallet-evm-precompile-p256verify/std", "pallet-evm-precompile-parachain-staking/std", "pallet-evm-precompile-preimage/std", "pallet-evm-precompile-proxy/std", "pallet-evm-precompile-randomness/std", "pallet-evm-precompile-referenda/std", "pallet-evm-precompile-registry/std", "pallet-evm-precompile-relay-encoder/std", "pallet-evm-precompile-relay-verifier/std", "pallet-evm-precompile-sha3fips/std", "pallet-evm-precompile-simple/std", "pallet-evm-precompile-xcm-transactor/std", "pallet-evm-precompile-xcm-utils/std", "pallet-evm-precompile-xcm/std", "pallet-evm-precompile-xtokens/std", "pallet-evm/std", "pallet-identity/std", "pallet-maintenance-mode/std", "pallet-message-queue/std", "pallet-migrations/std", "pallet-moonbeam-foreign-assets/std", "pallet-moonbeam-lazy-migrations/std", "pallet-moonbeam-orbiters/std", "pallet-multisig/std", "pallet-parachain-staking/std", "pallet-parameters/std", "pallet-precompile-benchmarks/std", "pallet-preimage/std", "pallet-proxy-genesis-companion/std", "pallet-proxy/std", "pallet-randomness/std", "pallet-referenda/std", "pallet-relay-storage-roots/std", "pallet-root-testing/std", "pallet-scheduler/std", "pallet-timestamp/std", "pallet-transaction-payment-rpc-runtime-api/std", "pallet-transaction-payment/std", "pallet-treasury/std", "pallet-utility/std", "pallet-whitelist/std", "pallet-xcm-benchmarks?/std", "pallet-xcm-bridge/std", "pallet-xcm-transactor/std", "pallet-xcm-weight-trader/std", "pallet-xcm/std", "parachain-info/std", "parachains-common/std", "parity-scale-codec/std", "polkadot-core-primitives/std", "polkadot-parachain/std", "polkadot-runtime-common/std", "polkadot-runtime-parachains/std", "precompile-utils/std", "rlp?/std", "scale-info/std", "serde/std", "serde_json/std", "session-keys-primitives/std", "sha3?/std", "sp-api/std", "sp-block-builder/std", "sp-consensus-slots/std", "sp-core/std", "sp-debug-derive/std", "sp-genesis-builder/std", "sp-inherents/std", "sp-io/std", "sp-keyring/std", "sp-offchain/std", "sp-runtime/std", "sp-session/std", "sp-std/std", "sp-transaction-pool/std", "sp-version/std", "sp-weights/std", "strum/std", "xcm-builder/std", "xcm-executor/std", "xcm-primitives/std", "xcm-runtime-apis/std", "xcm/std" ]
 
 # Must be enabled for tracing runtimes only
-evm-tracing = [
-	"evm-tracing-events",
-	"moonbeam-evm-tracer",
-	"rlp",
-	"sha3",
-	"evm-tracing-events?/evm-tracing"
-]
+evm-tracing = [ "evm-tracing-events", "evm-tracing-events?/evm-tracing", "moonbeam-evm-tracer", "rlp", "sha3" ]
 
 # Allow to print logs details (no wasm:stripped)
-force-debug = ["sp-debug-derive/force-debug"]
+force-debug = [ "sp-debug-derive/force-debug" ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
 runtime-wasm = []
 
 # Enable the metadata hash generation in the wasm builder.
-metadata-hash = ["substrate-wasm-builder/metadata-hash"]
+metadata-hash = [ "substrate-wasm-builder/metadata-hash" ]
 
 # A feature that should be enabled when the runtime should be build for on-chain
 # deployment. This will disable stuff that shouldn't be part of the on-chain wasm
 # to make it smaller like logging for example.
 on-chain-release-build = [
+	"disable-genesis-builder",
 	"metadata-hash",
 	"sp-api/disable-logging",
-	"disable-genesis-builder",
 ]
 
 # When enabled, the GenesisBuilder API will be supported, GenesisConfig shall be
 # stripped from the final binary
 disable-genesis-builder = []
 
-runtime-benchmarks = [
-	"cumulus-pallet-xcmp-queue/runtime-benchmarks",
-	"cumulus-pallet-parachain-system/runtime-benchmarks",
-	"cumulus-primitives-core/runtime-benchmarks",
-	"cumulus-pallet-weight-reclaim/runtime-benchmarks",
-	"frame-benchmarking",
-	"frame-benchmarking/runtime-benchmarks",
-	"frame-support/runtime-benchmarks",
-	"frame-system-benchmarking/runtime-benchmarks",
-	"frame-system/runtime-benchmarks",
-	"hex-literal",
-	"moonbeam-runtime-common/runtime-benchmarks",
-	"parachains-common/runtime-benchmarks",
-	"pallet-author-inherent/runtime-benchmarks",
-	"pallet-author-mapping/runtime-benchmarks",
-	"pallet-author-slot-filter/runtime-benchmarks",
-	"pallet-balances/runtime-benchmarks",
-	"pallet-collective/runtime-benchmarks",
-	"pallet-conviction-voting/runtime-benchmarks",
-	"pallet-crowdloan-rewards/runtime-benchmarks",
-	"pallet-ethereum-xcm/runtime-benchmarks",
-	"pallet-ethereum/runtime-benchmarks",
-	"pallet-evm/runtime-benchmarks",
-	"pallet-identity/runtime-benchmarks",
-	"pallet-migrations/runtime-benchmarks",
-	"pallet-moonbeam-foreign-assets/runtime-benchmarks",
-	"pallet-moonbeam-lazy-migrations/runtime-benchmarks",
-	"pallet-moonbeam-orbiters/runtime-benchmarks",
-	"pallet-multisig/runtime-benchmarks",
-	"pallet-parachain-staking/runtime-benchmarks",
-	"pallet-precompile-benchmarks/runtime-benchmarks",
-	"pallet-preimage/runtime-benchmarks",
-	"pallet-parameters/runtime-benchmarks",
-	"pallet-proxy/runtime-benchmarks",
-	"pallet-randomness/runtime-benchmarks",
-	"pallet-referenda/runtime-benchmarks",
-	"pallet-relay-storage-roots/runtime-benchmarks",
-	"pallet-scheduler/runtime-benchmarks",
-	"pallet-timestamp/runtime-benchmarks",
-	"pallet-transaction-payment/runtime-benchmarks",
-	"pallet-treasury/runtime-benchmarks",
-	"pallet-utility/runtime-benchmarks",
-	"pallet-whitelist/runtime-benchmarks",
-	"pallet-xcm-benchmarks/runtime-benchmarks",
-	"pallet-xcm-transactor/runtime-benchmarks",
-	"pallet-xcm/runtime-benchmarks",
-	"pallet-xcm-weight-trader/runtime-benchmarks",
-	"pallet-bridge-grandpa/runtime-benchmarks",
-	"pallet-bridge-parachains/runtime-benchmarks",
-	"pallet-bridge-messages/runtime-benchmarks",
-	"pallet-xcm-bridge/runtime-benchmarks",
-	"session-keys-primitives/runtime-benchmarks",
-	"sp-runtime/runtime-benchmarks",
-	"xcm-builder/runtime-benchmarks",
-	"xcm-runtime-apis/runtime-benchmarks",
-	"bridge-runtime-common/runtime-benchmarks",
-	"nimbus-primitives/runtime-benchmarks",
-	"pallet-evm-precompile-xcm/runtime-benchmarks",
-	"moonkit-xcm-primitives/runtime-benchmarks",
-	"bridge-hub-common/runtime-benchmarks",
-	"cumulus-primitives-utility/runtime-benchmarks",
-	"pallet-assets/runtime-benchmarks",
-	"pallet-message-queue/runtime-benchmarks",
-	"polkadot-parachain/runtime-benchmarks",
-	"polkadot-runtime-common/runtime-benchmarks",
-	"polkadot-runtime-parachains/runtime-benchmarks",
-	"xcm-executor/runtime-benchmarks",
-	"xcm/runtime-benchmarks",
-	"pallet-evm-precompile-collective/runtime-benchmarks",
-	"pallet-evm-precompile-conviction-voting/runtime-benchmarks",
-	"pallet-evm-precompile-gmp/runtime-benchmarks",
-	"pallet-evm-precompile-identity/runtime-benchmarks",
-	"pallet-evm-precompile-referenda/runtime-benchmarks",
-	"pallet-evm-precompile-xcm-transactor/runtime-benchmarks",
-	"pallet-evm-precompile-xcm-utils/runtime-benchmarks",
-	"pallet-evm-precompile-xtokens/runtime-benchmarks",
-	"xcm-primitives/runtime-benchmarks"
-]
-try-runtime = [
-	"cumulus-pallet-parachain-system/try-runtime",
-	"cumulus-pallet-xcmp-queue/try-runtime",
-	"cumulus-pallet-xcm/try-runtime",
-	"fp-self-contained/try-runtime",
-	"frame-executive/try-runtime",
-	"frame-system/try-runtime",
-	"frame-try-runtime",
-	"moonbeam-runtime-common/try-runtime",
-	"pallet-author-mapping/try-runtime",
-	"pallet-author-slot-filter/try-runtime",
-	"pallet-balances/try-runtime",
-	"pallet-collective/try-runtime",
-	"pallet-conviction-voting/try-runtime",
-	"pallet-maintenance-mode/try-runtime",
-	"pallet-migrations/try-runtime",
-	"pallet-moonbeam-lazy-migrations/try-runtime",
-	"pallet-parachain-staking/try-runtime",
-	"pallet-precompile-benchmarks/try-runtime",
-	"pallet-preimage/try-runtime",
-	"pallet-parameters/try-runtime",
-	"pallet-referenda/try-runtime",
-	"pallet-relay-storage-roots/try-runtime",
-	"pallet-root-testing/try-runtime",
-	"pallet-scheduler/try-runtime",
-	"pallet-timestamp/try-runtime",
-	"pallet-whitelist/try-runtime",
-	"pallet-message-queue/try-runtime",
-	"pallet-xcm/try-runtime",
-	"pallet-message-queue/try-runtime",
-	"pallet-utility/try-runtime",
-	"pallet-transaction-payment/try-runtime",
-	"parachain-info/try-runtime",
-	"pallet-evm-chain-id/try-runtime",
-	"parachain-info/try-runtime",
-	"pallet-evm/try-runtime",
-	"pallet-ethereum/try-runtime",
-	"pallet-treasury/try-runtime",
-	"pallet-author-inherent/try-runtime",
-	"pallet-crowdloan-rewards/try-runtime",
-	"pallet-proxy/try-runtime",
-	"pallet-identity/try-runtime",
-	"pallet-async-backing/try-runtime",
-	"pallet-xcm-transactor/try-runtime",
-	"pallet-proxy-genesis-companion/try-runtime",
-	"pallet-moonbeam-orbiters/try-runtime",
-	"pallet-ethereum-xcm/try-runtime",
-	"pallet-randomness/try-runtime",
-	"pallet-whitelist/try-runtime",
-	"pallet-erc20-xcm-bridge/try-runtime",
-	"pallet-multisig/try-runtime",
-	"pallet-bridge-grandpa/try-runtime",
-	"pallet-bridge-parachains/try-runtime",
-	"pallet-bridge-messages/try-runtime",
-	"pallet-xcm-bridge/try-runtime",
-	"parachains-common/try-runtime",
-	"nimbus-primitives/try-runtime",
-	"pallet-emergency-para-xcm/try-runtime",
-	"cumulus-pallet-weight-reclaim/try-runtime",
-	"frame-support/try-runtime",
-	"frame-try-runtime/try-runtime",
-	"pallet-assets/try-runtime",
-	"polkadot-runtime-common/try-runtime",
-	"polkadot-runtime-parachains/try-runtime",
-	"sp-runtime/try-runtime",
-	"pallet-moonbeam-foreign-assets/try-runtime",
-	"pallet-xcm-weight-trader/try-runtime"
-]
+runtime-benchmarks = [ "bridge-hub-common/runtime-benchmarks", "bridge-runtime-common/runtime-benchmarks", "cumulus-pallet-parachain-system/runtime-benchmarks", "cumulus-pallet-weight-reclaim/runtime-benchmarks", "cumulus-pallet-xcmp-queue/runtime-benchmarks", "cumulus-primitives-core/runtime-benchmarks", "cumulus-primitives-utility/runtime-benchmarks", "frame-benchmarking", "frame-benchmarking/runtime-benchmarks", "frame-support/runtime-benchmarks", "frame-system-benchmarking/runtime-benchmarks", "frame-system/runtime-benchmarks", "hex-literal", "moonbeam-runtime-common/runtime-benchmarks", "moonbeam-tests-primitives/runtime-benchmarks", "moonkit-xcm-primitives/runtime-benchmarks", "nimbus-primitives/runtime-benchmarks", "pallet-assets/runtime-benchmarks", "pallet-author-inherent/runtime-benchmarks", "pallet-author-mapping/runtime-benchmarks", "pallet-author-slot-filter/runtime-benchmarks", "pallet-balances/runtime-benchmarks", "pallet-bridge-grandpa/runtime-benchmarks", "pallet-bridge-messages/runtime-benchmarks", "pallet-bridge-parachains/runtime-benchmarks", "pallet-collective/runtime-benchmarks", "pallet-conviction-voting/runtime-benchmarks", "pallet-crowdloan-rewards/runtime-benchmarks", "pallet-ethereum-xcm/runtime-benchmarks", "pallet-ethereum/runtime-benchmarks", "pallet-evm-precompile-collective/runtime-benchmarks", "pallet-evm-precompile-conviction-voting/runtime-benchmarks", "pallet-evm-precompile-gmp/runtime-benchmarks", "pallet-evm-precompile-identity/runtime-benchmarks", "pallet-evm-precompile-referenda/runtime-benchmarks", "pallet-evm-precompile-xcm-transactor/runtime-benchmarks", "pallet-evm-precompile-xcm-utils/runtime-benchmarks", "pallet-evm-precompile-xcm/runtime-benchmarks", "pallet-evm-precompile-xtokens/runtime-benchmarks", "pallet-evm/runtime-benchmarks", "pallet-identity/runtime-benchmarks", "pallet-message-queue/runtime-benchmarks", "pallet-migrations/runtime-benchmarks", "pallet-moonbeam-foreign-assets/runtime-benchmarks", "pallet-moonbeam-lazy-migrations/runtime-benchmarks", "pallet-moonbeam-orbiters/runtime-benchmarks", "pallet-multisig/runtime-benchmarks", "pallet-parachain-staking/runtime-benchmarks", "pallet-parameters/runtime-benchmarks", "pallet-precompile-benchmarks/runtime-benchmarks", "pallet-preimage/runtime-benchmarks", "pallet-proxy/runtime-benchmarks", "pallet-randomness/runtime-benchmarks", "pallet-referenda/runtime-benchmarks", "pallet-relay-storage-roots/runtime-benchmarks", "pallet-scheduler/runtime-benchmarks", "pallet-timestamp/runtime-benchmarks", "pallet-transaction-payment/runtime-benchmarks", "pallet-treasury/runtime-benchmarks", "pallet-utility/runtime-benchmarks", "pallet-whitelist/runtime-benchmarks", "pallet-xcm-benchmarks/runtime-benchmarks", "pallet-xcm-bridge/runtime-benchmarks", "pallet-xcm-transactor/runtime-benchmarks", "pallet-xcm-weight-trader/runtime-benchmarks", "pallet-xcm/runtime-benchmarks", "parachains-common/runtime-benchmarks", "polkadot-parachain/runtime-benchmarks", "polkadot-runtime-common/runtime-benchmarks", "polkadot-runtime-parachains/runtime-benchmarks", "session-keys-primitives/runtime-benchmarks", "sp-runtime/runtime-benchmarks", "xcm-builder/runtime-benchmarks", "xcm-executor/runtime-benchmarks", "xcm-primitives/runtime-benchmarks", "xcm-runtime-apis/runtime-benchmarks", "xcm/runtime-benchmarks" ]
+try-runtime = [ "cumulus-pallet-parachain-system/try-runtime", "cumulus-pallet-weight-reclaim/try-runtime", "cumulus-pallet-xcm/try-runtime", "cumulus-pallet-xcmp-queue/try-runtime", "fp-self-contained/try-runtime", "frame-executive/try-runtime", "frame-support/try-runtime", "frame-system/try-runtime", "frame-try-runtime", "frame-try-runtime/try-runtime", "moonbeam-runtime-common/try-runtime", "nimbus-primitives/try-runtime", "pallet-assets/try-runtime", "pallet-async-backing/try-runtime", "pallet-author-inherent/try-runtime", "pallet-author-mapping/try-runtime", "pallet-author-slot-filter/try-runtime", "pallet-balances/try-runtime", "pallet-bridge-grandpa/try-runtime", "pallet-bridge-messages/try-runtime", "pallet-bridge-parachains/try-runtime", "pallet-collective/try-runtime", "pallet-conviction-voting/try-runtime", "pallet-crowdloan-rewards/try-runtime", "pallet-emergency-para-xcm/try-runtime", "pallet-erc20-xcm-bridge/try-runtime", "pallet-ethereum-xcm/try-runtime", "pallet-ethereum/try-runtime", "pallet-evm-chain-id/try-runtime", "pallet-evm/try-runtime", "pallet-identity/try-runtime", "pallet-maintenance-mode/try-runtime", "pallet-message-queue/try-runtime", "pallet-message-queue/try-runtime", "pallet-migrations/try-runtime", "pallet-moonbeam-foreign-assets/try-runtime", "pallet-moonbeam-lazy-migrations/try-runtime", "pallet-moonbeam-orbiters/try-runtime", "pallet-multisig/try-runtime", "pallet-parachain-staking/try-runtime", "pallet-parameters/try-runtime", "pallet-precompile-benchmarks/try-runtime", "pallet-preimage/try-runtime", "pallet-proxy-genesis-companion/try-runtime", "pallet-proxy/try-runtime", "pallet-randomness/try-runtime", "pallet-referenda/try-runtime", "pallet-relay-storage-roots/try-runtime", "pallet-root-testing/try-runtime", "pallet-scheduler/try-runtime", "pallet-timestamp/try-runtime", "pallet-transaction-payment/try-runtime", "pallet-treasury/try-runtime", "pallet-utility/try-runtime", "pallet-whitelist/try-runtime", "pallet-whitelist/try-runtime", "pallet-xcm-bridge/try-runtime", "pallet-xcm-transactor/try-runtime", "pallet-xcm-weight-trader/try-runtime", "pallet-xcm/try-runtime", "parachain-info/try-runtime", "parachain-info/try-runtime", "parachains-common/try-runtime", "polkadot-runtime-common/try-runtime", "polkadot-runtime-parachains/try-runtime", "sp-runtime/try-runtime" ]

@@ -1,7 +1,9 @@
 import "@moonbeam-network/api-augment";
 import {
   ALITH_ADDRESS,
+  ALITH_PRIVATE_KEY,
   beforeAll,
+  createViemTransaction,
   createViemTransaction,
   deployCreateCompiledContract,
   describeSuite,
@@ -63,12 +65,14 @@ describeSuite({
         });
 
         const rawTx = await createViemTransaction(context, {
+        const rawTx = await createViemTransaction(context, {
           to: subCallOogAddress,
           data: encodeFunctionData({
             abi: subCallOogAbi,
             functionName: "subCallLooper",
             args: [looperAddress, 999],
           }),
+          privateKey: ALITH_PRIVATE_KEY,
           txnType: "eip1559",
           gas: estimatedGas,
           maxPriorityFeePerGas: 0n,
@@ -106,12 +110,14 @@ describeSuite({
         log(`Estimated gas: ${estimatedGas}`);
 
         const rawTx = await createViemTransaction(context, {
+        const rawTx = await createViemTransaction(context, {
           to: subCallOogAddress,
           data: encodeFunctionData({
             abi: subCallOogAbi,
             functionName: "subCallPov",
             args: [bloatedContracts],
           }),
+          privateKey: ALITH_PRIVATE_KEY,
           txnType: "eip1559",
           gas: estimatedGas,
           maxPriorityFeePerGas: 0n,
