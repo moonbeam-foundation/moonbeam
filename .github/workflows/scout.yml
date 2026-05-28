@@ -16,16 +16,22 @@ jobs:
   scout-audit:
     runs-on: ubuntu-latest
     steps:
-      - name: Install required dependencies
-        run: |
-          sudo apt-get install -y libprotobuf-dev protobuf-compiler
-          rustup component add rust-src rustc-dev llvm-tools-preview --toolchain nightly-2025-08-07
-          cargo +nightly-2025-08-07 install cargo-scout-audit
-
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install native build dependencies
+        uses: ./.github/workflow-templates/native-build-deps
+      - name: Setup Rust toolchain
+        uses: ./.github/workflow-templates/rust-toolchain
+        with:
+          toolchain: nightly-2025-08-07
+          components: rust-src,rustc-dev,llvm-tools-preview
+      - name: Install Scout dependencies
+        run: |
+          cargo +nightly-2025-08-07 install cargo-scout-audit
 
       - name: Run scout audit
         id: run-scout

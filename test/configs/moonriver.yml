@@ -1,4 +1,5 @@
 endpoint: wss://wss.moonriver.moonbeam.network
+block: ${env.CHOPSTICKS_BLOCK}
 mock-signature-host: true
 db: ./tmp/db_mr.sqlite
 

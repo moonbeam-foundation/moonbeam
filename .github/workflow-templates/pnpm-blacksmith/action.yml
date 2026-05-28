@@ -1,0 +1,28 @@
+name: Blacksmith pnpm setup
+description: Install pnpm and Node.js with one shared Blacksmith pnpm store per pnpm version.
+
+inputs:
+  pnpm-version:
+    description: pnpm version to install and use in the shared store key.
+    required: false
+    default: "9"
+
+runs:
+  using: "composite"
+  steps:
+    - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
+      with:
+        version: ${{ inputs.pnpm-version }}
+        cache: false
+    - name: Mount Blacksmith pnpm store
+      uses: useblacksmith/stickydisk@d58829ad6f9be8822ec5efe74256c82cd62915ab
+      with:
+        key: ${{ github.repository }}-pnpm-store-${{ runner.os }}-pnpm-${{ inputs.pnpm-version }}
+        path: .pnpm-store
+    - name: Configure pnpm store
+      shell: bash
+      run: pnpm config set store-dir "$GITHUB_WORKSPACE/.pnpm-store"
+    - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+      with:
+        node-version-file: "test/.nvmrc"
+        package-manager-cache: false

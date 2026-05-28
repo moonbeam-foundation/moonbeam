@@ -2,15 +2,15 @@
 name = "moonbeam-cli"
 authors = { workspace = true }
 edition = "2021"
-version = "0.50.0"
+version = "0.53.0"
 
 [dependencies]
-clap = { workspace = true, features = ["derive"] }
+ansi_term = { workspace = true }
+clap = { workspace = true, features = [ "derive" ] }
 clap-num = { workspace = true }
 log = { workspace = true }
 parity-scale-codec = { workspace = true }
 url = { workspace = true }
-ansi_term = { workspace = true }
 
 # Moonbeam
 moonbeam-cli-opt = { workspace = true }
@@ -23,13 +23,13 @@ sc-network = { workspace = true }
 sc-service = { workspace = true }
 sc-sysinfo = { workspace = true }
 sc-tracing = { workspace = true }
-sp-core = { workspace = true, features = ["std"] }
-sp-runtime = { workspace = true, features = ["std"] }
+sp-core = { workspace = true, features = [ "std" ] }
+sp-runtime = { workspace = true, features = [ "std" ] }
 
 # Cumulus / Nimbus
 cumulus-client-cli = { workspace = true }
-cumulus-primitives-core = { workspace = true, features = ["std"] }
-nimbus-primitives = { workspace = true, features = ["std"] }
+cumulus-primitives-core = { workspace = true, features = [ "std" ] }
+nimbus-primitives = { workspace = true, features = [ "std" ] }
 
 # Polkadot
 polkadot-cli = { workspace = true }
@@ -40,33 +40,21 @@ polkadot-service = { workspace = true }
 substrate-build-script-utils = { workspace = true }
 
 [features]
-default = [
-    "moonbase-native",
-    "moonbeam-native",
-    "moonriver-native"
-]
+default = [ "moonbase-native", "moonbeam-native", "moonriver-native" ]
 
-lazy-loading = ["moonbeam-service/lazy-loading"]
+lazy-loading = [ "moonbeam-service/lazy-loading" ]
 
-metadata-hash = ["moonbeam-service/metadata-hash"]
+metadata-hash = [ "moonbeam-service/metadata-hash" ]
 
-moonbase-native = ["moonbeam-service/moonbase-native"]
-moonbeam-native = ["moonbeam-service/moonbeam-native"]
-moonriver-native = ["moonbeam-service/moonriver-native"]
+moonbase-native = [ "moonbeam-service/moonbase-native" ]
+moonbeam-native = [ "moonbeam-service/moonbeam-native" ]
+moonriver-native = [ "moonbeam-service/moonriver-native" ]
 
-runtime-benchmarks = [
-	"moonbeam-service/runtime-benchmarks",
-	"polkadot-service/runtime-benchmarks",
-	"nimbus-primitives/runtime-benchmarks",
-	"cumulus-primitives-core/runtime-benchmarks",
-	"frame-benchmarking-cli/runtime-benchmarks",
-	"polkadot-cli/runtime-benchmarks",
-	"polkadot-primitives/runtime-benchmarks",
-	"sc-service/runtime-benchmarks",
-	"sp-runtime/runtime-benchmarks"
-]
+runtime-benchmarks = [ "cumulus-primitives-core/runtime-benchmarks", "frame-benchmarking-cli/runtime-benchmarks", "moonbeam-service/runtime-benchmarks", "nimbus-primitives/runtime-benchmarks", "polkadot-cli/runtime-benchmarks", "polkadot-primitives/runtime-benchmarks", "polkadot-service/runtime-benchmarks", "sc-service/runtime-benchmarks", "sp-runtime/runtime-benchmarks" ]
 try-runtime = [
 	"moonbeam-service/try-runtime",
+	"nimbus-primitives/try-runtime",
 	"polkadot-cli/try-runtime",
+	"polkadot-service/try-runtime",
 	"sp-runtime/try-runtime",
 ]

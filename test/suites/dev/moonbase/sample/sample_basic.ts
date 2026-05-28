@@ -3,10 +3,12 @@ import {
   CHARLETH_ADDRESS,
   alith,
   beforeAll,
+  createEthersTransaction,
   describeSuite,
   expect,
   setupLogger,
 } from "moonwall";
+import { sealExtrinsic } from "../../../../helpers";
 import { parseEther, formatEther, type Signer } from "ethers";
 import { BN } from "@polkadot/util";
 import type { ApiPromise } from "@polkadot/api";
@@ -44,11 +46,11 @@ describeSuite({
       test: async function () {
         const balanceBefore = (await polkadotJs.query.system.account(BALTATHAR_ADDRESS)).data.free;
 
-        await polkadotJs.tx.balances
-          .transfer(BALTATHAR_ADDRESS, parseEther("2"))
-          .signAndSend(alith);
-
-        await context.createBlock();
+        await sealExtrinsic(
+          context,
+          polkadotJs.tx.balances.transfer(BALTATHAR_ADDRESS, parseEther("2")),
+          alith
+        );
         const balanceAfter = (await polkadotJs.query.system.account(BALTATHAR_ADDRESS)).data.free;
         log(
           `Baltathar account balance before ${formatEther(
@@ -65,9 +67,7 @@ describeSuite({
       test: async function () {
         await context.createBlock();
         const tx = polkadotJs.tx.rootTesting.fillBlock(60 * 10 ** 7);
-        await polkadotJs.tx.sudo.sudo(tx).signAndSend(alith);
-
-        await context.createBlock();
+        await sealExtrinsic(context, polkadotJs.tx.sudo.sudo(tx), alith);
         const blockFill = await polkadotJs.query.system.blockWeight();
         expect(blockFill.normal.refTime.unwrap().gt(new BN(0))).to.be.true;
       },
@@ -79,12 +79,13 @@ describeSuite({
       test: async function () {
         const balanceBefore = (await polkadotJs.query.system.account(BALTATHAR_ADDRESS)).data.free;
 
-        await signer.sendTransaction({
-          to: BALTATHAR_ADDRESS,
-          value: parseEther("1.0"),
-          nonce: await signer.getNonce(),
-        });
-        await context.createBlock();
+        await context.createBlock(
+          await createEthersTransaction(context, {
+            to: BALTATHAR_ADDRESS,
+            value: parseEther("1.0"),
+            txnType: "legacy",
+          })
+        );
         anotherLogger("Example use of another logger");
         const balanceAfter = (await polkadotJs.query.system.account(BALTATHAR_ADDRESS)).data.free;
         expect(balanceBefore.lt(balanceAfter)).to.be.true;

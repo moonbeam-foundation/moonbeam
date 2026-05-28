@@ -17,6 +17,8 @@ import {
   expectOk,
   injectHrmpMessage,
   ConstantStore,
+  sealExtrinsic,
+  sealExtrinsics,
 } from "../../../../helpers";
 
 // Below should be the calculation:
@@ -27,21 +29,17 @@ const TARGET_FILL_AMOUNT = 262_349_219;
 // const TARGET_FILL_AMOUNT = 262_349_210;
 
 async function setFeeMultiplier(context: any, value: bigint) {
-  const MULTIPLIER_STORAGE_KEY = context
-    .polkadotJs()
-    .query.transactionPayment.nextFeeMultiplier.key(0)
-    .toString();
-  await context
-    .polkadotJs()
-    .tx.sudo.sudo(
-      context
-        .polkadotJs()
-        .tx.system.setStorage([
-          [MULTIPLIER_STORAGE_KEY, bnToHex(value, { isLe: true, bitLength: 128 })],
-        ])
-    )
-    .signAndSend(alith);
-  await context.createBlock();
+  const api = context.polkadotJs();
+  const MULTIPLIER_STORAGE_KEY = api.query.transactionPayment.nextFeeMultiplier.key(0).toString();
+  await sealExtrinsic(
+    context,
+    api.tx.sudo.sudo(
+      api.tx.system.setStorage([
+        [MULTIPLIER_STORAGE_KEY, bnToHex(value, { isLe: true, bitLength: 128 })],
+      ])
+    ),
+    alith
+  );
 }
 
 // Note on the values from 'transactionPayment.nextFeeMultiplier': this storage item is actually a
@@ -108,18 +106,15 @@ describeSuite({
           .polkadotJs()
           .query.transactionPayment.nextFeeMultiplier();
 
-        let nonce = (
-          await context.polkadotJs().query.system.account(alith.address)
-        ).nonce.toNumber();
-        await context
-          .polkadotJs()
-          .tx.balances.transferAllowDeath(BALTATHAR_ADDRESS, 1_000_000_000_000_000_000n)
-          .signAndSend(alith, { nonce: nonce++ });
-        await context
-          .polkadotJs()
-          .tx.sudo.sudo(context.polkadotJs().tx.rootTesting.fillBlock(TARGET_FILL_AMOUNT))
-          .signAndSend(alith, { nonce: nonce++ });
-        await context.createBlock();
+        const api = context.polkadotJs();
+        await sealExtrinsics(
+          context,
+          [
+            api.tx.balances.transferAllowDeath(BALTATHAR_ADDRESS, 1_000_000_000_000_000_000n),
+            api.tx.sudo.sudo(api.tx.rootTesting.fillBlock(TARGET_FILL_AMOUNT)),
+          ],
+          alith
+        );
 
         const postValue = await context.polkadotJs().query.transactionPayment.nextFeeMultiplier();
         expect(
