@@ -1,6 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, charleth, describeSuite, expect, getBlockExtrinsic } from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
+import { sealExtrinsic } from "../../../../helpers";
 
 // Keys used to set author-mapping in the tests
 const originalKeys = [
@@ -21,8 +22,7 @@ describeSuite({
       api = context.polkadotJs();
       log(`Setting account ${charleth.address} keys: ${concatOriginalKeys}`);
       // TODO: fix all setKeys with api 1600.1
-      await api.tx.authorMapping.setKeys(concatOriginalKeys).signAndSend(charleth);
-      await context.createBlock();
+      await sealExtrinsic(context, api.tx.authorMapping.setKeys(concatOriginalKeys), charleth);
     });
 
     it({

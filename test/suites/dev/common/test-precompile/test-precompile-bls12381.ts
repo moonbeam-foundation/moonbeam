@@ -1,6 +1,12 @@
 import "@moonbeam-network/api-augment";
 
-import { beforeAll, deployCreateCompiledContract, describeSuite, expect } from "moonwall";
+import {
+  beforeAll,
+  createViemTransaction,
+  deployCreateCompiledContract,
+  describeSuite,
+  expect,
+} from "moonwall";
 import { encodeFunctionData } from "viem";
 
 describeSuite({
@@ -37,22 +43,26 @@ describeSuite({
         // BLS12381.sol contains the test vectors for the precompiles
         // and splits them into two contracts to avoid hitting the gas limit
 
-        const tx = await context.viem().sendTransaction({
+        const rawTx = await createViemTransaction(context, {
           to: helper1Address,
           data: encodeFunctionData({ abi: helper1Abi, functionName: "testAll", args: [] }),
         });
-        await context.createBlock();
+        const { result } = await context.createBlock(rawTx);
 
-        const receipt = await context.viem().getTransactionReceipt({ hash: tx });
+        const receipt = await context
+          .viem("public")
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
 
-        const tx2 = await context.viem().sendTransaction({
+        const rawTx2 = await createViemTransaction(context, {
           to: helper2Address,
           data: encodeFunctionData({ abi: helper2Abi, functionName: "testAll", args: [] }),
         });
-        await context.createBlock();
+        const { result: result2 } = await context.createBlock(rawTx2);
 
-        const receipt2 = await context.viem().getTransactionReceipt({ hash: tx2 });
+        const receipt2 = await context
+          .viem("public")
+          .getTransactionReceipt({ hash: result2?.hash as `0x${string}` });
         expect(receipt2.status).toBe("success");
       },
     });

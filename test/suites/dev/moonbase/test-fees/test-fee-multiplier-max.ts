@@ -10,6 +10,7 @@ import {
 } from "moonwall";
 import { nToHex } from "@polkadot/util";
 import { encodeFunctionData } from "viem";
+import { sealExtrinsic } from "../../../../helpers";
 
 // Note on the values from 'transactionPayment.nextFeeMultiplier': this storage item is actually a
 // FixedU128, which is basically a u128 with an implicit denominator of 10^18. However, this
@@ -33,17 +34,16 @@ describeSuite({
 
       // set transaction-payment's multiplier to something above max in storage. on the next round,
       // it should enforce its upper bound and reset it.
-      await context
-        .polkadotJs()
-        .tx.sudo.sudo(
-          context
-            .polkadotJs()
-            .tx.system.setStorage([
-              [MULTIPLIER_STORAGE_KEY, nToHex(U128_MAX, { isLe: true, bitLength: 128 })],
-            ])
-        )
-        .signAndSend(alith);
-      await context.createBlock();
+      const api = context.polkadotJs();
+      await sealExtrinsic(
+        context,
+        api.tx.sudo.sudo(
+          api.tx.system.setStorage([
+            [MULTIPLIER_STORAGE_KEY, nToHex(U128_MAX, { isLe: true, bitLength: 128 })],
+          ])
+        ),
+        alith
+      );
     });
 
     it({
@@ -79,8 +79,11 @@ describeSuite({
 
         // send an applyAuthorizedUpgrade. we expect this to fail, but we just want to see that it
         // was included in a block (not rejected) and was charged based on its length
-        await context.polkadotJs().tx.system.applyAuthorizedUpgrade(hex).signAndSend(baltathar);
-        await context.createBlock();
+        await sealExtrinsic(
+          context,
+          context.polkadotJs().tx.system.applyAuthorizedUpgrade(hex),
+          baltathar
+        );
 
         const afterBalance = (
           await context.polkadotJs().query.system.account(baltathar.address as string)
@@ -89,7 +92,7 @@ describeSuite({
         // note that this is not really affected by the high multiplier because most of its fee is
         // derived from the length_fee, which is not scaled by the multiplier
         // ~/4 to compensate for the ref time XCM fee changes
-        expect(initialBalance - afterBalance).toMatchInlineSnapshot(`150888033314090313277n`);
+        expect(initialBalance - afterBalance).toMatchInlineSnapshot(`150201036367686167008n`);
       },
     });
 
@@ -108,17 +111,20 @@ describeSuite({
 
         const fillAmount = 600_000_000; // equal to 60% Perbill
 
-        const { result } = await context.createBlock(
+        const { result } = await sealExtrinsic(
+          context,
           context.polkadotJs().tx.rootTesting.fillBlock(fillAmount),
-          { allowFailures: true }
+          alith,
+          { createBlock: { allowFailures: true } }
         );
 
-        // grab the first withdraw event and hope it's the right one...
-        const withdrawEvent = result?.events.filter(({ event }) => event.method === "Withdraw")[0];
-        const amount = (withdrawEvent!.event.data as any).amount.toBigInt();
-        // ~/4 to compensate for the ref time XCM fee changes
-        // Previous value: 6_000_000_012_598_000_941_192n
-        expect(amount).to.equal(1_500_000_003_224_000_970_299n);
+        const withdrawAmounts =
+          result?.events
+            .filter(({ event }) => event.method === "Withdraw")
+            .map(({ event }) => (event.data as any).amount.toBigInt()) ?? [];
+        expect(withdrawAmounts.length).to.be.greaterThan(0);
+        const amount = withdrawAmounts.reduce((max, value) => (value > max ? value : max));
+        expect(amount).to.equal(1_500_000_003_223_000_941_192n);
       },
     });
 

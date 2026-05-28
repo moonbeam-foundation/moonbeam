@@ -10,6 +10,7 @@ import {
   getBlockExtrinsic,
 } from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
+import { sealExtrinsic } from "../../../../helpers";
 
 // Keys used to set author-mapping in the tests
 const originalKeys = [
@@ -28,12 +29,10 @@ describeSuite({
 
     beforeAll(async function () {
       api = context.polkadotJs();
-      await api.tx.authorMapping.setKeys(concatOriginalKeys).signAndSend(charleth);
-      await context.createBlock();
+      await sealExtrinsic(context, api.tx.authorMapping.setKeys(concatOriginalKeys), charleth);
 
-      // Setting same key but with ethan
-      await api.tx.authorMapping.setKeys(concatOriginalKeys).signAndSend(dorothy);
-      await context.createBlock();
+      // Setting same key but with dorothy
+      await sealExtrinsic(context, api.tx.authorMapping.setKeys(concatOriginalKeys), dorothy);
     });
 
     it({

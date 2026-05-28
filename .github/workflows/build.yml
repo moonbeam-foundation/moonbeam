@@ -47,6 +47,7 @@ jobs:
       git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
       any_changed: ${{ steps.changed-files.outputs.any_changed == 'true' || steps.changed-files.outputs.any_deleted == 'true' }}
       rust_changed: ${{ steps.rust-changed.outputs.any_changed == 'true' || steps.rust-changed.outputs.any_deleted == 'true' }}
+      benchmarks_changed: ${{ steps.benchmarks-changed.outputs.any_changed == 'true' || steps.benchmarks-changed.outputs.any_deleted == 'true' }}
       ts_tests_changed: ${{ steps.test-typescript-changed.outputs.any_changed == 'true' || steps.test-typescript-changed.outputs.any_deleted == 'true' }}
       blacksmith_allowed: ${{ steps.check-git-ref.outputs.blacksmith_allowed }}
     steps:
@@ -76,9 +77,10 @@ jobs:
           echo "repo.full_name: ${{ github.event.pull_request.head.repo.full_name }}"
           echo "github.repository: ${{ github.repository }}"
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ steps.check-git-ref.outputs.git_ref }}
+          persist-credentials: false
       - name: Display variables
         run: |
           echo git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
@@ -111,6 +113,16 @@ jobs:
             test/**/*.ts
             types-bundle/**
             typescript-api/**
+      - name: Get benchmark-relevant changed file(s)
+        id: benchmarks-changed
+        uses: tj-actions/changed-files@24d32ffd492484c1d75e0c0b894501ddb9d30d62
+        with:
+          files: |
+            Cargo.lock
+            **/weights.rs
+            **/benchmarks.rs
+            weights/**
+            **/weights/**
       - name: Get test and TypeScript API changed file(s)
         id: test-typescript-changed
         uses: tj-actions/changed-files@24d32ffd492484c1d75e0c0b894501ddb9d30d62
@@ -133,9 +145,10 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+          persist-credentials: false
       - name: Find un-copyrighted files
         run: |
           find . \! -name '*.expanded.rs' -name '*.rs' -exec grep  -H -E -o -c Copyright {} \; | grep ':0' || true
@@ -154,10 +167,11 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: umbrelladocs/action-linkspector@v1
+          persist-credentials: false
+      - uses: umbrelladocs/action-linkspector@ec40914b4aaecb3c7648033eac41abbb0a6a33b8
         with:
           reporter: github-pr-review
           fail_level: any
@@ -173,9 +187,10 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+          persist-credentials: false
       - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
         with:
           version: 9
@@ -200,9 +215,10 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+          persist-credentials: false
       - name: Setup Rust toolchain
         uses: ./.github/workflow-templates/rust-toolchain
       - name: Check Cargo.toml files format with toml_sort
@@ -218,9 +234,10 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+          persist-credentials: false
       - name: Setup Rust toolchain
         uses: ./.github/workflow-templates/rust-toolchain
       - name: Verifies all 'pallet-evm/ethereum' use 'forbid-evm-reentrancy' feature
@@ -236,13 +253,53 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+          persist-credentials: false
       - name: Setup Rust toolchain
         uses: ./.github/workflow-templates/rust-toolchain
       - name: Format code with rustfmt
         run: cargo fmt -- --check
+
+  check-rust-feature-propagation:
+    if: ${{ needs.set-tags.outputs.rust_changed == 'true' }}
+    name: "Check Feature Propagation"
+    runs-on:
+      labels: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    needs: ["set-tags"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Check features
+        run: |
+          # Install zepter
+          cargo install zepter -f --locked --version 0.13.2
+          # Run checks
+          zepter_output="$(mktemp)"
+          set +e
+          zepter run check 2>&1 | tee "$zepter_output"
+          zepter_status=${PIPESTATUS[0]}
+          set -e
+
+          if [[ "$zepter_status" -ne 0 ]]; then
+            exit "$zepter_status"
+          fi
+
+          # Zepter 0.13.2 can print failed workflow checks while still exiting
+          # successfully. Treat those diagnostics as failures so CI does not
+          # pass Cargo.toml-only changes with feature propagation issues.
+          if grep -Eq "Found [1-9][0-9]* issues|Error: Command '.+' failed" "$zepter_output"; then
+            echo "::error::Zepter reported failed checks but exited successfully"
+            exit 1
+          fi
 
   ####### Building and Testing binaries #######
 
@@ -257,7 +314,8 @@ jobs:
       needs.set-tags.outputs.blacksmith_allowed == 'true' &&
       needs.check-cargo-toml-format.result == 'success' &&
       needs.check-forbid-evm-reentrancy.result == 'success' &&
-      needs.check-rust-fmt.result == 'success'
+      needs.check-rust-fmt.result == 'success' &&
+      needs.check-rust-feature-propagation.result == 'success'
     runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 30
     permissions:
@@ -273,12 +331,14 @@ jobs:
         "check-cargo-toml-format",
         "check-forbid-evm-reentrancy",
         "check-rust-fmt",
+        "check-rust-feature-propagation",
       ]
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+          persist-credentials: false
       - name: Read Rust toolchain cache key
         id: rust-toolchain-cache-key
         uses: ./.github/workflow-templates/rust-toolchain-cache-key
@@ -317,7 +377,8 @@ jobs:
           needs.set-tags.outputs.rust_changed == 'true' &&
           needs.check-cargo-toml-format.result == 'success' &&
           needs.check-forbid-evm-reentrancy.result == 'success' &&
-          needs.check-rust-fmt.result == 'success'
+          needs.check-rust-fmt.result == 'success' &&
+          needs.check-rust-feature-propagation.result == 'success'
         ) ||
         (
           needs.set-tags.outputs.ts_tests_changed == 'true' &&
@@ -334,12 +395,14 @@ jobs:
         "check-cargo-toml-format",
         "check-forbid-evm-reentrancy",
         "check-rust-fmt",
+        "check-rust-feature-propagation",
       ]
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+          persist-credentials: false
       - name: Read Rust toolchain cache key
         id: rust-toolchain-cache-key
         uses: ./.github/workflow-templates/rust-toolchain-cache-key
@@ -375,6 +438,7 @@ jobs:
       needs.check-cargo-toml-format.result == 'success' &&
       needs.check-forbid-evm-reentrancy.result == 'success' &&
       needs.check-rust-fmt.result == 'success' &&
+      needs.check-rust-feature-propagation.result == 'success' &&
       needs.dev-test.result == 'success'
     runs-on: blacksmith-16vcpu-ubuntu-2404
     timeout-minutes: 30
@@ -386,6 +450,7 @@ jobs:
         "check-cargo-toml-format",
         "check-forbid-evm-reentrancy",
         "check-rust-fmt",
+        "check-rust-feature-propagation",
         "dev-test",
       ]
     env:
@@ -393,25 +458,28 @@ jobs:
       CARGO_INCREMENTAL: "0"
       SCCACHE_CACHE_SIZE: "100GB"
       SCCACHE_DIR: ${{ github.workspace }}/.sccache
+      SKIP_WASM_BUILD: "1"
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+          persist-credentials: false
       - name: Read Rust toolchain cache key
         id: rust-toolchain-cache-key
         uses: ./.github/workflow-templates/rust-toolchain-cache-key
       - name: Mount Blacksmith sccache disk
         uses: useblacksmith/stickydisk@d58829ad6f9be8822ec5efe74256c82cd62915ab
         with:
-          key: ${{ github.repository }}-sccache-release-${{ runner.os }}-${{ steps.rust-toolchain-cache-key.outputs.cache-key }}
+          key: ${{ github.repository }}-sccache-rust-test-${{ runner.os }}-${{ steps.rust-toolchain-cache-key.outputs.cache-key }}
           path: .sccache
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@1583d6b38d7be47f593cb472781bbb21cab4321e
       - name: Setup Variables
         shell: bash
         run: |
-          echo "RUSTFLAGS=-C opt-level=3 -D warnings -C linker=clang -C link-arg=-fuse-ld=$(pwd)/mold/bin/mold" >> $GITHUB_ENV
+          mold_path="$(pwd)/mold/bin/mold"
+          echo "RUSTFLAGS=-D warnings -C linker=clang -C link-arg=-fuse-ld=${mold_path}" >> "$GITHUB_ENV"
       - name: Setup Mold Linker
         shell: bash
         run: |
@@ -423,6 +491,7 @@ jobs:
         uses: ./.github/workflow-templates/rust-toolchain
       # Verify that the runtime-benchmarks feature compiles on its own
       - name: Check runtime-benchmarks compilation
+        if: github.ref == 'refs/heads/master' || needs.set-tags.outputs.benchmarks_changed == 'true'
         run: |
           cargo check --profile testnet --workspace --features=runtime-benchmarks
       # Checks are run after uploading artifacts since they are modified by the tests
@@ -438,7 +507,7 @@ jobs:
   #   runs-on: ubuntu-latest
   #   steps:
   #     - name: Checkout
-  #       uses: actions/checkout@v6
+  #       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
   #       with:
   #         ref: ${{ needs.set-tags.outputs.git_ref }}
   #     - uses: pnpm/action-setup@v6
@@ -451,7 +520,7 @@ jobs:
   #         node-version-file: "test/.nvmrc"
   #         package-manager-cache: false
   #     - name: "Download branch built node"
-  #       uses: actions/download-artifact@v8
+  #       uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
   #       with:
   #         name: moonbeam
   #         path: target/release
@@ -499,19 +568,20 @@ jobs:
       DEBUG_COLORS: 1
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+          persist-credentials: false
       - name: Create local folders
         run: |
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built runtime"
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: runtimes
           path: target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built node"
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: moonbeam
           path: target/release
@@ -555,10 +625,11 @@ jobs:
     needs: ["set-tags", "build", "dev-test"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: actions/download-artifact@v8
+          persist-credentials: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: moonbeam
           path: build
@@ -576,7 +647,7 @@ jobs:
       - run: |
           mkdir -p target/release
       - name: "Download branch built node"
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: moonbeam
           path: target/release
@@ -624,9 +695,10 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+          persist-credentials: false
       - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
         with:
           version: 9
@@ -641,12 +713,12 @@ jobs:
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
           mkdir -p test/tmp
       - name: "Download branch built runtime"
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: runtimes
           path: target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built node"
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: moonbeam
           path: target/release
@@ -690,9 +762,10 @@ jobs:
       DEBUG_COLORS: 1
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+          persist-credentials: false
       - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
         with:
           version: 9
@@ -702,7 +775,7 @@ jobs:
         with:
           node-version-file: "test/.nvmrc"
           package-manager-cache: false
-      - uses: oven-sh/setup-bun@v2
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
         with:
           bun-version: latest
       - name: Create local folders
@@ -710,7 +783,7 @@ jobs:
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
           mkdir -p test/tmp/node_logs
       - name: "Download runtime"
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: runtimes
           path: target/release/wbuild/${{ matrix.chain }}-runtime/
@@ -722,7 +795,7 @@ jobs:
           cd test
           pnpm tsx scripts/select-chopsticks-fork-block.ts --chain ${{ matrix.chain }} --github-env "$GITHUB_ENV"
       - name: Run Upgrade Test (with retry)
-        uses: nick-fields/retry@v4
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60
         with:
           max_attempts: 3
           timeout_minutes: 15
@@ -754,9 +827,10 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+          persist-credentials: false
       - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
         with:
           version: 9
@@ -771,12 +845,12 @@ jobs:
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
           mkdir -p test/tmp
       - name: "Download branch built runtime"
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: runtimes
           path: target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built node"
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: moonbeam
           path: target/release
@@ -832,14 +906,16 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - name: "Download branch built runtime"
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: runtimes
           path: target/release
       - name: "Download branch built node"
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: moonbeam
           path: target/release

@@ -5,6 +5,7 @@ import {
   sovereignAccountOfSibling,
   injectEncodedHrmpMessageAndSeal,
 } from "../../../../helpers/xcm.js";
+import { sealExtrinsic } from "../../../../helpers";
 import { parseEther } from "ethers";
 
 export const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
@@ -34,10 +35,11 @@ describeSuite({
         expect(status).eq("success");
 
         // Send some native tokens to the sovereign account of paraId (to pay fees)
-        await polkadotJs.tx.balances
-          .transferAllowDeath(paraSovereign, parseEther("1"))
-          .signAndSend(alith);
-        await context.createBlock();
+        await sealExtrinsic(
+          context,
+          polkadotJs.tx.balances.transferAllowDeath(paraSovereign, parseEther("1")),
+          alith
+        );
 
         // Original GeneralKey to properly override the gas_limit value:
         // b'gas_limit:' + 300000(little endian) + zeros padding
@@ -102,10 +104,11 @@ describeSuite({
         expect(status).eq("success");
 
         // Send some native tokens to the sovereign account of paraId (to pay fees)
-        await polkadotJs.tx.balances
-          .transferAllowDeath(paraSovereign, parseEther("1"))
-          .signAndSend(alith);
-        await context.createBlock();
+        await sealExtrinsic(
+          context,
+          polkadotJs.tx.balances.transferAllowDeath(paraSovereign, parseEther("1")),
+          alith
+        );
 
         // Original GeneralKey to properly override the gas_limit value:
         // b'gas_limit:' + 300000(little endian) + zeros padding
