@@ -43,9 +43,7 @@ const checkBinary = async () => {
     const { stderr } = await execAsync("ls ../target/debug/moonbeam");
     if (stderr) console.error(`stderr: ${stderr}`);
   } catch {
-    console.error(
-      "Moonbeam binary missing, please build it first using `cargo build`"
-    );
+    console.error("Moonbeam binary missing, please build it first using `cargo build`");
   }
 };
 

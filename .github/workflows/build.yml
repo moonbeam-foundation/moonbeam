@@ -204,7 +204,11 @@ jobs:
           node-version-file: "test/.nvmrc"
           package-manager-cache: false
       - run: pnpm install
-      - run: pnpm check
+      - name: Run Biome
+        run: |
+          pnpm --dir types-bundle exec biome check . --diagnostic-level=error
+          pnpm --dir typescript-api exec biome check . --diagnostic-level=error
+          pnpm --dir test exec biome check . --diagnostic-level=error
 
   check-cargo-toml-format:
     if: ${{ needs.set-tags.outputs.rust_changed == 'true' }}
