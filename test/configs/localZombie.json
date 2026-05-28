@@ -48,7 +48,7 @@
       "collator": {
         "name": "alith",
         "rpc_port": 33345,
-        "command": "../target/release/moonbeam",
+        "command": "../target/debug/moonbeam",
         "args": [
           "--no-hardware-benchmarks",
           "--force-authoring",

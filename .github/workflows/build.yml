@@ -171,6 +171,8 @@ jobs:
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
           persist-credentials: false
+      - name: Install Chrome for linkspector
+        run: npx --yes puppeteer@24.31.0 browsers install chrome@148.0.7778.97
       - uses: umbrelladocs/action-linkspector@ec40914b4aaecb3c7648033eac41abbb0a6a33b8
         with:
           reporter: github-pr-review
@@ -202,7 +204,11 @@ jobs:
           node-version-file: "test/.nvmrc"
           package-manager-cache: false
       - run: pnpm install
-      - run: pnpm check
+      - name: Run Biome
+        run: |
+          pnpm --dir types-bundle exec biome check . --diagnostic-level=error
+          pnpm --dir typescript-api exec biome check . --diagnostic-level=error
+          pnpm --dir test exec biome check . --diagnostic-level=error
 
   check-cargo-toml-format:
     if: ${{ needs.set-tags.outputs.rust_changed == 'true' }}
@@ -493,11 +499,11 @@ jobs:
       - name: Check runtime-benchmarks compilation
         if: github.ref == 'refs/heads/master' || needs.set-tags.outputs.benchmarks_changed == 'true'
         run: |
-          cargo check --profile testnet --workspace --features=runtime-benchmarks
+          cargo check --profile rust-tests --workspace --features=runtime-benchmarks
       # Checks are run after uploading artifacts since they are modified by the tests
       - name: Unit tests
         run: |
-          cargo test --profile testnet --workspace --features=evm-tracing
+          cargo test --profile rust-tests --workspace --features=evm-tracing
 
   # Renable typegen_check when we have a bot in place to update PR for us in case of missing it
 
@@ -523,8 +529,8 @@ jobs:
   #       uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
   #       with:
   #         name: moonbeam
-  #         path: target/release
-  #     - run: chmod uog+x target/release/moonbeam
+  #         path: target/debug
+  #     - run: chmod uog+x target/debug/moonbeam
   #     - name: Run Typegen
   #       run: |
   #         pnpm i
@@ -574,32 +580,24 @@ jobs:
           persist-credentials: false
       - name: Create local folders
         run: |
-          mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
+          mkdir -p target/debug/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built runtime"
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: runtimes
-          path: target/release/wbuild/${{ matrix.chain }}-runtime/
+          path: target/debug/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built node"
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: moonbeam
-          path: target/release
-      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
-        with:
-          version: 9
-          cache: true
-          cache_dependency_path: pnpm-lock.yaml
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
-        with:
-          node-version-file: "test/.nvmrc"
-          package-manager-cache: false
+          path: target/debug
+      - uses: ./.github/workflow-templates/pnpm-blacksmith
       - name: "Run Moonwall Dev Tests"
         env:
           DEBUG_COLOURS: "1"
           NODE_OPTIONS: "--max-old-space-size=12288"
         run: |
-          chmod uog+x target/release/moonbeam
+          chmod uog+x target/debug/moonbeam
           cd test
           pnpm install
           pnpm compile-solidity
@@ -633,24 +631,14 @@ jobs:
         with:
           name: moonbeam
           path: build
-      - name: Use pnpm
-        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
-        with:
-          version: 9
-          cache: true
-          cache_dependency_path: pnpm-lock.yaml
-      - name: Use Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
-        with:
-          node-version-file: "test/.nvmrc"
-          package-manager-cache: false
+      - uses: ./.github/workflow-templates/pnpm-blacksmith
       - run: |
-          mkdir -p target/release
+          mkdir -p target/debug
       - name: "Download branch built node"
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: moonbeam
-          path: target/release
+          path: target/debug
       - name: Get tracing runtimes
         run: |
           ./scripts/build-last-tracing-runtime.sh ${{ needs.set-tags.outputs.git_branch }}
@@ -659,7 +647,7 @@ jobs:
       - name: Preparing the repository
         run: |
           chmod uog+x build/moonbeam
-          chmod uog+x target/release/moonbeam
+          chmod uog+x target/debug/moonbeam
       - name: Running Tracing Tests
         env:
           DEBUG_COLOURS: "1"
@@ -699,32 +687,24 @@ jobs:
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
           persist-credentials: false
-      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
-        with:
-          version: 9
-          cache: true
-          cache_dependency_path: pnpm-lock.yaml
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
-        with:
-          node-version-file: "test/.nvmrc"
-          package-manager-cache: false
+      - uses: ./.github/workflow-templates/pnpm-blacksmith
       - name: Create local folders
         run: |
-          mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
+          mkdir -p target/debug/wbuild/${{ matrix.chain }}-runtime/
           mkdir -p test/tmp
       - name: "Download branch built runtime"
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: runtimes
-          path: target/release/wbuild/${{ matrix.chain }}-runtime/
+          path: target/debug/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built node"
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: moonbeam
-          path: target/release
+          path: target/debug
       - name: "Run lazy loading tests"
         run: |
-          chmod uog+x target/release/moonbeam
+          chmod uog+x target/debug/moonbeam
           cd test
           pnpm install
           pnpm moonwall test lazy_loading_${{ matrix.chain }}
@@ -766,27 +746,19 @@ jobs:
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
           persist-credentials: false
-      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
-        with:
-          version: 9
-          cache: true
-          cache_dependency_path: pnpm-lock.yaml
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
-        with:
-          node-version-file: "test/.nvmrc"
-          package-manager-cache: false
+      - uses: ./.github/workflow-templates/pnpm-blacksmith
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
         with:
           bun-version: latest
       - name: Create local folders
         run: |
-          mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
+          mkdir -p target/debug/wbuild/${{ matrix.chain }}-runtime/
           mkdir -p test/tmp/node_logs
       - name: "Download runtime"
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: runtimes
-          path: target/release/wbuild/${{ matrix.chain }}-runtime/
+          path: target/debug/wbuild/${{ matrix.chain }}-runtime/
       - name: "Install and run upgrade test"
         run: |
           pnpm install
@@ -831,29 +803,21 @@ jobs:
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
           persist-credentials: false
-      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
-        with:
-          version: 9
-          cache: true
-          cache_dependency_path: pnpm-lock.yaml
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
-        with:
-          node-version-file: "test/.nvmrc"
-          package-manager-cache: false
+      - uses: ./.github/workflow-templates/pnpm-blacksmith
       - name: Create local folders
         run: |
-          mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
+          mkdir -p target/debug/wbuild/${{ matrix.chain }}-runtime/
           mkdir -p test/tmp
       - name: "Download branch built runtime"
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: runtimes
-          path: target/release/wbuild/${{ matrix.chain }}-runtime/
+          path: target/debug/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built node"
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: moonbeam
-          path: target/release
+          path: target/debug
       - name: Retrieve moonbeam binary from docker (for plainSpec generation)
         run: |
           LATEST_CLIENT=$(curl -s https://api.github.com/repos/moonbeam-foundation/moonbeam/releases | jq -r '.[] | select(.name | test("v";"i")) | .tag_name' | sort -rs | head -n 1 | tr -d '[:blank:]')
@@ -866,11 +830,11 @@ jobs:
 
           ## Generate old spec using latest published node, modify it, and generate raw spec
           chmod uog+x tmp/moonbeam_rt
-          chmod uog+x ../target/release/moonbeam
+          chmod uog+x ../target/debug/moonbeam
           tmp/moonbeam_rt build-spec --chain ${{ matrix.chain }}-local > tmp/${{ matrix.chain }}-plain-spec.json
           pnpm tsx scripts/modify-plain-specs.ts process tmp/${{ matrix.chain }}-plain-spec.json tmp/${{ matrix.chain }}-modified-spec.json
           tmp/moonbeam_rt build-spec --chain tmp/${{ matrix.chain }}-modified-spec.json --raw > tmp/${{ matrix.chain }}-raw-spec.json
-          pnpm tsx scripts/preapprove-rt-rawspec.ts process tmp/${{ matrix.chain }}-raw-spec.json tmp/${{ matrix.chain }}-modified-raw-spec.json ../target/release/wbuild/${{ matrix.chain }}-runtime/${{ matrix.chain }}_runtime.compact.compressed.wasm
+          pnpm tsx scripts/preapprove-rt-rawspec.ts process tmp/${{ matrix.chain }}-raw-spec.json tmp/${{ matrix.chain }}-modified-raw-spec.json ../target/debug/wbuild/${{ matrix.chain }}-runtime/${{ matrix.chain }}_runtime.compact.compressed.wasm
       - name: "Run zombie upgrade test"
         run: |
           cd test
@@ -913,18 +877,18 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: runtimes
-          path: target/release
+          path: target/debug
       - name: "Download branch built node"
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: moonbeam
-          path: target/release
+          path: target/debug
       - name: Setup
         run: |
           # Install polkadot-js-api
           # https://github.com/paritytech/polkadot-sdk/blob/56f683fabfc5a4554d4b9208e91103624264407c/bridges/testing/framework/utils/bridges.sh#L21
           npm install -g @polkadot/api-cli
-          chmod uog+x ./target/release/moonbeam
+          chmod uog+x ./target/debug/moonbeam
           # This command prepares all required binaries and runs the bridge integration tests
           make run-bridge-integration-tests
       - name: Zip and Upload Logs on Failure
