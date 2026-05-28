@@ -58,6 +58,10 @@ runs:
       uses: ./.github/workflow-templates/rust-toolchain
     - name: Build Node
       shell: bash
+      env:
+        # Keep the native node in target/debug while still asking substrate-wasm-builder
+        # to compact and compress runtime artifacts for CI consumers.
+        WASM_BUILD_TYPE: release
       run: |
         params=" --locked -p moonbeam"
         if [ -n "${{ inputs.features }}" ]; then

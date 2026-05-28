@@ -20,7 +20,7 @@ There are [various](https://pnpm.io/installation) ways to install it, but perhap
 Build the node before running tests (`metadata-hash` feature is required to run `/test-transaction/test-transaction-with-metadata-hash.ts`):
 
 ```
-cargo build --features metadata-hash
+WASM_BUILD_TYPE=release cargo build --features metadata-hash
 ```
 
 Always install and update the package dependencies:
