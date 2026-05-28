@@ -32,7 +32,7 @@ describeSuite({
           expect(result?.successful, "Unsuccessful deploy").toBe(true);
           const receipt = await context
             .viem("public")
-            .getTransactionReceipt({ hash: result?.hash as `0x${string}` });
+            .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
 
           expect(receipt.logs.length).toBe(1);
           expect(

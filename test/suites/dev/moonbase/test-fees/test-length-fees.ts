@@ -1,5 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { BALTATHAR_ADDRESS, baltathar, describeSuite, expect, type DevModeContext } from "moonwall";
+import { sealExtrinsic } from "../../../../helpers";
 
 //TODO: Change these to be less literal
 describeSuite({
@@ -35,9 +36,10 @@ const testBalanceTransfer = async (context: DevModeContext) => {
     await context.polkadotJs().query.system.account(BALTATHAR_ADDRESS)
   ).data.free.toBigInt();
 
-  // send a balance transfer to self and see what our fees end up being
-  await context.createBlock(
-    context.polkadotJs().tx.balances.transferAllowDeath(BALTATHAR_ADDRESS, 1).signAsync(baltathar)
+  await sealExtrinsic(
+    context,
+    context.polkadotJs().tx.balances.transferAllowDeath(BALTATHAR_ADDRESS, 1),
+    baltathar
   );
 
   const afterBalance = (
@@ -59,8 +61,11 @@ const testRuntimeUpgrade = async (context: DevModeContext) => {
 
   // send an applyAuthorizedUpgrade. we expect this to fail, but we just want to see that it was
   // included in a block (not rejected) and was charged based on its length
-  await context.polkadotJs().tx.system.applyAuthorizedUpgrade(hex).signAndSend(baltathar);
-  await context.createBlock();
+  await sealExtrinsic(
+    context,
+    context.polkadotJs().tx.system.applyAuthorizedUpgrade(hex),
+    baltathar
+  );
 
   const afterBalance = (
     await context.polkadotJs().query.system.account(BALTATHAR_ADDRESS)

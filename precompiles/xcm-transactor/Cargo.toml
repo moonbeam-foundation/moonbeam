@@ -12,15 +12,15 @@ pallet-xcm-transactor = { workspace = true }
 xcm-primitives = { workspace = true }
 
 # Substrate
+fp-evm = { workspace = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
+pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
+precompile-utils = { workspace = true, features = [ "codec-xcm" ] }
 sp-core = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
 sp-weights = { workspace = true }
-fp-evm = { workspace = true }
-pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
-precompile-utils = { workspace = true, features = ["codec-xcm"] }
 
 # Polkadot
 xcm = { workspace = true }
@@ -31,15 +31,15 @@ cumulus-primitives-core = { workspace = true }
 [dev-dependencies]
 
 # Moonbeam
-precompile-utils = { workspace = true, features = ["testing", "codec-xcm"] }
-xcm-primitives = { workspace = true }
 moonbeam-tests-primitives = { workspace = true }
+precompile-utils = { workspace = true, features = [ "codec-xcm", "testing" ] }
+xcm-primitives = { workspace = true }
 
 # Substrate
-pallet-balances = { workspace = true, features = ["std", "insecure_zero_ed"] }
+pallet-balances = { workspace = true, features = [ "insecure_zero_ed", "std" ] }
 pallet-timestamp = { workspace = true }
-parity-scale-codec = { workspace = true, features = ["max-encoded-len"] }
-scale-info = { workspace = true, features = ["derive"] }
+parity-scale-codec = { workspace = true, features = [ "max-encoded-len" ] }
+scale-info = { workspace = true, features = [ "derive" ] }
 sp-io = { workspace = true }
 
 # Polkadot
@@ -47,40 +47,6 @@ xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
 
 [features]
-default = ["std"]
-std = [
-	"cumulus-primitives-core/std",
-	"frame-support/std",
-	"frame-system/std",
-	"pallet-evm/std",
-	"pallet-xcm-transactor/std",
-	"precompile-utils/std",
-	"sp-core/std",
-	"sp-std/std",
-	"xcm-primitives/std",
-	"fp-evm/std",
-	"pallet-balances/std",
-	"pallet-timestamp/std",
-	"sp-io/std",
-	"sp-runtime/std",
-	"sp-weights/std",
-	"xcm-builder/std",
-	"xcm-executor/std",
-	"xcm/std",
-	"parity-scale-codec/std",
-	"scale-info/std"
-]
-runtime-benchmarks = [
-	"frame-support/runtime-benchmarks",
-	"frame-system/runtime-benchmarks",
-	"xcm-builder/runtime-benchmarks",
-	"pallet-evm/runtime-benchmarks",
-	"cumulus-primitives-core/runtime-benchmarks",
-	"pallet-balances/runtime-benchmarks",
-	"pallet-timestamp/runtime-benchmarks",
-	"sp-runtime/runtime-benchmarks",
-	"xcm-executor/runtime-benchmarks",
-	"xcm/runtime-benchmarks",
-	"pallet-xcm-transactor/runtime-benchmarks",
-	"xcm-primitives/runtime-benchmarks"
-]
+default = [ "std" ]
+std = [ "cumulus-primitives-core/std", "fp-evm/std", "frame-support/std", "frame-system/std", "moonbeam-tests-primitives/std", "pallet-balances/std", "pallet-evm/std", "pallet-timestamp/std", "pallet-xcm-transactor/std", "parity-scale-codec/std", "precompile-utils/std", "scale-info/std", "sp-core/std", "sp-io/std", "sp-runtime/std", "sp-std/std", "sp-weights/std", "xcm-builder/std", "xcm-executor/std", "xcm-primitives/std", "xcm/std" ]
+runtime-benchmarks = [ "cumulus-primitives-core/runtime-benchmarks", "frame-support/runtime-benchmarks", "frame-system/runtime-benchmarks", "moonbeam-tests-primitives/runtime-benchmarks", "pallet-balances/runtime-benchmarks", "pallet-evm/runtime-benchmarks", "pallet-timestamp/runtime-benchmarks", "pallet-xcm-transactor/runtime-benchmarks", "sp-runtime/runtime-benchmarks", "xcm-builder/runtime-benchmarks", "xcm-executor/runtime-benchmarks", "xcm-primitives/runtime-benchmarks", "xcm/runtime-benchmarks" ]

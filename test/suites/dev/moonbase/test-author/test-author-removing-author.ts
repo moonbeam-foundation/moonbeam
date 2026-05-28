@@ -1,5 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, dorothy, expect, getBlockExtrinsic } from "moonwall";
+import { sealExtrinsic } from "../../../../helpers";
 import type { ApiPromise } from "@polkadot/api";
 
 describeSuite({
@@ -12,8 +13,7 @@ describeSuite({
     beforeAll(async function () {
       // Remove the keys
       api = context.polkadotJs();
-      await api.tx.authorMapping.removeKeys().signAndSend(dorothy);
-      await context.createBlock();
+      await sealExtrinsic(context, api.tx.authorMapping.removeKeys(), dorothy);
     });
 
     it({

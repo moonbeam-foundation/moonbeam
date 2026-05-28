@@ -1,8 +1,42 @@
 // Ethers is used to handle post-london transactions
-import type { DevModeContext } from "moonwall";
+import type { BlockCreation, DevModeContext } from "moonwall";
 import { createViemTransaction } from "moonwall";
+import type { KeyringPair } from "@polkadot/keyring/types";
 import type { ApiPromise } from "@polkadot/api";
 import type { SubmittableExtrinsic } from "@polkadot/api/promise/types";
+
+/** Sign with immortal era and seal in one block (avoids pool / mortal-era flakes on manual seal). */
+export async function sealExtrinsic(
+  context: DevModeContext,
+  extrinsic: SubmittableExtrinsic<"promise">,
+  signer: KeyringPair,
+  options?: { nonce?: number; createBlock?: BlockCreation }
+) {
+  const nonce =
+    options?.nonce ??
+    (await context.polkadotJs().query.system.account(signer.address)).nonce.toNumber();
+  return context.createBlock(
+    await extrinsic.signAsync(signer, { nonce, era: 0 }),
+    options?.createBlock
+  );
+}
+
+/** Seal multiple extrinsics in one block (nonces assigned sequentially from `startNonce` or on-chain). */
+export async function sealExtrinsics(
+  context: DevModeContext,
+  extrinsics: SubmittableExtrinsic<"promise">[],
+  signer: KeyringPair,
+  options?: { startNonce?: number; createBlock?: BlockCreation }
+) {
+  let nonce =
+    options?.startNonce ??
+    (await context.polkadotJs().query.system.account(signer.address)).nonce.toNumber();
+  const signed = [];
+  for (const extrinsic of extrinsics) {
+    signed.push(await extrinsic.signAsync(signer, { nonce: nonce++, era: 0 }));
+  }
+  return context.createBlock(signed, options?.createBlock);
+}
 
 export const DEFAULT_TXN_MAX_BASE_FEE = 10_000_000_000;
 

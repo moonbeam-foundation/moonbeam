@@ -21,6 +21,7 @@ import {
   genAssetMeta,
   genRegisterChainVAA,
   genTransferWithPayloadVAA,
+  sealExtrinsic,
 } from "../../../../helpers";
 
 /*
@@ -331,13 +332,12 @@ describeSuite({
         "0xb7f047395bba5df0367b45771c00de5059ff23ff65cc809711800d9d04e4b14c"
       );
 
-      await context
-        .polkadotJs()
-        .tx.sudo.sudo(
-          context.polkadotJs().tx.system.setStorage([[CORE_CONTRACT_STORAGE_ADDRESS, wormholeAddr]])
-        )
-        .signAndSend(alith);
-      await context.createBlock();
+      const api = context.polkadotJs();
+      await sealExtrinsic(
+        context,
+        api.tx.sudo.sudo(api.tx.system.setStorage([[CORE_CONTRACT_STORAGE_ADDRESS, wormholeAddr]])),
+        alith
+      );
 
       const BRIDGE_CONTRACT_STORAGE_ADDRESS = u8aToHex(
         u8aConcat(xxhashAsU8a("gmp", 128), xxhashAsU8a("BridgeAddress", 128))
@@ -346,13 +346,11 @@ describeSuite({
         "0xb7f047395bba5df0367b45771c00de50c1586bde54b249fb7f521faf831ade45"
       );
 
-      await context
-        .polkadotJs()
-        .tx.sudo.sudo(
-          context.polkadotJs().tx.system.setStorage([[BRIDGE_CONTRACT_STORAGE_ADDRESS, bridgeAddr]])
-        )
-        .signAndSend(alith);
-      await context.createBlock();
+      await sealExtrinsic(
+        context,
+        api.tx.sudo.sudo(api.tx.system.setStorage([[BRIDGE_CONTRACT_STORAGE_ADDRESS, bridgeAddr]])),
+        alith
+      );
 
       // we also need to disable the killswitch by setting the 'enabled' flag to Some(true)
       const ENABLED_FLAG_STORAGE_ADDRESS = u8aToHex(
@@ -362,20 +360,15 @@ describeSuite({
         "0xb7f047395bba5df0367b45771c00de502551bba17abb82ef3498bab688e470b8"
       );
 
-      await context
-        .polkadotJs()
-        .tx.sudo.sudo(
-          context
-            .polkadotJs()
-            .tx.system.setStorage([
-              [
-                ENABLED_FLAG_STORAGE_ADDRESS,
-                context.polkadotJs().createType("Option<bool>", true).toHex(),
-              ],
-            ])
-        )
-        .signAndSend(alith);
-      await context.createBlock();
+      await sealExtrinsic(
+        context,
+        api.tx.sudo.sudo(
+          api.tx.system.setStorage([
+            [ENABLED_FLAG_STORAGE_ADDRESS, api.createType("Option<bool>", true).toHex()],
+          ])
+        ),
+        alith
+      );
     });
 
     it({
