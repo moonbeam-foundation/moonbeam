@@ -172,7 +172,7 @@ jobs:
           ref: ${{ needs.set-tags.outputs.git_ref }}
           persist-credentials: false
       - name: Install Chrome for linkspector
-        run: npx --yes puppeteer browsers install chrome
+        run: npx --yes puppeteer@24.31.0 browsers install chrome@148.0.7778.97
       - uses: umbrelladocs/action-linkspector@ec40914b4aaecb3c7648033eac41abbb0a6a33b8
         with:
           reporter: github-pr-review
