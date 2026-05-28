@@ -28,7 +28,7 @@ describeSuite({
 
         // Submit a huge preimage (to have a deposit greater than the staked amount)
         const wasm = fs.readFileSync(
-          "../target/release/wbuild/moonbase-runtime/moonbase_runtime.compact.compressed.wasm"
+          "../target/debug/wbuild/moonbase-runtime/moonbase_runtime.compact.compressed.wasm"
         );
         const encodedPreimage = `0x${wasm.toString("hex")}`;
         await context.createBlock(

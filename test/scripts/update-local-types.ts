@@ -40,17 +40,17 @@ const writeFile = async (relativeDir: string, fileName: string, data: string) =>
 
 const checkBinary = async () => {
   try {
-    const { stderr } = await execAsync("ls ../target/release/moonbeam");
+    const { stderr } = await execAsync("ls ../target/debug/moonbeam");
     if (stderr) console.error(`stderr: ${stderr}`);
   } catch {
-    console.error("Moonbeam binary missing, please build it first using `cargo build --release`");
+    console.error("Moonbeam binary missing, please build it first using `cargo build`");
   }
 };
 
 const startNode = (network: string, rpcPort: string, port: string) => {
   console.log(`Starting ${network.toUpperCase()} node at port `, port);
   const node = spawn(
-    "../target/release/moonbeam",
+    "../target/debug/moonbeam",
     [
       "--alice",
       `--chain=${network}`,
