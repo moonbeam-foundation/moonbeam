@@ -603,6 +603,24 @@ jobs:
           pnpm compile-solidity
           pnpm moonwall test dev_${{ matrix.chain }} --ts ${{ matrix.shard }}/4
 
+  dev-test-docs-only:
+    # Branch protection requires the matrix-expanded dev-test check names. When
+    # only docs changed, the real job-level condition skips before matrix
+    # expansion, so emit cheap successful placeholders with the same names.
+    if: ${{ needs.set-tags.outputs.any_changed == 'false' }}
+    name: "dev-test (${{ matrix.chain }}, ${{ matrix.shard }})"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    needs: ["set-tags"]
+    strategy:
+      fail-fast: false
+      matrix:
+        chain: ["moonbase", "moonriver", "moonbeam"]
+        shard: [1, 2, 3, 4]
+    steps:
+      - run: echo "Skipping dev tests for docs-only changes."
+
   typescript-tracing-tests:
     # Tracing tests are expensive, so run them on master or when explicitly
     # requested on PRs.
@@ -721,6 +739,20 @@ jobs:
           name: failed-node-logs-lazy-loading-${{ matrix.chain }}
           path: ${{ env.NODE_LOGS_ZIP }}
 
+  lazy-loading-tests-docs-only:
+    if: ${{ needs.set-tags.outputs.any_changed == 'false' }}
+    name: "lazy-loading-tests (${{ matrix.chain }})"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    needs: ["set-tags"]
+    strategy:
+      fail-fast: false
+      matrix:
+        chain: ["moonbeam"]
+    steps:
+      - run: echo "Skipping lazy loading tests for docs-only changes."
+
   chopsticks-upgrade-test:
     # Upgrade tests consume larger runners, so only start them after moonbase
     # dev tests prove the PR is worth the heavier checks.
@@ -775,6 +807,20 @@ jobs:
           command: |
             cd test
             bun moonwall test upgrade_${{matrix.chain}}
+
+  chopsticks-upgrade-test-docs-only:
+    if: ${{ needs.set-tags.outputs.any_changed == 'false' }}
+    name: "chopsticks-upgrade-test (${{ matrix.chain }})"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    needs: ["set-tags"]
+    strategy:
+      fail-fast: false
+      matrix:
+        chain: ["moonbase", "moonriver", "moonbeam"]
+    steps:
+      - run: echo "Skipping chopsticks upgrade tests for docs-only changes."
 
   zombie_upgrade_test:
     # Zombie upgrade tests are expensive and run serially; run all runtimes on
@@ -852,6 +898,20 @@ jobs:
         with:
           name: failed-node-logs-zombie-${{ matrix.chain }}
           path: ${{ env.NODE_LOGS_ZIP }}
+
+  zombie_upgrade_test-docs-only:
+    if: ${{ needs.set-tags.outputs.any_changed == 'false' }}
+    name: "zombie_upgrade_test (${{ matrix.chain }})"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    needs: ["set-tags"]
+    strategy:
+      fail-fast: false
+      matrix:
+        chain: ${{ github.ref == 'refs/heads/master' && fromJSON('["moonbase", "moonriver", "moonbeam"]') || fromJSON('["moonbeam"]') }}
+    steps:
+      - run: echo "Skipping zombie upgrade tests for docs-only changes."
 
   bridge-integration-tests:
     # Bridge integration tests are expensive and only relevant to Rust changes, so
