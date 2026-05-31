@@ -3257,6 +3257,9 @@ export default {
       claim: "Null",
       update_reward_address: {
         newRewardAccount: "AccountId20"
+      },
+      complete_unclaimed_rewards: {
+        target: "AccountId20"
       }
     }
   },
