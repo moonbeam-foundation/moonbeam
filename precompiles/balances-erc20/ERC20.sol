@@ -48,7 +48,7 @@ interface IERC20 {
     /// @custom:selector a9059cbb
     /// @param to The address to transfer to.
     /// @param value The amount to be transferred.
-    /// @return true if the transfer was succesful, revert otherwise.
+    /// @return true if the transfer was successful, revert otherwise.
     function transfer(address to, uint256 value) external returns (bool);
 
     /// @dev Approve the passed address to spend the specified amount of tokens on behalf of msg.sender.
@@ -67,7 +67,7 @@ interface IERC20 {
     /// @param from address The address which you want to send tokens from
     /// @param to address The address which you want to transfer to
     /// @param value uint256 the amount of tokens to be transferred
-    /// @return true if the transfer was succesful, revert otherwise.
+    /// @return true if the transfer was successful, revert otherwise.
     function transferFrom(
         address from,
         address to,

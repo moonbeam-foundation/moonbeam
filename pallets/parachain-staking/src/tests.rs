@@ -6700,7 +6700,7 @@ fn deferred_payment_steady_state_event_flow() {
 
 				roll_blocks(1);
 				// Since we defer first deferred staking payout, this test have the maximum amout of
-				// supported collators. This eman that the next round is trigerred one block after
+				// supported collators. This eman that the next round is triggered one block after
 				// the last reward.
 				//assert_no_events!();
 

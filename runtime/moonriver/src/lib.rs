@@ -711,7 +711,7 @@ impl pallet_ethereum::Config for Runtime {
 pub struct EthereumXcmEnsureProxy;
 impl xcm_primitives::EnsureProxy<AccountId> for EthereumXcmEnsureProxy {
 	fn ensure_ok(delegator: AccountId, delegatee: AccountId) -> Result<(), &'static str> {
-		// The EVM implicitely contains an Any proxy, so we only allow for "Any" proxies
+		// The EVM implicitly contains an Any proxy, so we only allow for "Any" proxies
 		let def: pallet_proxy::ProxyDefinition<AccountId, ProxyType, BlockNumber> =
 			pallet_proxy::Pallet::<Runtime>::find_proxy(
 				&delegator,
