@@ -107,7 +107,7 @@ jobs:
           username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
           password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
       - name: Build and push moonbeam
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./docker/moonbeam.Dockerfile
