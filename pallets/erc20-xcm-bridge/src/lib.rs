@@ -475,6 +475,15 @@ pub mod pallet {
 				Some(TeleportableErc20Status::Registered) | Some(TeleportableErc20Status::Active),
 			)
 		}
+		/// Legacy reserve-mode transactor must not handle contracts delegated to
+		/// [`Erc20TeleportTransactor`]. Prevents split-brain withdraw/deposit routing
+		/// across the `AssetTransactors` tuple.
+		fn legacy_transactor_rejects_teleportable(contract: &H160) -> Result<(), XcmError> {
+			if TeleportableErc20s::<T>::contains_key(contract) {
+				return Err(XcmError::AssetNotFound);
+			}
+			Ok(())
+		}
 		/// Promote a `Registered` entry to `Active`. Called from inside the asset
 		/// transactor's storage layer immediately after a successful EVM transfer leg.
 		/// Idempotent: a no-op if the contract is already `Active` or has been moved
@@ -580,6 +589,7 @@ pub mod pallet {
 		fn deposit_asset(what: &Asset, who: &Location, _context: Option<&XcmContext>) -> XcmResult {
 			let (contract_address, amount) =
 				Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(what)?;
+			Self::legacy_transactor_rejects_teleportable(&contract_address)?;
 
 			let beneficiary = T::AccountIdConverter::convert_location(who)
 				.ok_or(MatchError::AccountIdConversionFailed)?;
@@ -627,6 +637,7 @@ pub mod pallet {
 		) -> Result<AssetsInHolding, XcmError> {
 			let (contract_address, amount) =
 				Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(asset)?;
+			Self::legacy_transactor_rejects_teleportable(&contract_address)?;
 
 			let from = T::AccountIdConverter::convert_location(from)
 				.ok_or(MatchError::AccountIdConversionFailed)?;
@@ -659,6 +670,7 @@ pub mod pallet {
 		) -> Result<AssetsInHolding, XcmError> {
 			let (contract_address, amount) =
 				Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(what)?;
+			Self::legacy_transactor_rejects_teleportable(&contract_address)?;
 			let who = T::AccountIdConverter::convert_location(who)
 				.ok_or(MatchError::AccountIdConversionFailed)?;
 
@@ -698,25 +710,30 @@ pub mod pallet {
 	/// `Registered → Active` (which would otherwise emit a spurious
 	/// [`Event::TeleportableErc20Activated`] for a flow that moved nothing).
 	///
-	/// Non-whitelisted assets and `Deregistered` outbound legs return
-	/// `Err(AssetNotFound)`, letting the legacy `Pallet<T>` adapter (placed after this
-	/// one in `AssetTransactors`) keep its single-EVM-call reserve optimisation.
+	/// Non-whitelisted assets return `Err(AssetNotFound)` so the legacy `Pallet<T>`
+	/// adapter (placed after this one in `AssetTransactors`) can handle them.
+	/// `Deregistered` outbound legs return `FailedToTransactAsset` so the tuple does
+	/// not fall through to legacy (see `legacy_transactor_rejects_teleportable`).
 	pub struct Erc20TeleportTransactor<T>(PhantomData<T>);
 
 	impl<T: Config> Erc20TeleportTransactor<T> {
+		const DEREGISTERED_OUTBOUND_MSG: &'static str =
+			"teleport outbound blocked for deregistered ERC-20";
+
 		/// Decode an `Asset` to `(contract, amount)` only when the contract is
 		/// outbound-eligible, i.e. its whitelist entry is `Registered` or `Active`.
-		/// Used by gates that must NOT lock new supply for contracts that have been
-		/// moved to `Deregistered` via `remove_teleportable_erc20`.
-		fn match_outbound(asset: &Asset) -> Result<(H160, U256), MatchError> {
+		/// `Deregistered` contracts return a definitive error (no legacy fallthrough).
+		fn match_outbound(asset: &Asset) -> Result<(H160, U256), XcmError> {
 			let (contract, amount) =
-				Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(asset)?;
+				Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(asset)
+					.map_err(XcmError::from)?;
 			match TeleportableErc20s::<T>::get(&contract) {
 				Some(TeleportableErc20Status::Registered)
 				| Some(TeleportableErc20Status::Active) => Ok((contract, amount)),
-				Some(TeleportableErc20Status::Deregistered) | None => {
-					Err(MatchError::AssetNotHandled)
-				}
+				Some(TeleportableErc20Status::Deregistered) => Err(
+					XcmError::FailedToTransactAsset(Self::DEREGISTERED_OUTBOUND_MSG),
+				),
+				None => Err(XcmError::AssetNotFound),
 			}
 		}
 
@@ -773,6 +790,20 @@ pub mod pallet {
 			// Inbound side of the EVM transfer. Admit any whitelisted entry so the
 			// teleport-back path stays open indefinitely after
 			// `remove_teleportable_erc20` deregisters a contract.
+			//
+			// SECURITY INVARIANT: this pays out of `T::TeleportCheckingAccount` for any
+			// admitted state (including `Deregistered`) without re-checking the origin —
+			// `_context` is unreliable here (the executor may have cleared the origin
+			// before `DepositAsset`). That is sound ONLY because an asset cannot enter the
+			// XCM holding register unbacked: the executor gates every holding-fill
+			// instruction upstream — `WithdrawAsset` performs a real EVM debit (and this
+			// transactor refuses `Deregistered` outbound; the legacy adapter refuses every
+			// whitelisted contract, see `legacy_transactor_rejects_teleportable`),
+			// `ReserveAssetDeposited` is gated by `IsReserve`, and `ReceiveTeleportedAsset`
+			// is gated by `IsTeleporter` + `can_check_in` (both bound to
+			// `TeleportTrustedLocation`). If any of those upstream gates is ever loosened
+			// (e.g. a new `Barrier`/`IsReserve` config), this unconditional payout would
+			// become a checking-account drain — keep that coupling in mind.
 			let (contract, amount) = Self::match_admitted(what)?;
 
 			// Zero-amount fast path: trivially succeed without touching the EVM,

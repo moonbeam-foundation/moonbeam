@@ -28,8 +28,8 @@ use crate::mock::{
 	Erc20XcmBridge, Erc20XcmBridgeTransferGasLimit, RuntimeEvent, RuntimeOrigin, System, Test,
 };
 use crate::{
-	Erc20TeleportTransactor, Event, IsTeleportableErc20, LockedSupply, TeleportableErc20Status,
-	TeleportableErc20s,
+	xcm_holding_ext::test_with_xcm_holding_origins, Erc20TeleportTransactor, Event,
+	IsTeleportableErc20, LockedSupply, TeleportableErc20Status, TeleportableErc20s,
 };
 
 fn new_test_ext() -> TestExternalities {
@@ -1006,13 +1006,8 @@ fn transactor_check_hooks_bind_to_trusted_location() {
 	});
 }
 
-/// Outbound transactor methods (`withdraw_asset`, `internal_transfer_asset`,
-/// `can_check_out`) reject `Deregistered` and unknown contracts at the match layer
-/// BEFORE any EVM call, surfacing as `XcmError::AssetNotFound`. This is what lets the
-/// legacy reserve adapter, placed after this transactor in `AssetTransactors`, take
-/// over for non-eligible cases. Crucially this proves that retiring a contract via
-/// `remove_teleportable_erc20` halts new outbound at the asset-transactor layer too,
-/// not just at the upstream `XcmTeleportFilter`.
+/// Outbound transactor methods reject `Deregistered` with a definitive error (so the
+/// tuple does not fall through to legacy) and unknown contracts with `AssetNotFound`.
 #[test]
 fn outbound_transactor_rejects_deregistered_and_unknown() {
 	new_test_ext().execute_with(|| {
@@ -1023,24 +1018,131 @@ fn outbound_transactor_rejects_deregistered_and_unknown() {
 		let user = user_loc([0x42; 20]);
 		let other = user_loc([0x43; 20]);
 		let ctx = xcm_ctx();
+		let deregistered_err =
+			XcmError::FailedToTransactAsset("teleport outbound blocked for deregistered ERC-20");
 
-		for &contract in &[deregistered, unknown] {
-			let asset = erc20_asset(contract.0, 100);
-			assert_eq!(
-				Erc20TeleportTransactor::<Test>::withdraw_asset(&asset, &user, None).err(),
-				Some(XcmError::AssetNotFound),
-			);
-			assert_eq!(
-				Erc20TeleportTransactor::<Test>::internal_transfer_asset(
-					&asset, &user, &other, &ctx,
-				)
+		let asset = erc20_asset(deregistered.0, 100);
+		assert_eq!(
+			Erc20TeleportTransactor::<Test>::withdraw_asset(&asset, &user, None).err(),
+			Some(deregistered_err.clone()),
+		);
+		assert_eq!(
+			Erc20TeleportTransactor::<Test>::internal_transfer_asset(&asset, &user, &other, &ctx,)
 				.err(),
+			Some(deregistered_err.clone()),
+		);
+		assert_eq!(
+			Erc20TeleportTransactor::<Test>::can_check_out(&trusted_loc(), &asset, &ctx),
+			Err(deregistered_err),
+		);
+
+		let asset = erc20_asset(unknown.0, 100);
+		assert_eq!(
+			Erc20TeleportTransactor::<Test>::withdraw_asset(&asset, &user, None).err(),
+			Some(XcmError::AssetNotFound),
+		);
+		assert_eq!(
+			Erc20TeleportTransactor::<Test>::internal_transfer_asset(&asset, &user, &other, &ctx,)
+				.err(),
+			Some(XcmError::AssetNotFound),
+		);
+		assert_eq!(
+			Erc20TeleportTransactor::<Test>::can_check_out(&trusted_loc(), &asset, &ctx),
+			Err(XcmError::AssetNotFound),
+		);
+	});
+}
+
+/// Regression: a single XCM execution must not route `WithdrawAsset` through the legacy
+/// reserve adapter and `DepositAsset` through the teleport transactor for a
+/// `Deregistered` whitelisted ERC-20 (which would drain `TeleportCheckingAccount`).
+#[test]
+fn deregistered_split_transactor_withdraw_deposit_cannot_drain_checking_account() {
+	new_test_ext().execute_with(|| {
+		let contract = H160([0xde; 20]);
+		let attacker = [0xaa; 20];
+		deploy_transfer_stub(contract);
+		TeleportableErc20s::<Test>::insert(&contract, TeleportableErc20Status::Deregistered);
+		LockedSupply::<Test>::insert(&contract, U256::from(1_000u128));
+
+		let asset = erc20_asset(contract.0, 500);
+		let attacker_loc = user_loc(attacker);
+		let locked_before = LockedSupply::<Test>::get(&contract);
+
+		test_with_xcm_holding_origins(|| {
+			assert_eq!(
+				<Erc20XcmBridge as TransactAsset>::withdraw_asset(&asset, &attacker_loc, None)
+					.err(),
 				Some(XcmError::AssetNotFound),
 			);
+		});
+
+		assert_eq!(
+			Erc20TeleportTransactor::<Test>::withdraw_asset(&asset, &attacker_loc, None).err(),
+			Some(XcmError::FailedToTransactAsset(
+				"teleport outbound blocked for deregistered ERC-20",
+			)),
+		);
+
+		// Inbound unwind via teleport deposit remains available.
+		assert_ok!(Erc20TeleportTransactor::<Test>::deposit_asset(
+			&asset,
+			&attacker_loc,
+			None,
+		));
+		assert_eq!(
+			LockedSupply::<Test>::get(&contract),
+			locked_before - U256::from(500u128),
+		);
+
+		// Legacy deposit cannot run for whitelisted contracts even if origins were recorded.
+		test_with_xcm_holding_origins(|| {
+			crate::xcm_holding_ext::XcmHoldingErc20sOrigins::with(|origins| {
+				origins.insert(contract, H160(attacker), U256::from(500u128));
+			});
 			assert_eq!(
-				Erc20TeleportTransactor::<Test>::can_check_out(&trusted_loc(), &asset, &ctx),
-				Err(XcmError::AssetNotFound),
+				<Erc20XcmBridge as TransactAsset>::deposit_asset(&asset, &attacker_loc, None).err(),
+				Some(XcmError::AssetNotFound),
 			);
+		});
+	});
+}
+
+/// Whitelisted contracts in any lifecycle state are never handled by the legacy adapter.
+#[test]
+fn legacy_transactor_rejects_all_teleportable_erc20_states() {
+	new_test_ext().execute_with(|| {
+		let contract = H160([0x1c; 20]);
+		deploy_transfer_stub(contract);
+		let asset = erc20_asset(contract.0, 100);
+		let user = user_loc([0x42; 20]);
+
+		for status in [
+			TeleportableErc20Status::Registered,
+			TeleportableErc20Status::Active,
+			TeleportableErc20Status::Deregistered,
+		] {
+			TeleportableErc20s::<Test>::insert(&contract, status);
+			test_with_xcm_holding_origins(|| {
+				assert_eq!(
+					<Erc20XcmBridge as TransactAsset>::withdraw_asset(&asset, &user, None).err(),
+					Some(XcmError::AssetNotFound),
+				);
+				assert_eq!(
+					<Erc20XcmBridge as TransactAsset>::deposit_asset(&asset, &user, None).err(),
+					Some(XcmError::AssetNotFound),
+				);
+				assert_eq!(
+					<Erc20XcmBridge as TransactAsset>::internal_transfer_asset(
+						&asset,
+						&user,
+						&user,
+						&xcm_ctx(),
+					)
+					.err(),
+					Some(XcmError::AssetNotFound),
+				);
+			});
 		}
 	});
 }

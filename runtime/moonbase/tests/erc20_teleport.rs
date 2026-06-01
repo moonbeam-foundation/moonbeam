@@ -654,7 +654,7 @@ fn limited_reserve_transfer_assets_for_whitelisted_erc20_to_ah_returns_filtered(
 			));
 
 			// `assert_noop!` covers both "errored with `Filtered`" AND "no storage
-			// mutation" in a single check. Filtered comes from line ~2084 of the
+			// mutation" in a single check. Filtered comes from line the
 			// upstream `pallet_xcm::do_reserve_transfer_assets`:
 			// `ensure!(assets_transfer_type != TransferType::Teleport, Error::Filtered)`.
 			assert_noop!(
@@ -761,6 +761,119 @@ fn limited_reserve_transfer_assets_for_whitelisted_erc20_to_non_ah_does_not_stra
 				pallet_erc20_xcm_bridge::LockedSupply::<Runtime>::get(&contract).is_zero(),
 				"failed reserve-transfer must not leak teleport-locked supply \
 				 into the checking account",
+			);
+		});
+}
+
+/// End-to-end regression at the **real `AssetTransactors` tuple + executor** level for
+/// the deregistered split-transactor drain (the audited bug).
+///
+/// The attack is a local `WithdrawAsset(deregistered erc20) + DepositAsset` program.
+/// Before the fix, the tuple split it across two transactors:
+///   - `WithdrawAsset` → `Erc20TeleportTransactor` returned `AssetNotHandled` for the
+///     `Deregistered` contract, so the executor fell through to the legacy
+///     `Erc20XcmBridge` adapter, which only *records* the (faux) origin — no EVM debit.
+///   - `DepositAsset` → `Erc20TeleportTransactor` admits `Deregistered` inbound and pays
+///     out of `Erc20TeleportCheckingAccount`, draining it for free.
+///
+/// We deploy an always-succeed ERC-20 stub at the contract address so that, on the
+/// *pre-fix* code, the deposit leg's `ERC20.transfer(checking → beneficiary)` would
+/// succeed and decrement `LockedSupply` (i.e. the drain completes). After the fix the
+/// program must be rejected at the `WithdrawAsset` leg (the teleport transactor returns
+/// a hard `FailedToTransactAsset` for `Deregistered`, which does NOT fall through to the
+/// legacy adapter, and the legacy adapter is fenced off for any whitelisted contract).
+/// The whole message rolls back: outcome is not `Complete`, `LockedSupply` is untouched,
+/// and the contract is not promoted out of `Deregistered`.
+///
+/// This pins the tuple *ordering + routing* contract, not just the per-transactor
+/// behavior covered by the pallet unit tests.
+#[test]
+fn deregistered_withdraw_deposit_program_cannot_drain_checking_account() {
+	use fp_evm::GenesisAccount;
+	use moonbase_runtime::xcm_config::XcmExecutor;
+	use pallet_erc20_xcm_bridge::{LockedSupply, TeleportableErc20Status, TeleportableErc20s};
+	use sp_core::U256;
+	use std::collections::BTreeMap;
+	use xcm::latest::{
+		prelude::{All, DepositAsset, Wild, WithdrawAsset},
+		Assets as XcmAssets, ExecuteXcm, Outcome, Weight, Xcm, XcmHash,
+	};
+
+	let contract = H160([0xdd; 20]);
+	let drain_amount = 400u128;
+	let seeded_locked_supply = 1_000u128;
+
+	// Always-succeed ERC-20 stub: returns the 32-byte word `0x..01` for any calldata,
+	// which `Pallet::erc20_transfer` accepts as `transfer(...) == true`.
+	// Bytecode: PUSH1 1; PUSH1 0; MSTORE; PUSH1 32; PUSH1 0; RETURN.
+	let stub_code = vec![0x60, 0x01, 0x60, 0x00, 0x52, 0x60, 0x20, 0x60, 0x00, 0xF3];
+	let mut evm_accounts = BTreeMap::new();
+	evm_accounts.insert(
+		contract,
+		GenesisAccount {
+			nonce: Default::default(),
+			balance: Default::default(),
+			storage: Default::default(),
+			code: stub_code,
+		},
+	);
+
+	ExtBuilder::default()
+		.with_balances(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
+		.with_evm_accounts(evm_accounts)
+		.build()
+		.execute_with(|| {
+			// Wind-down state: contract has been deregistered while supply is still
+			// parked in `Erc20TeleportCheckingAccount` (so inbound unwind stays open).
+			TeleportableErc20s::<Runtime>::insert(&contract, TeleportableErc20Status::Deregistered);
+			LockedSupply::<Runtime>::insert(&contract, U256::from(seeded_locked_supply));
+
+			let asset: Asset = (erc20_location(contract), drain_amount).into();
+			// Local attacker origin (a plain signed account on this chain).
+			let attacker = Location::new(
+				0,
+				[AccountKey20 {
+					network: None,
+					key: CHARLIE,
+				}],
+			);
+
+			// The bug-report program (fees omitted; we grant weight credit directly so
+			// `TakeWeightCredit` admits the message without a `BuyExecution` leg).
+			let message: Xcm<RuntimeCall> = Xcm(vec![
+				WithdrawAsset(XcmAssets::from(vec![asset.clone()])),
+				DepositAsset {
+					assets: Wild(All),
+					beneficiary: attacker.clone(),
+				},
+			]);
+
+			let mut hash: XcmHash = [0u8; 32];
+			let max_weight = Weight::from_parts(10_000_000_000, 10_000_000);
+			let outcome = XcmExecutor::prepare_and_execute(
+				attacker, message, &mut hash, max_weight, max_weight,
+			);
+
+			// The split routing is gone: the program must NOT complete. We don't pin the
+			// exact error/index (it can drift with polkadot-sdk), only "did not complete".
+			assert!(
+				!matches!(outcome, Outcome::Complete { .. }),
+				"WithdrawAsset+DepositAsset for a Deregistered ERC-20 must not complete, \
+				 got {:?}",
+				outcome,
+			);
+
+			// THE invariant: no supply left the checking account and no accounting drift.
+			assert_eq!(
+				LockedSupply::<Runtime>::get(&contract),
+				U256::from(seeded_locked_supply),
+				"checking-account obligation (LockedSupply) must be untouched",
+			);
+			// And the contract was not promoted out of `Deregistered`.
+			assert_eq!(
+				TeleportableErc20s::<Runtime>::get(&contract),
+				Some(TeleportableErc20Status::Deregistered),
+				"rejected program must not flip the contract lifecycle",
 			);
 		});
 }
