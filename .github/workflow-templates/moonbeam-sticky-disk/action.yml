@@ -54,7 +54,7 @@ runs:
         # The publish job commits the disk before this job starts, so the file is
         # normally present on the first attempt. Allow a short window for snapshot
         # propagation, then fail fast into the artifact fallback below.
-        max_attempts=6
+        max_attempts=12
         for attempt in $(seq 1 "$max_attempts"); do
           if [ -f "$moonbeam_path" ]; then
             echo "Found moonbeam on sticky disk (attempt ${attempt}/${max_attempts})"
