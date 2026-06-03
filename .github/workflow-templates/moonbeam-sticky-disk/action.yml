@@ -14,6 +14,13 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Validate mode input
+      shell: bash
+      run: |
+        if [[ "${{ inputs.mode }}" != "publish" && "${{ inputs.mode }}" != "restore" ]]; then
+          echo "Invalid mode '${{ inputs.mode }}'. Must be 'publish' or 'restore'." >&2
+          exit 1
+        fi
     - name: Mount Blacksmith CI moonbeam disk
       uses: useblacksmith/stickydisk@d58829ad6f9be8822ec5efe74256c82cd62915ab
       with:
