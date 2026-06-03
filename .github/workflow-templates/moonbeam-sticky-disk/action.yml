@@ -51,17 +51,21 @@ runs:
       run: |
         set -euo pipefail
         moonbeam_path=".ci-moonbeam-disk/moonbeam"
-        # The publish job commits the disk before this job starts, so the file is
-        # normally present on the first attempt. Allow a short window for snapshot
-        # propagation, then fail fast into the artifact fallback below.
+        # The publish (in build) commits the disk before this job starts, so the file
+        # is normally present on the first attempt. Allow a short window (~110s) for
+        # snapshot propagation, then fall through to the artifact fallback below.
         max_attempts=12
         for attempt in $(seq 1 "$max_attempts"); do
           if [ -f "$moonbeam_path" ]; then
             echo "Found moonbeam on sticky disk (attempt ${attempt}/${max_attempts})"
             break
           fi
-          echo "Waiting for moonbeam on sticky disk (attempt ${attempt}/${max_attempts})..."
-          sleep 10
+          # Don't sleep after the final attempt: that wait would be wasted before
+          # we drop into the fallback.
+          if [ "$attempt" -lt "$max_attempts" ]; then
+            echo "Waiting for moonbeam on sticky disk (attempt ${attempt}/${max_attempts})..."
+            sleep 10
+          fi
         done
         if [ ! -f "$moonbeam_path" ]; then
           echo "Timed out waiting for ${moonbeam_path}" >&2
