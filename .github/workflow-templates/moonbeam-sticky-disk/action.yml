@@ -1,0 +1,61 @@
+name: Moonbeam sticky disk
+description: |
+  Publish or restore the stripped CI moonbeam binary on a Blacksmith sticky disk.
+  Use the same sticky-disk-key in the build job (publish) and downstream jobs (restore).
+
+inputs:
+  mode:
+    description: "publish (after build) or restore (into target/debug)"
+    required: true
+  sticky-disk-key:
+    description: Unique sticky disk key; use github.run_id so each workflow run is isolated
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Mount Blacksmith CI moonbeam disk
+      uses: useblacksmith/stickydisk@d58829ad6f9be8822ec5efe74256c82cd62915ab
+      with:
+        key: ${{ inputs.sticky-disk-key }}
+        path: .ci-moonbeam-disk
+
+    - name: Publish moonbeam to sticky disk
+      if: ${{ inputs.mode == 'publish' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [ ! -f build/moonbeam ]; then
+          echo "build/moonbeam not found" >&2
+          exit 1
+        fi
+        cp -f build/moonbeam .ci-moonbeam-disk/moonbeam
+        git rev-parse HEAD > .ci-moonbeam-disk/git-sha
+        ls -lh .ci-moonbeam-disk/moonbeam
+
+    - name: Restore moonbeam from sticky disk
+      if: ${{ inputs.mode == 'restore' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [ ! -f .ci-moonbeam-disk/moonbeam ]; then
+          echo "Sticky disk is missing .ci-moonbeam-disk/moonbeam; did the build job publish it?" >&2
+          exit 1
+        fi
+        if [ ! -f .ci-moonbeam-disk/git-sha ]; then
+          echo "Sticky disk is missing git-sha metadata" >&2
+          exit 1
+        fi
+        # The key is scoped to github.run_id, so the disk is already isolated to
+        # this workflow run. The SHA comparison is only a diagnostic: on push runs
+        # the branch ref can legitimately resolve to a slightly different commit
+        # between the build and test jobs, so a mismatch is a warning, not a failure.
+        expected="$(git rev-parse HEAD)"
+        actual="$(tr -d '[:space:]' < .ci-moonbeam-disk/git-sha)"
+        if [ "$expected" != "$actual" ]; then
+          echo "::warning::Sticky disk moonbeam was built for ${actual}, but checkout is ${expected}"
+        fi
+        mkdir -p target/debug
+        cp -f .ci-moonbeam-disk/moonbeam target/debug/moonbeam
+        chmod uog+x target/debug/moonbeam
+        ls -lh target/debug/moonbeam
