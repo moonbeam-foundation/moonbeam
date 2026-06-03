@@ -29,7 +29,10 @@ env:
   CARGO_TERM_COLOR: always
   # One sticky disk per workflow run (no slashes in the key). A dedicated publish job
   # writes once; Blacksmith test jobs restore without each downloading the artifact.
-  MOONBEAM_STICKY_DISK_KEY: ${{ github.repository_owner }}-${{ github.event.repository.name }}-ci-moonbeam-${{ github.run_id }}
+  # Owner/name/id are sourced from the event's repository object so the cleanup
+  # workflow (cleanup-sticky-disk.yml) can reconstruct the exact same key from its
+  # github.event.workflow_run.repository payload. Keep these two in sync.
+  MOONBEAM_STICKY_DISK_KEY: ${{ github.event.repository.owner.login }}-${{ github.event.repository.name }}-ci-moonbeam-${{ github.run_id }}
 
 permissions:
   contents: read

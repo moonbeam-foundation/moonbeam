@@ -28,6 +28,8 @@ jobs:
         continue-on-error: true
         uses: useblacksmith/stickydisk-delete@b41313d28b8647d72114c9ba3c96bb04061562b6
         with:
-          # Must match MOONBEAM_STICKY_DISK_KEY in build.yml, but resolved from the
-          # triggering Build run rather than this cleanup run.
+          # Must match MOONBEAM_STICKY_DISK_KEY in build.yml, resolved from the
+          # triggering Build run. build.yml uses github.event.repository.{owner.login,name}
+          # and github.run_id; the equivalents here are the workflow_run payload's
+          # repository.{owner.login,name} and the workflow_run id.
           delete-key: ${{ github.event.workflow_run.repository.owner.login }}-${{ github.event.workflow_run.repository.name }}-ci-moonbeam-${{ github.event.workflow_run.id }}
