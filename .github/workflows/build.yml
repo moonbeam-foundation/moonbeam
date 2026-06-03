@@ -27,8 +27,9 @@ concurrency:
 env:
   NODE_OPTIONS: "--max-old-space-size=12288 --no-deprecation"
   CARGO_TERM_COLOR: always
-  # One sticky disk per workflow run; build publishes, Blacksmith test jobs restore.
-  MOONBEAM_STICKY_DISK_KEY: ${{ github.repository }}-ci-moonbeam-${{ github.run_id }}
+  # One sticky disk per workflow run (no slashes in the key). A dedicated publish job
+  # writes once; Blacksmith test jobs restore without each downloading the artifact.
+  MOONBEAM_STICKY_DISK_KEY: ${{ github.repository_owner }}-${{ github.event.repository.name }}-ci-moonbeam-${{ github.run_id }}
 
 permissions:
   contents: read
@@ -420,11 +421,6 @@ jobs:
           features: metadata-hash
           blacksmith-sticky-sccache: "true"
           blacksmith-sticky-sccache-key: ${{ github.repository }}-sccache-release-${{ runner.os }}-${{ steps.rust-toolchain-cache-key.outputs.cache-key }}
-      - name: Publish moonbeam to sticky disk
-        uses: ./.github/workflow-templates/moonbeam-sticky-disk
-        with:
-          mode: publish
-          sticky-disk-key: ${{ env.MOONBEAM_STICKY_DISK_KEY }}
       - name: Upload runtimes
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
@@ -440,6 +436,39 @@ jobs:
         with:
           name: moonbeam
           path: build
+
+  moonbeam-sticky-publish:
+    # Single writer for the per-run sticky disk. Downstream jobs mount a clone of
+    # this snapshot instead of each downloading the moonbeam artifact from blob storage.
+    if: |
+      always() &&
+      needs.build.result == 'success' &&
+      needs.set-tags.outputs.blacksmith_allowed == 'true' &&
+      (
+        needs.set-tags.outputs.rust_changed == 'true' ||
+        needs.set-tags.outputs.ts_tests_changed == 'true'
+      )
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    needs: ["set-tags", "build"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+          persist-credentials: false
+      - name: Download moonbeam artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: moonbeam
+          path: build
+      - name: Publish moonbeam to sticky disk
+        uses: ./.github/workflow-templates/moonbeam-sticky-disk
+        with:
+          mode: publish
+          sticky-disk-key: ${{ env.MOONBEAM_STICKY_DISK_KEY }}
 
   rust-test:
     # Rust tests are one of the most expensive PR jobs, so only run them after the
@@ -563,12 +592,13 @@ jobs:
     if: |
       always() &&
       needs.build.result == 'success' &&
+      needs.moonbeam-sticky-publish.result == 'success' &&
       (needs.set-tags.outputs.rust_changed == 'true' || needs.set-tags.outputs.ts_tests_changed == 'true') &&
       needs.set-tags.outputs.blacksmith_allowed == 'true'
     runs-on: blacksmith-4vcpu-ubuntu-2404
     permissions:
       contents: read
-    needs: ["set-tags", "build"]
+    needs: ["set-tags", "build", "moonbeam-sticky-publish"]
     continue-on-error: ${{ matrix.chain == 'moonriver' || matrix.chain == 'moonbeam' }}
     timeout-minutes: 30
     strategy:
@@ -633,6 +663,7 @@ jobs:
     if: |
       always() &&
       needs.build.result == 'success' &&
+      needs.moonbeam-sticky-publish.result == 'success' &&
       (needs.set-tags.outputs.rust_changed == 'true' || needs.set-tags.outputs.ts_tests_changed == 'true') &&
       needs.set-tags.outputs.blacksmith_allowed == 'true' &&
       needs.dev-test.result == 'success' &&
@@ -644,7 +675,7 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
-    needs: ["set-tags", "build", "dev-test"]
+    needs: ["set-tags", "build", "moonbeam-sticky-publish", "dev-test"]
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
@@ -685,6 +716,7 @@ jobs:
     if: |
       always() &&
       needs.build.result == 'success' &&
+      needs.moonbeam-sticky-publish.result == 'success' &&
       (needs.set-tags.outputs.rust_changed == 'true' || needs.set-tags.outputs.ts_tests_changed == 'true') &&
       needs.set-tags.outputs.blacksmith_allowed == 'true' &&
       needs.dev-test.result == 'success'
@@ -692,7 +724,7 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
-    needs: ["set-tags", "build", "dev-test"]
+    needs: ["set-tags", "build", "moonbeam-sticky-publish", "dev-test"]
     strategy:
       fail-fast: false
       max-parallel: 1
@@ -766,7 +798,7 @@ jobs:
       needs.dev-test.result == 'success'
     runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 60
-    needs: ["set-tags", "build", "dev-test"]
+    needs: ["set-tags", "build", "moonbeam-sticky-publish", "dev-test"]
     strategy:
       fail-fast: false
       matrix:
@@ -830,12 +862,13 @@ jobs:
     if: |
       always() &&
       needs.build.result == 'success' &&
+      needs.moonbeam-sticky-publish.result == 'success' &&
       (needs.set-tags.outputs.rust_changed == 'true' || needs.set-tags.outputs.ts_tests_changed == 'true') &&
       needs.set-tags.outputs.blacksmith_allowed == 'true' &&
       needs.dev-test.result == 'success'
     runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 30
-    needs: ["set-tags", "build", "dev-test"]
+    needs: ["set-tags", "build", "moonbeam-sticky-publish", "dev-test"]
     strategy:
       fail-fast: false
       max-parallel: 1

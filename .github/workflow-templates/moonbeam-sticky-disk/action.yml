@@ -1,7 +1,7 @@
 name: Moonbeam sticky disk
 description: |
   Publish or restore the stripped CI moonbeam binary on a Blacksmith sticky disk.
-  Use the same sticky-disk-key in the build job (publish) and downstream jobs (restore).
+  Use the same sticky-disk-key in the publish job and downstream restore jobs.
 
 inputs:
   mode:
@@ -32,37 +32,83 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
-        if [ ! -f build/moonbeam ]; then
-          echo "build/moonbeam not found" >&2
+        src="build/moonbeam"
+        if [ ! -f "$src" ]; then
+          echo "$src not found" >&2
           exit 1
         fi
-        cp -f build/moonbeam .ci-moonbeam-disk/moonbeam
+        cp -f "$src" .ci-moonbeam-disk/moonbeam
+        sync .ci-moonbeam-disk/moonbeam
         git rev-parse HEAD > .ci-moonbeam-disk/git-sha
+        sync .ci-moonbeam-disk/git-sha
         ls -lh .ci-moonbeam-disk/moonbeam
 
     - name: Restore moonbeam from sticky disk
+      id: restore-moonbeam-sticky
+      if: ${{ inputs.mode == 'restore' }}
+      continue-on-error: true
+      shell: bash
+      run: |
+        set -euo pipefail
+        moonbeam_path=".ci-moonbeam-disk/moonbeam"
+        # The publish job commits the disk before this job starts, so the file is
+        # normally present on the first attempt. Allow a short window for snapshot
+        # propagation, then fail fast into the artifact fallback below.
+        max_attempts=6
+        for attempt in $(seq 1 "$max_attempts"); do
+          if [ -f "$moonbeam_path" ]; then
+            echo "Found moonbeam on sticky disk (attempt ${attempt}/${max_attempts})"
+            break
+          fi
+          echo "Waiting for moonbeam on sticky disk (attempt ${attempt}/${max_attempts})..."
+          sleep 10
+        done
+        if [ ! -f "$moonbeam_path" ]; then
+          echo "Timed out waiting for ${moonbeam_path}" >&2
+          exit 1
+        fi
+        if [ -f .ci-moonbeam-disk/git-sha ]; then
+          expected="$(git rev-parse HEAD)"
+          actual="$(tr -d '[:space:]' < .ci-moonbeam-disk/git-sha)"
+          if [ "$expected" != "$actual" ]; then
+            echo "::warning::Sticky disk moonbeam was built for ${actual}, but checkout is ${expected}"
+          fi
+        fi
+        mkdir -p target/debug
+        cp -f "$moonbeam_path" target/debug/moonbeam
+        chmod uog+x target/debug/moonbeam
+        ls -lh target/debug/moonbeam
+
+    - name: Download moonbeam artifact fallback
+      if: ${{ inputs.mode == 'restore' && steps.restore-moonbeam-sticky.outcome == 'failure' }}
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+      with:
+        name: moonbeam
+        path: target/debug
+
+    - name: Normalize moonbeam path after artifact fallback
+      if: ${{ inputs.mode == 'restore' && steps.restore-moonbeam-sticky.outcome == 'failure' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [ -f target/debug/moonbeam ]; then
+          :
+        elif [ -f target/debug/build/moonbeam ]; then
+          mv target/debug/build/moonbeam target/debug/moonbeam
+          rmdir target/debug/build 2>/dev/null || true
+        else
+          echo "Artifact fallback did not provide target/debug/moonbeam" >&2
+          exit 1
+        fi
+        chmod uog+x target/debug/moonbeam
+        ls -lh target/debug/moonbeam
+
+    - name: Verify moonbeam binary is present
       if: ${{ inputs.mode == 'restore' }}
       shell: bash
       run: |
         set -euo pipefail
-        if [ ! -f .ci-moonbeam-disk/moonbeam ]; then
-          echo "Sticky disk is missing .ci-moonbeam-disk/moonbeam; did the build job publish it?" >&2
+        if [ ! -x target/debug/moonbeam ]; then
+          echo "target/debug/moonbeam is missing after sticky restore and artifact fallback" >&2
           exit 1
         fi
-        if [ ! -f .ci-moonbeam-disk/git-sha ]; then
-          echo "Sticky disk is missing git-sha metadata" >&2
-          exit 1
-        fi
-        # The key is scoped to github.run_id, so the disk is already isolated to
-        # this workflow run. The SHA comparison is only a diagnostic: on push runs
-        # the branch ref can legitimately resolve to a slightly different commit
-        # between the build and test jobs, so a mismatch is a warning, not a failure.
-        expected="$(git rev-parse HEAD)"
-        actual="$(tr -d '[:space:]' < .ci-moonbeam-disk/git-sha)"
-        if [ "$expected" != "$actual" ]; then
-          echo "::warning::Sticky disk moonbeam was built for ${actual}, but checkout is ${expected}"
-        fi
-        mkdir -p target/debug
-        cp -f .ci-moonbeam-disk/moonbeam target/debug/moonbeam
-        chmod uog+x target/debug/moonbeam
-        ls -lh target/debug/moonbeam
