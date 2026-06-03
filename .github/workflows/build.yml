@@ -355,12 +355,12 @@ jobs:
         id: rust-toolchain-cache-key
         uses: ./.github/workflow-templates/rust-toolchain-cache-key
       - name: Mount Blacksmith sccache disk
-        uses: useblacksmith/stickydisk@d58829ad6f9be8822ec5efe74256c82cd62915ab
+        uses: useblacksmith/stickydisk@13af8883542ca949a717e70fef89d15edbb29d88
         with:
           key: ${{ github.repository }}-sccache-clippy-${{ runner.os }}-${{ steps.rust-toolchain-cache-key.outputs.cache-key }}
           path: .sccache
       - name: Run sccache-cache
-        uses: mozilla-actions/sccache-action@1583d6b38d7be47f593cb472781bbb21cab4321e
+        uses: mozilla-actions/sccache-action@9e7fa8a12102821edf02ca5dbea1acd0f89a2696
       - name: Install native build dependencies
         uses: ./.github/workflow-templates/native-build-deps
       - name: Setup Rust toolchain
@@ -490,12 +490,12 @@ jobs:
         id: rust-toolchain-cache-key
         uses: ./.github/workflow-templates/rust-toolchain-cache-key
       - name: Mount Blacksmith sccache disk
-        uses: useblacksmith/stickydisk@d58829ad6f9be8822ec5efe74256c82cd62915ab
+        uses: useblacksmith/stickydisk@13af8883542ca949a717e70fef89d15edbb29d88
         with:
           key: ${{ github.repository }}-sccache-rust-test-${{ runner.os }}-${{ steps.rust-toolchain-cache-key.outputs.cache-key }}
           path: .sccache
       - name: Run sccache-cache
-        uses: mozilla-actions/sccache-action@1583d6b38d7be47f593cb472781bbb21cab4321e
+        uses: mozilla-actions/sccache-action@9e7fa8a12102821edf02ca5dbea1acd0f89a2696
       - name: Setup Variables
         shell: bash
         run: |
