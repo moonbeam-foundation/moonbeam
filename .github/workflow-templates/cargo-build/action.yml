@@ -97,3 +97,5 @@ runs:
       run: |
         mkdir -p build
         cp target/debug/moonbeam build/moonbeam
+        strip build/moonbeam
+        ls -lh build/moonbeam
