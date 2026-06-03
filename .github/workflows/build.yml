@@ -798,7 +798,9 @@ jobs:
       needs.dev-test.result == 'success'
     runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 60
-    needs: ["set-tags", "build", "moonbeam-sticky-publish", "dev-test"]
+    # Does not restore the moonbeam binary (only downloads runtimes), so it does not
+    # depend on moonbeam-sticky-publish.
+    needs: ["set-tags", "build", "dev-test"]
     strategy:
       fail-fast: false
       matrix:
@@ -998,3 +1000,29 @@ jobs:
         with:
           name: bridge-integration-tests-logs
           path: ${{ env.LOGS_ZIP }}
+
+  moonbeam-sticky-cleanup:
+    # Best-effort deletion of the per-run moonbeam sticky disk once every job that
+    # mounts it has finished. Runs even when consumers fail or are skipped. If the
+    # workflow is cancelled this may not run, but Blacksmith's 7-day inactivity
+    # eviction is the backstop.
+    if: always() && needs.set-tags.outputs.blacksmith_allowed == 'true'
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    needs:
+      [
+        "set-tags",
+        "moonbeam-sticky-publish",
+        "dev-test",
+        "typescript-tracing-tests",
+        "lazy-loading-tests",
+        "zombie_upgrade_test",
+      ]
+    steps:
+      - name: Delete per-run moonbeam sticky disk
+        continue-on-error: true
+        uses: useblacksmith/stickydisk-delete@b41313d28b8647d72114c9ba3c96bb04061562b6
+        with:
+          delete-key: ${{ env.MOONBEAM_STICKY_DISK_KEY }}
