@@ -424,7 +424,7 @@
               "--max-pov-percentage=100"
             ],
             "defaultForkConfig": {
-              "url": "https://trace.api.moonbeam.network",
+              "url": "https://rpc.api.moonbeam.network",
               "stateOverridePath": "tmp/lazyLoadingStateOverrides.json",
               "verbose": true
             }
