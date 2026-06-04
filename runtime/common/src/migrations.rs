@@ -287,4 +287,4 @@ pub type SingleBlockMigrations<Runtime> = (
 
 /// List of common multiblock migrations to be executed by the pallet-migrations pallet.
 /// The migrations listed here are common to every moonbeam runtime.
-pub type MultiBlockMigrations<Runtime> = ();
+pub type MultiBlockMigrations = ();
