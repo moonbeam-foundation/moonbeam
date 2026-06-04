@@ -14269,6 +14269,7 @@ version = "0.53.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2512#4a9db14df64d229651489cd3a0456f47b97aea76"
 dependencies = [
  "futures 0.3.32",
+ "futures-timer",
  "log",
  "parity-scale-codec",
  "sc-block-builder",

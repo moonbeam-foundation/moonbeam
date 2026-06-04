@@ -30,6 +30,11 @@ use std::path::PathBuf;
 use std::time::Duration;
 use url::Url;
 
+const SUBSTRATE_DEFAULT_POOL_LIMIT: usize = 8192;
+const SUBSTRATE_DEFAULT_POOL_KBYTES: usize = 20480;
+const MOONBEAM_DEFAULT_POOL_LIMIT: usize = 1024;
+const MOONBEAM_DEFAULT_POOL_KBYTES: usize = 2560;
+
 #[cfg(feature = "lazy-loading")]
 fn parse_block_hash(s: &str) -> Result<sp_core::H256, String> {
 	use std::str::FromStr;
@@ -376,6 +381,20 @@ impl RunCmd {
 			},
 			no_prometheus_prefix: self.no_prometheus_prefix,
 		}
+	}
+
+	pub fn normalize_with_moonbeam_txpool_defaults(&self) -> cumulus_client_cli::NormalizedRunCmd {
+		let mut cmd = self.base.normalize();
+		let pool_config = &mut cmd.base.pool_config;
+
+		if pool_config.pool_limit == SUBSTRATE_DEFAULT_POOL_LIMIT {
+			pool_config.pool_limit = MOONBEAM_DEFAULT_POOL_LIMIT;
+		}
+		if pool_config.pool_kbytes == SUBSTRATE_DEFAULT_POOL_KBYTES {
+			pool_config.pool_kbytes = MOONBEAM_DEFAULT_POOL_KBYTES;
+		}
+
+		cmd
 	}
 }
 

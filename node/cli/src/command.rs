@@ -652,7 +652,8 @@ pub fn run() -> Result<()> {
 			})
 		}
 		None => {
-			let runner = cli.create_runner(&(*cli.run).normalize())?;
+			let run_cmd = cli.run.normalize_with_moonbeam_txpool_defaults();
+			let runner = cli.create_runner(&run_cmd)?;
 			let collator_options = cli.run.collator_options();
 
 			runner.run_node_until_exit(|mut config| async move {
