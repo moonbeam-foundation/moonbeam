@@ -27,6 +27,8 @@ concurrency:
 env:
   NODE_OPTIONS: "--max-old-space-size=12288 --no-deprecation"
   CARGO_TERM_COLOR: always
+  # One sticky disk per workflow run; build publishes, Blacksmith test jobs restore.
+  MOONBEAM_STICKY_DISK_KEY: ${{ github.repository }}-ci-moonbeam-${{ github.run_id }}
 
 permissions:
   contents: read
@@ -349,12 +351,12 @@ jobs:
         id: rust-toolchain-cache-key
         uses: ./.github/workflow-templates/rust-toolchain-cache-key
       - name: Mount Blacksmith sccache disk
-        uses: useblacksmith/stickydisk@d58829ad6f9be8822ec5efe74256c82cd62915ab
+        uses: useblacksmith/stickydisk@13af8883542ca949a717e70fef89d15edbb29d88
         with:
           key: ${{ github.repository }}-sccache-clippy-${{ runner.os }}-${{ steps.rust-toolchain-cache-key.outputs.cache-key }}
           path: .sccache
       - name: Run sccache-cache
-        uses: mozilla-actions/sccache-action@1583d6b38d7be47f593cb472781bbb21cab4321e
+        uses: mozilla-actions/sccache-action@9e7fa8a12102821edf02ca5dbea1acd0f89a2696
       - name: Install native build dependencies
         uses: ./.github/workflow-templates/native-build-deps
       - name: Setup Rust toolchain
@@ -418,6 +420,11 @@ jobs:
           features: metadata-hash
           blacksmith-sticky-sccache: "true"
           blacksmith-sticky-sccache-key: ${{ github.repository }}-sccache-release-${{ runner.os }}-${{ steps.rust-toolchain-cache-key.outputs.cache-key }}
+      - name: Publish moonbeam to sticky disk
+        uses: ./.github/workflow-templates/moonbeam-sticky-disk
+        with:
+          mode: publish
+          sticky-disk-key: ${{ env.MOONBEAM_STICKY_DISK_KEY }}
       - name: Upload runtimes
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
@@ -475,12 +482,12 @@ jobs:
         id: rust-toolchain-cache-key
         uses: ./.github/workflow-templates/rust-toolchain-cache-key
       - name: Mount Blacksmith sccache disk
-        uses: useblacksmith/stickydisk@d58829ad6f9be8822ec5efe74256c82cd62915ab
+        uses: useblacksmith/stickydisk@13af8883542ca949a717e70fef89d15edbb29d88
         with:
           key: ${{ github.repository }}-sccache-rust-test-${{ runner.os }}-${{ steps.rust-toolchain-cache-key.outputs.cache-key }}
           path: .sccache
       - name: Run sccache-cache
-        uses: mozilla-actions/sccache-action@1583d6b38d7be47f593cb472781bbb21cab4321e
+        uses: mozilla-actions/sccache-action@9e7fa8a12102821edf02ca5dbea1acd0f89a2696
       - name: Setup Variables
         shell: bash
         run: |
@@ -586,18 +593,17 @@ jobs:
         with:
           name: runtimes
           path: target/debug/wbuild/${{ matrix.chain }}-runtime/
-      - name: "Download branch built node"
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+      - name: Restore moonbeam from sticky disk
+        uses: ./.github/workflow-templates/moonbeam-sticky-disk
         with:
-          name: moonbeam
-          path: target/debug
+          mode: restore
+          sticky-disk-key: ${{ env.MOONBEAM_STICKY_DISK_KEY }}
       - uses: ./.github/workflow-templates/pnpm-blacksmith
       - name: "Run Moonwall Dev Tests"
         env:
           DEBUG_COLOURS: "1"
           NODE_OPTIONS: "--max-old-space-size=12288"
         run: |
-          chmod uog+x target/debug/moonbeam
           cd test
           pnpm install
           pnpm compile-solidity
@@ -645,18 +651,15 @@ jobs:
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
           persist-credentials: false
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+      - name: Restore moonbeam from sticky disk
+        uses: ./.github/workflow-templates/moonbeam-sticky-disk
         with:
-          name: moonbeam
-          path: build
-      - uses: ./.github/workflow-templates/pnpm-blacksmith
+          mode: restore
+          sticky-disk-key: ${{ env.MOONBEAM_STICKY_DISK_KEY }}
       - run: |
-          mkdir -p target/debug
-      - name: "Download branch built node"
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
-        with:
-          name: moonbeam
-          path: target/debug
+          mkdir -p build
+          cp target/debug/moonbeam build/moonbeam
+      - uses: ./.github/workflow-templates/pnpm-blacksmith
       - name: Get tracing runtimes
         run: |
           ./scripts/build-last-tracing-runtime.sh ${{ needs.set-tags.outputs.git_branch }}
@@ -715,14 +718,13 @@ jobs:
         with:
           name: runtimes
           path: target/debug/wbuild/${{ matrix.chain }}-runtime/
-      - name: "Download branch built node"
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+      - name: Restore moonbeam from sticky disk
+        uses: ./.github/workflow-templates/moonbeam-sticky-disk
         with:
-          name: moonbeam
-          path: target/debug
+          mode: restore
+          sticky-disk-key: ${{ env.MOONBEAM_STICKY_DISK_KEY }}
       - name: "Run lazy loading tests"
         run: |
-          chmod uog+x target/debug/moonbeam
           cd test
           pnpm install
           pnpm moonwall test lazy_loading_${{ matrix.chain }}
@@ -859,11 +861,11 @@ jobs:
         with:
           name: runtimes
           path: target/debug/wbuild/${{ matrix.chain }}-runtime/
-      - name: "Download branch built node"
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+      - name: Restore moonbeam from sticky disk
+        uses: ./.github/workflow-templates/moonbeam-sticky-disk
         with:
-          name: moonbeam
-          path: target/debug
+          mode: restore
+          sticky-disk-key: ${{ env.MOONBEAM_STICKY_DISK_KEY }}
       - name: Retrieve moonbeam binary from docker (for plainSpec generation)
         run: |
           LATEST_CLIENT=$(curl -s https://api.github.com/repos/moonbeam-foundation/moonbeam/releases | jq -r '.[] | select(.name | test("v";"i")) | .tag_name' | sort -rs | head -n 1 | tr -d '[:blank:]')
