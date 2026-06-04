@@ -1,6 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, charleth, describeSuite, expect, getBlockExtrinsic } from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
+import { sealExtrinsic } from "../../../../helpers";
 
 // Keys used to set author-mapping in the tests
 const originalKeys = [
@@ -19,12 +20,14 @@ describeSuite({
 
     beforeAll(async function () {
       api = context.polkadotJs();
-      await (api.tx.authorMapping.setKeys as any)(concatOriginalKeys).signAndSend(charleth);
-      await context.createBlock();
+      await sealExtrinsic(
+        context,
+        (api.tx.authorMapping.setKeys as any)(concatOriginalKeys),
+        charleth
+      );
 
       // Remove the keys
-      await api.tx.authorMapping.removeKeys().signAndSend(charleth);
-      await context.createBlock();
+      await sealExtrinsic(context, api.tx.authorMapping.removeKeys(), charleth);
     });
 
     it({

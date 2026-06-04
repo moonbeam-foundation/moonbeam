@@ -29,9 +29,9 @@ use fp_evm::{
 use frame_support::{traits::Get, weights::Weight};
 use p256::ecdsa::{signature::hazmat::PrehashVerifier, Signature, VerifyingKey};
 
-pub struct P256Verify<W: Get<Weight>>(PhantomData<W>);
+pub struct P256Verify<W: Get<Weight>, G: Get<u64>>(PhantomData<(W, G)>);
 
-impl<W: Get<Weight>> P256Verify<W> {
+impl<W: Get<Weight>, G: Get<u64>> P256Verify<W, G> {
 	/// Expected input length (160 bytes)
 	const INPUT_LENGTH: usize = 160;
 
@@ -39,6 +39,7 @@ impl<W: Get<Weight>> P256Verify<W> {
 	#[inline]
 	fn handle_cost(handle: &mut impl PrecompileHandle) -> Result<(), ExitError> {
 		let weight = W::get();
+		handle.record_cost(G::get())?;
 		handle.record_external_cost(Some(weight.ref_time()), None, None)
 	}
 
@@ -93,7 +94,7 @@ impl<W: Get<Weight>> P256Verify<W> {
 
 /// Implements RIP-7212 P256VERIFY precompile.
 /// https://github.com/ethereum/RIPs/blob/master/RIPS/rip-7212.md
-impl<W: Get<Weight>> Precompile for P256Verify<W> {
+impl<W: Get<Weight>, G: Get<u64>> Precompile for P256Verify<W, G> {
 	fn execute(handle: &mut impl PrecompileHandle) -> PrecompileResult {
 		Self::handle_cost(handle)?;
 
@@ -125,9 +126,10 @@ mod tests {
 
 	parameter_types! {
 		pub const DummyWeight: Weight = Weight::from_parts(3450, 0);
+		pub const DummyGas: u64 = 3450;
 	}
 
-	fn prepare_handle(input: Vec<u8>, cost: u64) -> impl PrecompileHandle {
+	fn prepare_handle(input: Vec<u8>, cost: u64) -> MockHandle {
 		let context: Context = Context {
 			address: Default::default(),
 			caller: Default::default(),
@@ -199,11 +201,16 @@ mod tests {
 
 			let unsuccessful_result = Vec::<u8>::new();
 
-			match (input.0, P256Verify::<DummyWeight>::execute(&mut handle)) {
+			match (
+				input.0,
+				P256Verify::<DummyWeight, DummyGas>::execute(&mut handle),
+			) {
 				(true, Ok(result)) => assert_eq!(result.output, success_result.to_vec()),
 				(false, Ok(result)) => assert_eq!(result.output, unsuccessful_result),
 				(_, Err(_)) => panic!("Test not expected to fail for input: {:?}", input),
 			}
+
+			assert_eq!(handle.gas_used, DummyGas::get());
 		}
 	}
 }

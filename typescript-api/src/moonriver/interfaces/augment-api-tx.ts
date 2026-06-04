@@ -999,6 +999,17 @@ declare module "@polkadot/api-base/types/submittable" {
        **/
       claim: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
       /**
+       * Permissionless settle-and-drain of any remaining unclaimed reward for `target`.
+       *
+       * Pays the full outstanding `total_reward - claimed_reward` regardless of the vesting
+       * schedule, transfers it to `target`, and removes the entry from `AccountsPayable`.
+       * Intended as a one-shot migration step before the pallet is removed.
+       **/
+      completeUnclaimedRewards: AugmentedSubmittable<
+        (target: AccountId20 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [AccountId20]
+      >;
+      /**
        * Update reward address, proving that the caller owns the current native key
        **/
       updateRewardAddress: AugmentedSubmittable<

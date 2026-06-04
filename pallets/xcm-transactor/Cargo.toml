@@ -31,54 +31,15 @@ xcm-executor = { workspace = true }
 frame-benchmarking = { workspace = true, optional = true }
 
 [dev-dependencies]
+moonbeam-tests-primitives = { workspace = true }
 pallet-balances = { workspace = true, features = [ "insecure_zero_ed", "std" ] }
 pallet-timestamp = { workspace = true, features = [ "std" ] }
 parity-scale-codec = { workspace = true, features = [ "std" ] }
 sp-core = { workspace = true, features = [ "std" ] }
 sp-runtime = { workspace = true }
-moonbeam-tests-primitives = { workspace = true }
 
 [features]
 default = [ "std" ]
-std = [
-	"cumulus-primitives-core/std",
-	"frame-benchmarking/std",
-	"frame-support/std",
-	"frame-system/std",
-	"parity-scale-codec/std",
-	"sp-io/std",
-	"sp-runtime/std",
-	"sp-std/std",
-	"xcm-executor/std",
-	"xcm-primitives/std",
-	"xcm/std",
-	"pallet-balances/std",
-	"pallet-timestamp/std",
-	"sp-core/std",
-	"xcm-builder/std",
-	"scale-info/std",
-	"serde/std",
-	"moonbeam-tests-primitives/std"
-]
-runtime-benchmarks = [
-	"frame-benchmarking",
-	"frame-benchmarking/runtime-benchmarks",
-	"frame-support/runtime-benchmarks",
-	"frame-system/runtime-benchmarks",
-	"xcm-builder/runtime-benchmarks",
-	"xcm-primitives/runtime-benchmarks",
-	"cumulus-primitives-core/runtime-benchmarks",
-	"pallet-balances/runtime-benchmarks",
-	"pallet-timestamp/runtime-benchmarks",
-	"sp-runtime/runtime-benchmarks",
-	"xcm-executor/runtime-benchmarks",
-	"xcm/runtime-benchmarks",
-	"moonbeam-tests-primitives/runtime-benchmarks"
-]
-try-runtime = [
-	"frame-support/try-runtime",
-	"frame-system/try-runtime",
-	"pallet-balances/try-runtime",
-	"pallet-timestamp/try-runtime",
-	"sp-runtime/try-runtime"
-]
+std = [ "cumulus-primitives-core/std", "frame-benchmarking/std", "frame-support/std", "frame-system/std", "moonbeam-tests-primitives/std", "pallet-balances/std", "pallet-timestamp/std", "parity-scale-codec/std", "scale-info/std", "serde/std", "sp-core/std", "sp-io/std", "sp-runtime/std", "sp-std/std", "xcm-builder/std", "xcm-executor/std", "xcm-primitives/std", "xcm/std" ]
+runtime-benchmarks = [ "cumulus-primitives-core/runtime-benchmarks", "frame-benchmarking", "frame-benchmarking/runtime-benchmarks", "frame-support/runtime-benchmarks", "frame-system/runtime-benchmarks", "moonbeam-tests-primitives/runtime-benchmarks", "pallet-balances/runtime-benchmarks", "pallet-timestamp/runtime-benchmarks", "sp-runtime/runtime-benchmarks", "xcm-builder/runtime-benchmarks", "xcm-executor/runtime-benchmarks", "xcm-primitives/runtime-benchmarks", "xcm/runtime-benchmarks" ]
+try-runtime = [ "frame-support/try-runtime", "frame-system/try-runtime", "pallet-balances/try-runtime", "pallet-timestamp/try-runtime", "sp-runtime/try-runtime" ]

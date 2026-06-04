@@ -10,7 +10,7 @@ import {
 } from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 import { parseEther } from "ethers";
-import { expectEVMResult, getTransactionFees } from "../../../../helpers";
+import { expectEVMResult, getTransactionFees, sealExtrinsic } from "../../../../helpers";
 import {
   XcmFragment,
   type XcmFragmentConfig,
@@ -115,10 +115,11 @@ describeSuite({
           .index.toNumber();
 
         // Send some native tokens to the sovereign account of paraId (to pay fees)
-        await polkadotJs.tx.balances
-          .transferAllowDeath(paraSovereign, parseEther("1"))
-          .signAndSend(alith);
-        await context.createBlock();
+        await sealExtrinsic(
+          context,
+          polkadotJs.tx.balances.transferAllowDeath(paraSovereign, parseEther("1")),
+          alith
+        );
 
         // Send some erc20 tokens to the sovereign account of paraId
         const rawTx = await context.writeContract!({

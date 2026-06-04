@@ -65,8 +65,16 @@ fn p256verify<T: Config>(input: Vec<u8>) -> PrecompileResult {
 			<T as Config>::WeightInfo::p256_verify()
 		}
 	}
+	struct P256VerifyGas<T>(PhantomData<T>);
+	impl<T: Config> Get<u64> for P256VerifyGas<T> {
+		fn get() -> u64 {
+			4000
+		}
+	}
 
-	pallet_evm_precompile_p256verify::P256Verify::<P256VerifyWeight<T>>::execute(&mut handle)
+	pallet_evm_precompile_p256verify::P256Verify::<P256VerifyWeight<T>, P256VerifyGas<T>>::execute(
+		&mut handle,
+	)
 }
 
 #[benchmarks]
