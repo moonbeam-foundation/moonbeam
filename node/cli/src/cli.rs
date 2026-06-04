@@ -143,6 +143,13 @@ pub struct RunCmd {
 	#[clap(long)]
 	pub legacy_block_import_strategy: bool,
 
+	/// Force collators to skip transaction inclusion and produce inherents-only blocks.
+	///
+	/// This is an emergency option intended to keep block production moving while the transaction
+	/// pool is under heavy pressure.
+	#[clap(long)]
+	pub force_empty_blocks: bool,
+
 	/// Specifies the URL used to fetch chain data via RPC.
 	///
 	/// The URL should point to the RPC endpoint of the chain being forked.
@@ -449,6 +456,7 @@ impl Cli {
 			export_pov: self.run.export_pov_to_path.clone(),
 			max_pov_percentage: Some(self.run.max_pov_percentage),
 			legacy_block_import_strategy: self.run.legacy_block_import_strategy,
+			force_empty_blocks: self.run.force_empty_blocks,
 		}
 	}
 }
