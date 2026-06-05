@@ -444,8 +444,7 @@ pub fn set_parachain_inherent_data() {
 
 	relay_sproof.additional_key_values = additional_key_values;
 
-	let (relay_parent_storage_root, relay_chain_state, relay_parent_descendants) = relay_sproof
-		.into_state_root_proof_and_descendants(u64::from(AsyncBacking::relay_parent_offset()));
+	let (relay_parent_storage_root, relay_chain_state) = relay_sproof.into_state_root_and_proof();
 
 	let vfp = PersistedValidationData {
 		relay_parent_number: 1u32,
@@ -456,7 +455,7 @@ pub fn set_parachain_inherent_data() {
 		validation_data: vfp,
 		relay_chain_state,
 		collator_peer_id: Default::default(),
-		relay_parent_descendants,
+		relay_parent_descendants: Default::default(),
 	};
 
 	let inbound_messages_data = InboundMessagesData {
