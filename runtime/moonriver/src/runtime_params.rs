@@ -31,6 +31,10 @@ pub mod dynamic_params {
 		// for fees, 80% are burned, 20% to the treasury
 		#[codec(index = 0)]
 		pub static FeesTreasuryProportion: Perbill = Perbill::from_percent(20);
+
+		#[codec(index = 1)]
+		pub static MaxTransactionsPerBlock: u32 =
+			moonbeam_runtime_api_primitives::DEFAULT_MAX_TRANSACTIONS_PER_BLOCK;
 	}
 
 	#[dynamic_pallet_params]

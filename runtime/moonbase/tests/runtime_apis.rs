@@ -29,8 +29,21 @@ use fp_rpc::runtime_decl_for_ethereum_runtime_rpc_api::EthereumRuntimeRPCApi;
 use moonbase_runtime::{Executive, TransactionPaymentAsGasPrice};
 use moonbeam_core_primitives::Header;
 use moonbeam_rpc_primitives_txpool::runtime_decl_for_tx_pool_runtime_api::TxPoolRuntimeApi;
+use moonbeam_runtime_api_primitives::{
+	runtime_decl_for_authoring_runtime_api::AuthoringRuntimeApi, DEFAULT_MAX_TRANSACTIONS_PER_BLOCK,
+};
 use nimbus_primitives::runtime_decl_for_nimbus_api::NimbusApi;
 use std::{collections::BTreeMap, str::FromStr};
+
+#[test]
+fn authoring_runtime_api_max_transactions_per_block() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_eq!(
+			Runtime::max_transactions_per_block(),
+			DEFAULT_MAX_TRANSACTIONS_PER_BLOCK
+		);
+	});
+}
 
 #[test]
 fn ethereum_runtime_rpc_api_chain_id() {
