@@ -9,7 +9,6 @@ import {
   CONTRACT_PROXY_TYPE_STAKING,
   FAITH_ADDRESS,
   FAITH_PRIVATE_KEY,
-  GLMR,
   GOLIATH_ADDRESS,
   GOLIATH_PRIVATE_KEY,
   PRECOMPILE_NATIVE_ERC20_ADDRESS,
@@ -177,7 +176,9 @@ describeSuite({
         const privateKey = generatePrivateKey();
         const randomAccount = privateKeyToAccount(privateKey);
         await context.createBlock(
-          context.polkadotJs().tx.balances.transferAllowDeath(randomAccount.address, GLMR)
+          context
+            .polkadotJs()
+            .tx.balances.transferAllowDeath(randomAccount.address, parseEther("10000"))
         );
 
         const rawTxn = await context.writePrecompile!({

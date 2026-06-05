@@ -29,9 +29,9 @@ describeSuite({
     let balancesPalletIndex: number;
     let erc20XcmPalletIndex: number;
 
-    const DEPOSIT = 50_000_000_000_000_000n;
+    const DEPOSIT = 500_000_000_000_000_000_000n;
     // On moonriver and moonbeam the cost should be 100 times lower (caused by the SUPPLY_FACTOR)
-    const MAX_EXECUTION_COST = 32_000_000_000_000_000n;
+    const MAX_EXECUTION_COST = 320_000_000_000_000_000_000n;
 
     beforeAll(async () => {
       paraSovereign = sovereignAccountOfSibling(context, paraId);

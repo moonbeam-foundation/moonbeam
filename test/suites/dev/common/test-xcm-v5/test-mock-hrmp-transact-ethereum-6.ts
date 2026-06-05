@@ -33,7 +33,7 @@ describeSuite({
       sendingAddress = originAddress;
       descendAddress = descendOriginAddress;
       random = generateKeyringPair();
-      transferredBalance = 100_000_000_000_000_000_000n;
+      transferredBalance = 1_000_000_000_000_000_000_000n;
 
       // We fund the Delegatee, which will send the xcm and pay fees
       await context.createBlock(
@@ -109,7 +109,9 @@ describeSuite({
         let expectedTransferredAmountPlusFees = 0n;
 
         const targetXcmWeight = 30_000_000_000n + 700_000_000n;
-        const targetXcmFee = targetXcmWeight * 200_000n;
+        const specVersion = (await context.polkadotJs().rpc.state.getRuntimeVersion()).specVersion;
+        const targetXcmFee =
+          targetXcmWeight * ConstantStore(context).WEIGHT_FEE.get(specVersion.toNumber());
 
         for (const xcmTransaction of xcmTransactions) {
           expectedTransferredAmount += amountToTransfer;
