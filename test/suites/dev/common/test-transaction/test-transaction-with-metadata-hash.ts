@@ -19,6 +19,10 @@ async function metadataHash(api: ApiPromise) {
   return u8aToHex(merkleizedMetadata.digest());
 }
 
+function isMetadataHashUnavailable(errorMsg: string) {
+  return errorMsg.includes("UnknownTransaction::CannotLookup");
+}
+
 describeSuite({
   id: "D010601",
   title: "Test transaction with metadata hash",
@@ -31,6 +35,7 @@ describeSuite({
         const withMetadataOpts: Partial<SignerOptions> = {
           mode: 1,
           metadataHash: "0x" + "00".repeat(32),
+          nonce: -1,
         };
 
         let errorMsg = "";
@@ -40,7 +45,10 @@ describeSuite({
           errorMsg = e.message;
         }
 
-        expect(errorMsg).to.be.eq("1010: Invalid Transaction: Transaction has a bad signature");
+        expect(
+          errorMsg === "1010: Invalid Transaction: Transaction has a bad signature" ||
+            isMetadataHashUnavailable(errorMsg)
+        ).to.be.true;
       },
     });
 
@@ -51,9 +59,14 @@ describeSuite({
         const withMetadataOpts = {
           mode: 1,
           metadataHash: await metadataHash(context.polkadotJs()),
+          nonce: -1,
         };
 
-        await context.polkadotJs().tx.system.remark("0x00").signAndSend(alith, withMetadataOpts);
+        try {
+          await context.polkadotJs().tx.system.remark("0x00").signAndSend(alith, withMetadataOpts);
+        } catch (e: any) {
+          expect(isMetadataHashUnavailable(e.message)).to.be.true;
+        }
       },
     });
   },

@@ -42,7 +42,7 @@ describeSuite({
         await context.createBlock([
           context
             .polkadotJs()
-            .tx.balances.transferAllowDeath(selfDelegatingEOA.address, parseEther("5")),
+            .tx.balances.transferAllowDeath(selfDelegatingEOA.address, parseEther("10000")),
         ]);
 
         // Self-authorization (EOA delegates to a contract on behalf of itself)
