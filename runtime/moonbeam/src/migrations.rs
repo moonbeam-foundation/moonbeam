@@ -57,7 +57,7 @@ where
 		{
 			reads = reads.saturating_add(1);
 
-			let new_relative_price = relative_price.saturating_mul(10_000);
+			let new_relative_price = relative_price.saturating_mul(1_000);
 			pallet_xcm_weight_trader::SupportedAssets::<Runtime>::insert(
 				location,
 				(enabled, new_relative_price),
@@ -118,7 +118,7 @@ where
 			let (_, current_relative_price) =
 				pallet_xcm_weight_trader::SupportedAssets::<Runtime>::get(&location)
 					.ok_or("PreserveXcmRelativePrices missing asset after migration")?;
-			let expected_relative_price = previous_relative_price.saturating_mul(10_000);
+			let expected_relative_price = previous_relative_price.saturating_mul(1_000);
 
 			if current_relative_price != expected_relative_price {
 				log::error!(
@@ -178,7 +178,7 @@ mod tests {
 
 			assert_eq!(
 				pallet_xcm_weight_trader::SupportedAssets::<Runtime>::get(parent),
-				Some((true, 1_230_000))
+				Some((true, 123_000))
 			);
 			assert_eq!(
 				pallet_xcm_weight_trader::SupportedAssets::<Runtime>::get(sibling),
@@ -191,7 +191,7 @@ mod tests {
 				pallet_xcm_weight_trader::SupportedAssets::<Runtime>::get(
 					xcm::v5::Location::parent()
 				),
-				Some((true, 1_230_000))
+				Some((true, 123_000))
 			);
 		});
 	}
