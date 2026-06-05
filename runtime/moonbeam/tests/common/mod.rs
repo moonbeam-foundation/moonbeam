@@ -69,9 +69,9 @@ pub fn mock_abridged_host_config() -> AbridgedHostConfiguration {
 
 // A valid signed Alice transfer.
 pub const VALID_ETH_TX: &str =
-	"02f869820501808085e8d4a51000825208943cd0a705a2dc65e5b1e1205896baa2be8a07c6e00180c\
-	001a061087911e877a5802142a89a40d231d50913db399eb50839bb2d04e612b22ec8a01aa313efdf2\
-	793bea76da6813bda611444af16a6207a8cfef2d9c8aa8f8012f7";
+	"02f86a8205018080865af3107a4000825208943cd0a705a2dc65e5b1e1205896baa2be8a07c6e00180c\
+	001a037fe613656790078de048a513dccaccef77854ed844f001a8b20f36fa46ac4f5a0273ae296f0ca\
+	41cf877fab9fd5cfa3a9bb1e8af784d151e2fcedad6ca124b16b";
 
 // An invalid signed Alice transfer with a gas limit artifically set to 0.
 pub const INVALID_ETH_TX: &str =

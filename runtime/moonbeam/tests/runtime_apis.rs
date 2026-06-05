@@ -221,7 +221,9 @@ fn ethereum_runtime_rpc_api_current_transaction_statuses() {
 		.execute_with(|| {
 			set_parachain_inherent_data();
 
-			let _result = Executive::apply_extrinsic(unchecked_eth_tx(VALID_ETH_TX));
+			let result =
+				Executive::apply_extrinsic(unchecked_eth_tx(VALID_ETH_TX)).expect("Apply result.");
+			assert_eq!(result, Ok(()));
 
 			rpc_run_to_block(2);
 			let statuses =
@@ -282,7 +284,9 @@ fn ethereum_runtime_rpc_api_current_receipts() {
 		.execute_with(|| {
 			set_parachain_inherent_data();
 
-			let _result = Executive::apply_extrinsic(unchecked_eth_tx(VALID_ETH_TX));
+			let result =
+				Executive::apply_extrinsic(unchecked_eth_tx(VALID_ETH_TX)).expect("Apply result.");
+			assert_eq!(result, Ok(()));
 
 			rpc_run_to_block(2);
 			let receipts = Runtime::current_receipts().expect("Receipts result.");
