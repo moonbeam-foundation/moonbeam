@@ -36,6 +36,7 @@ use frame_support::traits::Contains;
 use frame_support::weights::WeightToFee;
 use frame_support::{pallet, Deserialize, Serialize};
 use frame_system::pallet_prelude::*;
+use sp_core::U256;
 use sp_runtime::{
 	traits::{Convert, Zero},
 	DispatchError,
@@ -374,11 +375,13 @@ impl<T: crate::Config> Trader<T> {
 				let native_amount: u128 = <T as crate::Config>::WeightToFee::weight_to_fee(&weight)
 					.try_into()
 					.map_err(|_| XcmError::Overflow)?;
-				Ok(native_amount
-					.checked_mul(10u128.pow(RELATIVE_PRICE_DECIMALS))
+				U256::from(native_amount)
+					.checked_mul(U256::from(10u128.pow(RELATIVE_PRICE_DECIMALS)))
 					.ok_or(XcmError::Overflow)?
-					.checked_div(relative_price)
-					.ok_or(XcmError::Overflow)?)
+					.checked_div(U256::from(relative_price))
+					.ok_or(XcmError::Overflow)?
+					.try_into()
+					.map_err(|_| XcmError::Overflow)
 			}
 		} else {
 			Err(XcmError::AssetNotFound)
