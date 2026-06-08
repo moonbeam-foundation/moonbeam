@@ -562,6 +562,7 @@ where
 			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
 			executor,
 			true,
+			Vec::new(),
 		)?;
 
 	if let Some(block_number) = Customizations::first_block_number_compatible_with_ed25519_zebra() {
@@ -777,6 +778,7 @@ where
 			client: client.clone(),
 			transaction_pool: transaction_pool.clone(),
 			spawn_handle: task_manager.spawn_handle(),
+			spawn_essential_handle: task_manager.spawn_essential_handle(),
 			import_queue: params.import_queue,
 			para_id: para_id.clone(),
 			relay_chain_interface: relay_chain_interface.clone(),
@@ -1346,6 +1348,7 @@ where
 			client: client.clone(),
 			transaction_pool: transaction_pool.clone(),
 			spawn_handle: task_manager.spawn_handle(),
+			spawn_essential_handle: task_manager.spawn_essential_handle(),
 			import_queue,
 			block_announce_validator_builder: None,
 			warp_sync_config: None,
@@ -1477,7 +1480,6 @@ where
 					keystore: keystore_container.keystore(),
 					client: client.clone(),
 					additional_digests_provider: maybe_provide_vrf_digest,
-					_phantom: Default::default(),
 				})),
 				create_inherent_data_providers: move |block: H256, ()| {
 					let maybe_current_para_block = client_for_cidp.number(block);
@@ -1560,6 +1562,7 @@ where
 							}),
 							current_para_block_head,
 							relay_offset: additional_relay_offset.load(Ordering::SeqCst),
+							relay_parent_offset: 0,
 							relay_blocks_per_para_block: 1,
 							para_blocks_per_relay_epoch: 10,
 							relay_randomness_config: (),
