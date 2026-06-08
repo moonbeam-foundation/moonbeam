@@ -96,6 +96,17 @@ impl XcmHoldingErc20sOrigins {
 	}
 }
 
+/// Runs `f` with the same `XcmHoldingErc20sOrigins` environmental layer as
+/// [`XcmExecutorWrapper`], for unit tests of legacy reserve-mode transactor legs.
+#[cfg(test)]
+pub fn test_with_xcm_holding_origins<R, F>(f: F) -> R
+where
+	F: FnOnce() -> R,
+{
+	let mut erc20s_origins = XcmHoldingErc20sOrigins::default();
+	XCM_HOLDING_ERC20_ORIGINS::using(&mut erc20s_origins, f)
+}
+
 /// Xcm executor wrapper that inject xcm holding extension "XcmHoldingErc20sOrigins"
 pub struct XcmExecutorWrapper<Config, InnerXcmExecutor>(PhantomData<(Config, InnerXcmExecutor)>);
 impl<Config, InnerXcmExecutor> xcm::latest::ExecuteXcm<Config::RuntimeCall>

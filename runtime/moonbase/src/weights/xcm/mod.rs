@@ -97,9 +97,10 @@ where
 	fn reserve_asset_deposited(assets: &Assets) -> XCMWeight {
 		assets.weigh_assets(XcmFungibleWeight::<Runtime>::reserve_asset_deposited())
 	}
-	fn receive_teleported_asset(_assets: &Assets) -> XCMWeight {
-		// Instruction disabled
-		Weight::MAX
+	fn receive_teleported_asset(assets: &Assets) -> XCMWeight {
+		// Inbound ERC-20 teleports (AH → Moonbase) use this instruction; must not be Weight::MAX
+		// or WeightInfoBounds::prepare overflows and messageQueue reports Unsupported.
+		assets.weigh_assets(XcmFungibleWeight::<Runtime>::reserve_asset_deposited())
 	}
 	fn query_response(
 		_query_id: &u64,

@@ -692,6 +692,9 @@ impl pallet_erc20_xcm_bridge::Config for Runtime {
 	type Erc20MultilocationPrefix = Erc20XcmBridgePalletLocation;
 	type Erc20TransferGasLimit = Erc20XcmBridgeTransferGasLimit;
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
+	type TeleportAdminOrigin = EnsureRoot<AccountId>;
+	type TeleportCheckingAccount = ();
+	type TeleportTrustedLocation = AssetHubLocation;
 }
 
 pub struct AccountIdToH160;
@@ -814,3 +817,14 @@ mod testing {
 		}
 	}
 }
+
+/// `pallet_xcm` teleport benchmark hook.
+///
+/// `runtime/common/src/apis.rs` calls
+/// `<Runtime as XcmPalletTeleportBenchmark>::teleportable_asset_and_dest()` via UFCS, so the
+/// trait must be implemented for `Runtime` for benchmark builds to compile — the default
+/// method body alone is not enough. ERC-20 teleport is not enabled on Moonriver (gates are
+/// `IsTeleporter = ()` and `XcmTeleportFilter = Nothing`), so the default `None` keeps
+/// `teleport_assets` benchmarked as `Weight::MAX` upstream, matching the dormant feature.
+#[cfg(feature = "runtime-benchmarks")]
+impl moonbeam_runtime_common::xcm_pallet_benchmark::XcmPalletTeleportBenchmark for Runtime {}
