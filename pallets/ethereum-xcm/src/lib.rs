@@ -39,7 +39,7 @@ use frame_system::pallet_prelude::OriginFor;
 use pallet_evm::{AddressMapping, GasWeightMapping};
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
-use sp_runtime::{traits::UniqueSaturatedInto, DispatchErrorWithPostInfo, RuntimeDebug};
+use sp_runtime::{traits::UniqueSaturatedInto, DispatchErrorWithPostInfo};
 use sp_std::{marker::PhantomData, prelude::*};
 
 pub use ethereum::{
@@ -55,7 +55,7 @@ pub use xcm_primitives::{EnsureProxy, EthereumXcmTransaction, XcmToEthereum};
 	Clone,
 	Encode,
 	Decode,
-	RuntimeDebug,
+	Debug,
 	TypeInfo,
 	MaxEncodedLen,
 	DecodeWithMemTracking,

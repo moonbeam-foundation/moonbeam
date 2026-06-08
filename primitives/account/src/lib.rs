@@ -132,7 +132,7 @@ impl std::str::FromStr for AccountId20 {
 	Clone,
 	Encode,
 	Decode,
-	sp_core::RuntimeDebug,
+	Debug,
 	TypeInfo,
 	Serialize,
 	Deserialize,
@@ -201,7 +201,7 @@ impl sp_runtime::traits::Verify for EthereumSignature {
 	Clone,
 	Encode,
 	Decode,
-	sp_core::RuntimeDebug,
+	Debug,
 	TypeInfo,
 	DecodeWithMemTracking,
 )]

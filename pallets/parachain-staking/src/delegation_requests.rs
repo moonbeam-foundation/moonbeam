@@ -31,7 +31,6 @@ use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sp_runtime::{
 	traits::{Saturating, Zero},
-	RuntimeDebug,
 };
 
 /// An action that can be performed upon a delegation
@@ -41,7 +40,7 @@ use sp_runtime::{
 	PartialEq,
 	Encode,
 	Decode,
-	RuntimeDebug,
+	Debug,
 	TypeInfo,
 	PartialOrd,
 	Ord,
@@ -71,7 +70,7 @@ impl<Balance: Copy> DelegationAction<Balance> {
 	PartialEq,
 	Encode,
 	Decode,
-	RuntimeDebug,
+	Debug,
 	TypeInfo,
 	PartialOrd,
 	Ord,
@@ -84,7 +83,7 @@ pub struct ScheduledRequest<Balance> {
 }
 
 /// Represents a cancelled scheduled request for emitting an event.
-#[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo, DecodeWithMemTracking)]
+#[derive(Clone, Eq, PartialEq, Encode, Decode, Debug, TypeInfo, DecodeWithMemTracking)]
 pub struct CancelledScheduledRequest<Balance> {
 	pub when_executable: RoundIndex,
 	pub action: DelegationAction<Balance>,
