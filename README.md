@@ -4,7 +4,7 @@
 
 [![Tests](https://github.com/moonbeam-foundation/moonbeam/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/moonbeam-foundation/moonbeam/actions/workflows/build.yml?query=branch:master)
 
-**An Ethereum compatible [Parachain](https://docs.polkadot.com/polkadot-protocol/architecture/parachains) built with the [Polkadot-SDK](https://github.com/paritytech/polkadot-sdk).**
+**An Ethereum compatible [Parachain](https://docs.polkadot.com/reference/parachains) built with the [Polkadot-SDK](https://github.com/paritytech/polkadot-sdk).**
 
 👉 _Discover the Moonbeam project at [moonbeam.network](https://moonbeam.network)._<br>
 👉 _Learn to [use the Moonbeam network](https://docs.moonbeam.network/) with our technical docs._
@@ -154,7 +154,7 @@ The `.lazy-loading/state-overrides.json` file allows you to override specific st
 
 To build Moonbeam, a proper Substrate development environment is required. If you're new to working with Substrate-based blockchains, consider starting with the [Getting Started with a Moonbeam Development Node](https://docs.moonbeam.network/builders/get-started/networks/moonbeam-dev/) documentation.
 
-If you need a refresher setting up your Substrate environment, see [Substrate's Getting Started Guide](https://substrate.dev/docs/en/knowledgebase/getting-started/).
+If you need a refresher setting up your Substrate environment, see [Polkadot's Getting Started Guide](https://wiki.polkadot.com/general/getting-started/).
 
 Please note that cloning the master branch might result in an unstable build. If you want a stable version, check out the [latest releases](https://github.com/moonbeam-foundation/moonbeam/releases).
 
