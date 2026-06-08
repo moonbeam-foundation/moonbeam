@@ -189,17 +189,27 @@ Order: **polkadot-sdk → (evm, ethereum) → (moonkit, frontier)**.
 - [ ] Update tracker: real commit hashes for Included rows, finalize Cherry-pick column for every Verify row.
 - [ ] Reconcile any agent-reported discrepancies.
 
-## Phase 3 — Moonbeam repository upgrade
+## Phase 3 — Moonbeam repository upgrade ✅ (Rust compile; TS fixtures pending)
 
-- [ ] `Cargo.toml`: replace `moonbeam-polkadot-stable2512` → `moonbeam-polkadot-stable2603` (~120 occurrences).
-- [ ] `cargo update -p sp-core` (and friends) to refresh the lockfile.
-- [ ] Compile-fix loop (`cargo check --workspace --all-features`):
-  - [ ] FRAME pallet trait drift (Config additions, `WeightInfo` signature changes).
-  - [ ] `sc-*` client crate restructure / renames.
-  - [ ] XCM v5+ changes if upstream advanced.
-  - [ ] Cumulus parachain service config (`ParachainTracingExecuteBlock` plumbing — see stable2512 doc note about [#9871](https://github.com/paritytech/polkadot-sdk/pull/9871)).
-- [ ] During iteration, patch `[patch.crates-io]` to local checkouts per the `patching-dependencies` skill.
-- [ ] Update `tests/` TS fixtures referencing changed types/RPCs.
+- [x] `Cargo.toml`: replace `moonbeam-polkadot-stable2512` → `moonbeam-polkadot-stable2603` (180 occurrences across the 5 forks).
+- [x] Refresh the lockfile (re-resolved to stable2603).
+- [x] Compile-fix loop — green across the **realistic feature matrix** (default, `runtime-benchmarks`, `try-runtime`). Notable drift handled:
+  - **Dropped crate** `cumulus-client-consensus-proposer` (upstream [#9947](https://github.com/paritytech/polkadot-sdk/pull/9947) folded it into sp-consensus/sc-basic-authorship); was an unused dep.
+  - **`num_enum`** bumped to 0.7.6 (frontier `fp-evm` now needs `^0.7.6`).
+  - **`RuntimeDebug` → `Debug`** (upstream [#10582](https://github.com/paritytech/polkadot-sdk/pull/10582) removed it from sp_core/sp_runtime/frame_support) — 51 sites / 14 files.
+  - **Duplicate polkadot-sdk** root cause: moonkit's stable2603 base-bump pointed at canonical paritytech/frontier; added a redirect commit on `Moonsong-Labs/moonkit:moonbeam-polkadot-stable2603` (`ba06fb0`) to the MBF forks, unifying the tree.
+  - **EVM `Runner::call`** gained a `state_override` arg; **`fp_rpc` `call`** gained `state_override`; **`SessionKeys::generate_session_keys`** now `(owner, seed) -> OpaqueGeneratedSessionKeys`.
+  - **`cumulus_pallet_parachain_system::WeightInfo`** gained 3 methods (added to weight files).
+  - **XCM executor `Config`** dropped `AssetClaims` (merged into `AssetTrap`, which now needs `ClaimAssets`).
+  - **node/service**: `BuildNetworkParams::spawn_essential_handle`, `new_full_parts_record_import` pruning-filters arg, `CallExecutor::runtime_version`/`Backend::set_block_data` new params, moonkit `_phantom`/`relay_parent_offset` field changes, and the proof-recording refactor ([#9947](https://github.com/paritytech/polkadot-sdk/pull/9947)) in the lazy-loading manual-seal.
+  - **runtime-benchmarks**: weight-reclaim benchmark needed the `GetCallMetadata` bound the logging cherry-pick added (fixed in the fork at `ddba2453`); `pallet_transaction_payment::benchmarking` is now private (use `Pallet` + `BenchmarkConfig`); `worst_case_holding` returns `AssetsInHolding` (built via `generate_holding_assets`).
+- [x] **XCM credit-based holding migration** (the substantive piece): stable2603 reworked `AssetsInHolding` to carry `fungible::Credit` imbalances. Real impls for `erc20-xcm-bridge` / `moonbeam-foreign-assets` (`deposit_asset`/`withdraw_asset` via a notional credit, since erc20 isn't a Substrate `fungible`) and `xcm-weight-trader` (`buy_weight`/`refund_weight`/`Drop`).
+- [x] No `[patch.crates-io]` needed — the fork branches resolve directly from the moonbeam-foundation remotes.
+- [ ] Update `tests/` TS fixtures referencing changed types/RPCs. — *pending; requires a built node binary.*
+
+> **Note — `--all-features` is NOT a valid check for moonbeam.** It forces the mutually-exclusive `disable-genesis-builder` feature on, which strips `genesis_config_preset` (needed by the node's chain_spec). Use the realistic feature matrix (default / `runtime-benchmarks` / `try-runtime`) instead. Pallet unit tests can't be run in isolation either (`sp-session`/`sp-authority-discovery` fail to build no_std standalone — pre-existing infra quirk); run via the full workspace test.
+>
+> **Fork-side fixes pushed this cycle** (need recording in `polkadot-sdk-stable2603.md` / Phase 1 trackers): moonkit `ba06fb0` (redirect deps to MBF forks — re-apply when [moonkit#95](https://github.com/Moonsong-Labs/moonkit/pull/95) merges) and polkadot-sdk `ddba2453` (weight-reclaim benchmark `GetCallMetadata` bound — completes the weight-reclaim-logs cherry-pick `b0b4fd52a9e`).
 
 ## Phase 4 — Runtime, weights, version bump
 
