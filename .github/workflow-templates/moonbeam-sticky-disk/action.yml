@@ -1,0 +1,118 @@
+name: Moonbeam sticky disk
+description: |
+  Publish or restore the stripped CI moonbeam binary on a Blacksmith sticky disk.
+  Use the same sticky-disk-key in the publish job and downstream restore jobs.
+
+inputs:
+  mode:
+    description: "publish (after build) or restore (into target/debug)"
+    required: true
+  sticky-disk-key:
+    description: Unique sticky disk key; use github.run_id so each workflow run is isolated
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Validate mode input
+      shell: bash
+      run: |
+        if [[ "${{ inputs.mode }}" != "publish" && "${{ inputs.mode }}" != "restore" ]]; then
+          echo "Invalid mode '${{ inputs.mode }}'. Must be 'publish' or 'restore'." >&2
+          exit 1
+        fi
+    - name: Mount Blacksmith CI moonbeam disk
+      uses: useblacksmith/stickydisk@d58829ad6f9be8822ec5efe74256c82cd62915ab
+      with:
+        key: ${{ inputs.sticky-disk-key }}
+        path: .ci-moonbeam-disk
+
+    - name: Publish moonbeam to sticky disk
+      if: ${{ inputs.mode == 'publish' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        src="build/moonbeam"
+        if [ ! -f "$src" ]; then
+          echo "$src not found" >&2
+          exit 1
+        fi
+        cp -f "$src" .ci-moonbeam-disk/moonbeam
+        sync .ci-moonbeam-disk/moonbeam
+        git rev-parse HEAD > .ci-moonbeam-disk/git-sha
+        sync .ci-moonbeam-disk/git-sha
+        ls -lh .ci-moonbeam-disk/moonbeam
+
+    - name: Restore moonbeam from sticky disk
+      id: restore-moonbeam-sticky
+      if: ${{ inputs.mode == 'restore' }}
+      continue-on-error: true
+      shell: bash
+      run: |
+        set -euo pipefail
+        moonbeam_path=".ci-moonbeam-disk/moonbeam"
+        # The publish (in build) commits the disk before this job starts, so the file
+        # is normally present on the first attempt. Allow a short window (~110s) for
+        # snapshot propagation, then fall through to the artifact fallback below.
+        max_attempts=12
+        for attempt in $(seq 1 "$max_attempts"); do
+          if [ -f "$moonbeam_path" ]; then
+            echo "Found moonbeam on sticky disk (attempt ${attempt}/${max_attempts})"
+            break
+          fi
+          # Don't sleep after the final attempt: that wait would be wasted before
+          # we drop into the fallback.
+          if [ "$attempt" -lt "$max_attempts" ]; then
+            echo "Waiting for moonbeam on sticky disk (attempt ${attempt}/${max_attempts})..."
+            sleep 10
+          fi
+        done
+        if [ ! -f "$moonbeam_path" ]; then
+          echo "Timed out waiting for ${moonbeam_path}" >&2
+          exit 1
+        fi
+        if [ -f .ci-moonbeam-disk/git-sha ]; then
+          expected="$(git rev-parse HEAD)"
+          actual="$(tr -d '[:space:]' < .ci-moonbeam-disk/git-sha)"
+          if [ "$expected" != "$actual" ]; then
+            echo "::warning::Sticky disk moonbeam was built for ${actual}, but checkout is ${expected}"
+          fi
+        fi
+        mkdir -p target/debug
+        cp -f "$moonbeam_path" target/debug/moonbeam
+        chmod uog+x target/debug/moonbeam
+        ls -lh target/debug/moonbeam
+
+    - name: Download moonbeam artifact fallback
+      if: ${{ inputs.mode == 'restore' && steps.restore-moonbeam-sticky.outcome == 'failure' }}
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+      with:
+        name: moonbeam
+        path: target/debug
+
+    - name: Normalize moonbeam path after artifact fallback
+      if: ${{ inputs.mode == 'restore' && steps.restore-moonbeam-sticky.outcome == 'failure' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [ -f target/debug/moonbeam ]; then
+          :
+        elif [ -f target/debug/build/moonbeam ]; then
+          mv target/debug/build/moonbeam target/debug/moonbeam
+          rmdir target/debug/build 2>/dev/null || true
+        else
+          echo "Artifact fallback did not provide target/debug/moonbeam" >&2
+          exit 1
+        fi
+        chmod uog+x target/debug/moonbeam
+        ls -lh target/debug/moonbeam
+
+    - name: Verify moonbeam binary is present
+      if: ${{ inputs.mode == 'restore' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [ ! -x target/debug/moonbeam ]; then
+          echo "target/debug/moonbeam is missing after sticky restore and artifact fallback" >&2
+          exit 1
+        fi
