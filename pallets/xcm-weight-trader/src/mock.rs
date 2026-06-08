@@ -29,7 +29,7 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	BuildStorage,
 };
-use xcm::v5::{Asset, Error as XcmError, Junction, Location, Result as XcmResult, XcmContext};
+use xcm::v5::{Error as XcmError, Junction, Location, XcmContext};
 
 type AccountId = u64;
 type Balance = u128;
@@ -129,7 +129,17 @@ pub fn get_parent_asset_deposited() -> Option<(AccountId, Balance)> {
 
 pub struct MockAssetTransactor;
 impl TransactAsset for MockAssetTransactor {
-	fn deposit_asset(asset: &Asset, who: &Location, _context: Option<&XcmContext>) -> XcmResult {
+	fn deposit_asset(
+		what: xcm_executor::AssetsInHolding,
+		who: &Location,
+		_context: Option<&XcmContext>,
+	) -> Result<(), (xcm_executor::AssetsInHolding, XcmError)> {
+		// Extract the (single) fungible asset from the holding.
+		let asset = what.fungible_assets_iter().next();
+		let asset = match asset {
+			Some(asset) => asset,
+			None => return Err((what, XcmError::AssetNotFound)),
+		};
 		match (asset.id.clone(), asset.fun.clone()) {
 			(XcmAssetId(location), Fungibility::Fungible(amount)) => {
 				let who = match who.interior.iter().next() {
@@ -146,10 +156,10 @@ impl TransactAsset for MockAssetTransactor {
 					);
 					Ok(())
 				} else {
-					Err(XcmError::AssetNotFound)
+					Err((what, XcmError::AssetNotFound))
 				}
 			}
-			_ => Err(XcmError::AssetNotFound),
+			_ => Err((what, XcmError::AssetNotFound)),
 		}
 	}
 }

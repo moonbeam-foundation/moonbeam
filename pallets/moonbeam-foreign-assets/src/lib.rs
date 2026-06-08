@@ -940,6 +940,19 @@ pub mod pallet {
 			))
 		}
 
+		// stable2603: the executor calls `mint_asset` when an asset is reserve-deposited or
+		// teleported in, to put it into holding. erc20 has no real `fungible::Credit`, so we
+		// represent it with a notional credit; the actual erc20 mint happens in `deposit_asset`.
+		fn mint_asset(what: &Asset, _context: &XcmContext) -> Result<AssetsInHolding, XcmError> {
+			let (_asset_id, _contract_address, amount, _asset_status) =
+				ForeignAssetsMatcher::<T>::match_asset(what)?;
+			let amount: u128 = amount.try_into().map_err(|_| XcmError::Overflow)?;
+			Ok(AssetsInHolding::new_from_fungible_credit(
+				what.id.clone(),
+				Box::new(NotionalImbalance(amount)),
+			))
+		}
+
 		#[cfg(feature = "runtime-benchmarks")]
 		fn can_check_out(_dest: &Location, _what: &Asset, _context: &XcmContext) -> XcmResult {
 			// Needed for the benchmarks to work

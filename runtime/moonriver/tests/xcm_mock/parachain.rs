@@ -286,7 +286,6 @@ impl Config for XcmConfig {
 	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
-	type AssetClaims = PolkadotXcm;
 	type CallDispatcher = MoonbeamCall;
 	type AssetLocker = ();
 	type AssetExchanger = ();
