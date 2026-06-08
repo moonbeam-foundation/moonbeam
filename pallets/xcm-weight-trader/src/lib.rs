@@ -392,104 +392,23 @@ impl<T: crate::Config> WeightTrader for Trader<T> {
 	}
 	fn buy_weight(
 		&mut self,
-		weight: Weight,
-		payment: xcm_executor::AssetsInHolding,
-		context: &XcmContext,
-	) -> Result<xcm_executor::AssetsInHolding, XcmError> {
-		log::trace!(
-			target: "xcm::weight",
-			"UsingComponents::buy_weight weight: {:?}, payment: {:?}, context: {:?}",
-			weight,
-			payment,
-			context
-		);
-
-		// Can only call one time
-		if self.1.is_some() {
-			return Err(XcmError::NotWithdrawable);
-		}
-
-		// Consistency check for tests only, we should never panic in release mode
-		debug_assert_eq!(self.0, Weight::zero());
-
-		// We support only one fee asset per buy, so we take the first one.
-		let first_asset = payment
-			.clone()
-			.fungible_assets_iter()
-			.next()
-			.ok_or(XcmError::AssetNotFound)?;
-
-		match (first_asset.id, first_asset.fun) {
-			(XcmAssetId(location), Fungibility::Fungible(_)) => {
-				let amount: u128 = Self::compute_amount_to_charge(&weight, &location)?;
-
-				// We don't need to proceed if the amount is 0
-				// For cases (specially tests) where the asset is very cheap with respect
-				// to the weight needed
-				if amount.is_zero() {
-					return Ok(payment);
-				}
-
-				let required = Asset {
-					fun: Fungibility::Fungible(amount),
-					id: XcmAssetId(location),
-				};
-				let unused = payment
-					.checked_sub(required.clone())
-					.map_err(|_| XcmError::TooExpensive)?;
-
-				self.0 = weight;
-				self.1 = Some(required);
-
-				Ok(unused)
-			}
-			_ => Err(XcmError::AssetNotFound),
-		}
+		_weight: Weight,
+		_payment: xcm_executor::AssetsInHolding,
+		_context: &XcmContext,
+	) -> Result<xcm_executor::AssetsInHolding, (xcm_executor::AssetsInHolding, XcmError)> {
+		// TODO(stable2603): migrate to credit-based AssetsInHolding. payment now carries
+		// fungible::Credit imbalances; use try_take/saturating_take instead of checked_sub,
+		// and return the unspent holding alongside the error.
+		todo!("stable2603: migrate xcm-weight-trader buy_weight to credit-based AssetsInHolding")
 	}
 
-	fn refund_weight(&mut self, weight_to_refund: Weight, context: &XcmContext) -> Option<Asset> {
-		log::trace!(
-			target: "xcm-weight-trader",
-			"refund_weight weight: {:?}, context: {:?}, available weight: {:?}, asset: {:?}",
-			weight_to_refund,
-			context,
-			self.0,
-			self.1
-		);
-		if let Some(Asset {
-			fun: Fungibility::Fungible(initial_amount),
-			id: XcmAssetId(location),
-		}) = self.1.take()
-		{
-			let weight_to_refund = weight_to_refund.min(self.0);
-			// `xcm-executor` passes the *surplus* weight to refund here (not the weight used).
-			// We therefore refund the proportional amount that was originally charged for
-			// `weight_to_refund`, and keep the remainder to be deposited to the fees account.
-			let computed_refund_amount: u128 =
-				Self::compute_amount_to_charge(&weight_to_refund, &location).unwrap_or(u128::MAX);
-			let refund_amount = computed_refund_amount.min(initial_amount);
-			let final_amount = initial_amount.saturating_sub(refund_amount);
-			self.0 -= weight_to_refund;
-			self.1 = Some(Asset {
-				fun: Fungibility::Fungible(final_amount),
-				id: XcmAssetId(location.clone()),
-			});
-			log::trace!(
-				target: "xcm-weight-trader",
-				"refund_weight amount to refund: {:?}",
-				refund_amount
-			);
-			if refund_amount > 0 {
-				Some(Asset {
-					fun: Fungibility::Fungible(refund_amount),
-					id: XcmAssetId(location),
-				})
-			} else {
-				None
-			}
-		} else {
-			None
-		}
+	fn refund_weight(
+		&mut self,
+		_weight_to_refund: Weight,
+		_context: &XcmContext,
+	) -> Option<xcm_executor::AssetsInHolding> {
+		// TODO(stable2603): migrate to credit-based AssetsInHolding.
+		todo!("stable2603: migrate xcm-weight-trader refund_weight to credit-based AssetsInHolding")
 	}
 }
 
@@ -501,13 +420,9 @@ impl<T: crate::Config> Drop for Trader<T> {
 			&self.0,
 			&self.1
 		);
-		if let Some(asset) = self.1.take() {
-			let res = T::AssetTransactor::deposit_asset(
-				&asset,
-				&T::AccountIdToLocation::convert(T::XcmFeesAccount::get()),
-				None,
-			);
-			debug_assert!(res.is_ok());
+		if let Some(_asset) = self.1.take() {
+			// TODO(stable2603): re-deposit leftover fees via the credit-based AssetsInHolding
+			// API (TransactAsset::deposit_asset now takes AssetsInHolding, not &Asset).
 		}
 	}
 }
