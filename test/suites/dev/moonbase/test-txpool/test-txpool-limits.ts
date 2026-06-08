@@ -15,7 +15,7 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     it({
       id: "T01",
-      title: "should be able to fill a block with at least 2300 tx",
+      title: "should limit authored transactions to the runtime max",
       test: async function () {
         for (let i = 0; i < 3000; i++) {
           const rawTxn = await createRawTransfer(context, BALTATHAR_ADDRESS, 1n, {
@@ -28,7 +28,7 @@ describeSuite({
         const block = await getBlockWithRetry(context, { blockNumber: 1n });
         const maxTxnLen = block.transactions.length;
         log(`out ${maxTxnLen}`);
-        expect(maxTxnLen).toBeGreaterThan(2300);
+        expect(maxTxnLen).toBe(300);
       },
     });
   },

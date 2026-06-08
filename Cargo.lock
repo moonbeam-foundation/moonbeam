@@ -7324,6 +7324,7 @@ dependencies = [
  "moonbeam-evm-tracer",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
+ "moonbeam-runtime-api-primitives",
  "moonbeam-runtime-common",
  "moonbeam-tests-primitives",
  "nimbus-primitives",
@@ -7729,6 +7730,7 @@ dependencies = [
  "moonbeam-evm-tracer",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
+ "moonbeam-runtime-api-primitives",
  "moonbeam-runtime-common",
  "moonbeam-tests-primitives",
  "nimbus-primitives",
@@ -7853,6 +7855,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "moonbeam-runtime-api-primitives"
+version = "0.1.0"
+dependencies = [
+ "sp-api",
+]
+
+[[package]]
 name = "moonbeam-runtime-common"
 version = "0.8.0-dev"
 dependencies = [
@@ -7863,6 +7872,7 @@ dependencies = [
  "frame-system",
  "log",
  "moonbeam-core-primitives",
+ "moonbeam-runtime-api-primitives",
  "pallet-author-inherent",
  "pallet-author-slot-filter",
  "pallet-balances",
@@ -7935,6 +7945,7 @@ dependencies = [
  "moonbeam-rpc-primitives-txpool",
  "moonbeam-rpc-trace",
  "moonbeam-runtime",
+ "moonbeam-runtime-api-primitives",
  "moonbeam-vrf",
  "moonriver-runtime",
  "nimbus-consensus",
@@ -8078,6 +8089,7 @@ dependencies = [
  "moonbeam-evm-tracer",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
+ "moonbeam-runtime-api-primitives",
  "moonbeam-runtime-common",
  "moonbeam-tests-primitives",
  "nimbus-primitives",
