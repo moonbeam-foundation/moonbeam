@@ -26,6 +26,7 @@ mod tests;
 mod erc20_matcher;
 mod erc20_trap;
 mod errors;
+mod notional;
 mod xcm_holding_ext;
 
 use frame_support::pallet;
@@ -39,15 +40,17 @@ pub mod pallet {
 
 	use crate::erc20_matcher::*;
 	use crate::errors::*;
+	use crate::notional::NotionalImbalance;
 	use crate::xcm_holding_ext::*;
 	use ethereum_types::BigEndianHash;
 	use fp_evm::{ExitReason, ExitSucceed};
 	use frame_support::pallet_prelude::*;
 	use pallet_evm::{GasWeightMapping, Runner};
 	use sp_core::{H160, H256, U256};
+	use sp_std::boxed::Box;
 	use sp_std::vec::Vec;
 	use xcm::latest::{
-		Asset, AssetId, Error as XcmError, Junction, Location, Result as XcmResult, XcmContext,
+		Asset, AssetId, Error as XcmError, Junction, Location, XcmContext,
 	};
 	use xcm_executor::traits::ConvertLocation;
 	use xcm_executor::traits::{Error as MatchError, MatchesFungibles};
@@ -159,14 +162,68 @@ pub mod pallet {
 		// we have just traced from which account it should have been withdrawn.
 		// So we will retrieve these information and make the transfer from the origin account.
 		fn deposit_asset(
-			_what: AssetsInHolding,
-			_who: &Location,
+			what: AssetsInHolding,
+			who: &Location,
 			_context: Option<&XcmContext>,
 		) -> Result<(), (AssetsInHolding, XcmError)> {
-			// TODO(stable2603): AssetsInHolding now holds fungible::Credit imbalances, not
-			// Asset descriptors. The erc20 trace-based holding needs a real migration;
-			// stubbed to map the remaining compile scope of the upgrade.
-			todo!("stable2603: migrate erc20-xcm-bridge deposit_asset to credit-based AssetsInHolding")
+			let beneficiary = match T::AccountIdConverter::convert_location(who) {
+				Some(beneficiary) => beneficiary,
+				None => return Err((what, MatchError::AccountIdConversionFailed.into())),
+			};
+
+			// Collect the assets first so the borrow on `what` ends and it can be returned
+			// unspent on error.
+			let assets: Vec<Asset> = what.fungible_assets_iter().collect();
+			for asset in assets {
+				let (contract_address, amount) =
+					match Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(&asset) {
+						Ok(matched) => matched,
+						Err(err) => return Err((what, err.into())),
+					};
+
+				let gas_limit = Self::gas_limit_of_erc20_transfer(&asset.id);
+
+				// Get the global context to recover accounts origins and perform the transfers.
+				let outcome = XcmHoldingErc20sOrigins::with(|erc20s_origins| {
+					match erc20s_origins.drain(contract_address, amount) {
+						// We perform the evm transfers in a storage transaction to ensure that if
+						// one of them fails all the changes of the previous evm calls are rolled
+						// back.
+						Ok(tokens_to_transfer) => frame_support::storage::with_storage_layer(|| {
+							tokens_to_transfer.into_iter().try_for_each(|(from, subamount)| {
+								Self::erc20_transfer(
+									contract_address,
+									from,
+									beneficiary,
+									subamount,
+									gas_limit,
+								)
+							})
+						})
+						.map_err(Into::into),
+						Err(DrainError::AssetNotFound) => Err(XcmError::AssetNotFound),
+						Err(DrainError::NotEnoughFounds) => Err(XcmError::FailedToTransactAsset(
+							"not enough founds in xcm holding",
+						)),
+						Err(DrainError::SplitError) => Err(XcmError::FailedToTransactAsset(
+							"SplitError: each withdrawal of erc20 tokens must be deposited at once",
+						)),
+					}
+				});
+
+				match outcome {
+					Some(Ok(())) => {}
+					Some(Err(err)) => return Err((what, err)),
+					None => {
+						return Err((
+							what,
+							XcmError::FailedToTransactAsset("missing erc20 executor context"),
+						))
+					}
+				}
+			}
+
+			Ok(())
 		}
 
 		fn internal_transfer_asset(
@@ -203,12 +260,29 @@ pub mod pallet {
 		// In order to perform only one evm call, we just trace the origin of the asset,
 		// and then the transfer will only really be performed in the deposit instruction.
 		fn withdraw_asset(
-			_what: &Asset,
-			_who: &Location,
+			what: &Asset,
+			who: &Location,
 			_context: Option<&XcmContext>,
 		) -> Result<AssetsInHolding, XcmError> {
-			// TODO(stable2603): see deposit_asset; migrate to credit-based AssetsInHolding.
-			todo!("stable2603: migrate erc20-xcm-bridge withdraw_asset to credit-based AssetsInHolding")
+			let (contract_address, amount) =
+				Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(what)?;
+			let who = T::AccountIdConverter::convert_location(who)
+				.ok_or(MatchError::AccountIdConversionFailed)?;
+
+			XcmHoldingErc20sOrigins::with(|erc20s_origins| {
+				erc20s_origins.insert(contract_address, who, amount)
+			})
+			.ok_or(XcmError::FailedToTransactAsset(
+				"missing erc20 executor context",
+			))?;
+
+			// Represent the withdrawn erc20 amount in holding via a notional credit (erc20 has no
+			// real `fungible::Credit`); the EVM transfer happens later in `deposit_asset`.
+			let amount: u128 = amount.try_into().map_err(|_| XcmError::Overflow)?;
+			Ok(AssetsInHolding::new_from_fungible_credit(
+				what.id.clone(),
+				Box::new(NotionalImbalance(amount)),
+			))
 		}
 	}
 }

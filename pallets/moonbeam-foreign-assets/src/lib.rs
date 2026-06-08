@@ -48,6 +48,7 @@ pub mod tests;
 pub mod weights;
 
 mod evm;
+mod notional;
 
 pub use pallet::*;
 pub use weights::WeightInfo;
@@ -179,9 +180,11 @@ pub struct EvmForeignAssetInfo {
 #[pallet]
 pub mod pallet {
 	use super::*;
+	use crate::notional::NotionalImbalance;
 	use frame_support::traits::{Currency, ReservableCurrency};
 	use pallet_evm::{GasWeightMapping, Runner};
 	use sp_runtime::traits::{AccountIdConversion, AtLeast32BitUnsigned, Convert};
+	use sp_std::boxed::Box;
 	use xcm_executor::traits::ConvertLocation;
 	use xcm_executor::traits::Error as MatchError;
 	use xcm_executor::AssetsInHolding;
@@ -814,14 +817,63 @@ pub mod pallet {
 		// we have just traced from which account it should have been withdrawn.
 		// So we will retrieve these information and make the transfer from the origin account.
 		fn deposit_asset(
-			_what: AssetsInHolding,
-			_who: &Location,
+			what: AssetsInHolding,
+			who: &Location,
 			_context: Option<&XcmContext>,
 		) -> Result<(), (AssetsInHolding, XcmError)> {
-			// TODO(stable2603): AssetsInHolding now holds fungible::Credit imbalances, not
-			// Asset descriptors. The erc20 trace-based holding needs a real migration;
-			// stubbed to map the remaining compile scope of the upgrade.
-			todo!("stable2603: migrate moonbeam-foreign-assets deposit_asset to credit-based AssetsInHolding")
+			let beneficiary = match T::XcmLocationToH160::convert_location(who) {
+				Some(beneficiary) => beneficiary,
+				None => return Err((what, MatchError::AccountIdConversionFailed.into())),
+			};
+
+			// Collect the assets first so the borrow on `what` ends and it can be returned
+			// unspent on error.
+			let assets: Vec<Asset> = what.fungible_assets_iter().collect();
+			for asset in assets {
+				let (asset_id, contract_address, amount, asset_status) =
+					match ForeignAssetsMatcher::<T>::match_asset(&asset) {
+						Ok(matched) => matched,
+						Err(err) => return Err((what, err.into())),
+					};
+
+				if let AssetStatus::FrozenXcmDepositForbidden = asset_status {
+					return Err((
+						what,
+						XcmError::FailedToTransactAsset(
+							"asset is frozen and XCM deposits are forbidden",
+						),
+					));
+				}
+
+				if matches!(asset_status, AssetStatus::FrozenXcmDepositAllowed) {
+					let total_pending = match PendingDeposits::<T>::get(asset_id, beneficiary)
+						.unwrap_or(U256::zero())
+						.checked_add(amount)
+					{
+						Some(total_pending) => total_pending,
+						None => return Err((what, XcmError::Overflow)),
+					};
+
+					PendingDeposits::<T>::insert(asset_id, beneficiary, total_pending);
+
+					Pallet::<T>::deposit_event(Event::PendingDepositRecorded {
+						asset_id,
+						beneficiary,
+						amount,
+						total_pending,
+					});
+				} else {
+					// We perform the evm transfers in a storage transaction to ensure
+					// that if it fails any contract storage changes are rolled back.
+					if let Err(err) = frame_support::storage::with_storage_layer(|| {
+						EvmCaller::<T>::erc20_mint_into(contract_address, beneficiary, amount)
+					}) {
+						return Err((what, err.into()));
+					}
+				}
+			}
+
+			Ok(())
 		}
 
 		fn internal_transfer_asset(
@@ -860,12 +912,32 @@ pub mod pallet {
 		// In order to perform only one evm call, we just trace the origin of the asset,
 		// and then the transfer will only really be performed in the deposit instruction.
 		fn withdraw_asset(
-			_what: &Asset,
-			_who: &Location,
+			what: &Asset,
+			who: &Location,
 			_context: Option<&XcmContext>,
 		) -> Result<AssetsInHolding, XcmError> {
-			// TODO(stable2603): see deposit_asset; migrate to credit-based AssetsInHolding.
-			todo!("stable2603: migrate moonbeam-foreign-assets withdraw_asset to credit-based AssetsInHolding")
+			let (_asset_id, contract_address, amount, asset_status) =
+				ForeignAssetsMatcher::<T>::match_asset(what)?;
+			let who = T::XcmLocationToH160::convert_location(who)
+				.ok_or(MatchError::AccountIdConversionFailed)?;
+
+			if asset_status.is_frozen() {
+				return Err(XcmError::FailedToTransactAsset("asset is frozen"));
+			}
+
+			// We perform the evm transfers in a storage transaction to ensure that if it fail
+			// any contract storage changes are rolled back.
+			frame_support::storage::with_storage_layer(|| {
+				EvmCaller::<T>::erc20_burn_from(contract_address, who, amount)
+			})?;
+
+			// Represent the withdrawn erc20 amount in holding via a notional credit (erc20 has no
+			// real `fungible::Credit`); the actual burn happened above.
+			let amount: u128 = amount.try_into().map_err(|_| XcmError::Overflow)?;
+			Ok(AssetsInHolding::new_from_fungible_credit(
+				what.id.clone(),
+				Box::new(NotionalImbalance(amount)),
+			))
 		}
 
 		#[cfg(feature = "runtime-benchmarks")]
