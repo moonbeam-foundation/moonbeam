@@ -144,8 +144,8 @@ macro_rules! impl_runtime_apis_plus_common {
 					opaque::SessionKeys::decode_into_raw_public_keys(&encoded)
 				}
 
-				fn generate_session_keys(seed: Option<Vec<u8>>) -> Vec<u8> {
-					opaque::SessionKeys::generate(seed)
+				fn generate_session_keys(owner: Vec<u8>, seed: Option<Vec<u8>>) -> sp_session::OpaqueGeneratedSessionKeys {
+					opaque::SessionKeys::generate(&owner, seed).into()
 				}
 			}
 
@@ -406,6 +406,7 @@ macro_rules! impl_runtime_apis_plus_common {
 								validate,
 								weight_limit,
 								proof_size_base_cost,
+								Default::default(),
 								<Runtime as pallet_evm::Config>::config(),
 							);
 						});
@@ -482,6 +483,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					estimate: bool,
 					access_list: Option<Vec<(H160, Vec<H256>)>>,
 					authorization_list: Option<AuthorizationList>,
+				state_override: fp_evm::StateOverride,
 				) -> Result<pallet_evm::CallInfo, sp_runtime::DispatchError> {
 					let config = if estimate {
 						let mut config = <Runtime as pallet_evm::Config>::config().clone();
@@ -526,6 +528,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						validate,
 						weight_limit,
 						proof_size_base_cost,
+						state_override,
 						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
 					).map_err(|err| err.error.into())
 				}
