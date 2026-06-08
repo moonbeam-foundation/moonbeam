@@ -4,7 +4,7 @@
 
 [![Tests](https://github.com/moonbeam-foundation/moonbeam/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/moonbeam-foundation/moonbeam/actions/workflows/build.yml?query=branch:master)
 
-**An Ethereum compatible [Parachain](https://docs.polkadot.com/reference/parachains/) built with the [Polkadot-SDK](https://github.com/paritytech/polkadot-sdk).**
+**An Ethereum compatible [Parachain](https://docs.polkadot.com/reference/parachains) built with the [Polkadot-SDK](https://github.com/paritytech/polkadot-sdk).**
 
 👉 _Discover the Moonbeam project at [moonbeam.network](https://moonbeam.network)._<br>
 👉 _Learn to [use the Moonbeam network](https://docs.moonbeam.network/) with our technical docs._

@@ -27,8 +27,12 @@ concurrency:
 env:
   NODE_OPTIONS: "--max-old-space-size=12288 --no-deprecation"
   CARGO_TERM_COLOR: always
-  # One sticky disk per workflow run; build publishes, Blacksmith test jobs restore.
-  MOONBEAM_STICKY_DISK_KEY: ${{ github.repository }}-ci-moonbeam-${{ github.run_id }}
+  # One sticky disk per workflow run (no slashes in the key). A dedicated publish job
+  # writes once; Blacksmith test jobs restore without each downloading the artifact.
+  # Owner/name/id are sourced from the event's repository object so the cleanup
+  # workflow (cleanup-sticky-disk.yml) can reconstruct the exact same key from its
+  # github.event.workflow_run.repository payload. Keep these two in sync.
+  MOONBEAM_STICKY_DISK_KEY: ${{ github.event.repository.owner.login }}-${{ github.event.repository.name }}-ci-moonbeam-${{ github.run_id }}
 
 permissions:
   contents: read
@@ -351,12 +355,12 @@ jobs:
         id: rust-toolchain-cache-key
         uses: ./.github/workflow-templates/rust-toolchain-cache-key
       - name: Mount Blacksmith sccache disk
-        uses: useblacksmith/stickydisk@d58829ad6f9be8822ec5efe74256c82cd62915ab
+        uses: useblacksmith/stickydisk@13af8883542ca949a717e70fef89d15edbb29d88
         with:
           key: ${{ github.repository }}-sccache-clippy-${{ runner.os }}-${{ steps.rust-toolchain-cache-key.outputs.cache-key }}
           path: .sccache
       - name: Run sccache-cache
-        uses: mozilla-actions/sccache-action@1583d6b38d7be47f593cb472781bbb21cab4321e
+        uses: mozilla-actions/sccache-action@9e7fa8a12102821edf02ca5dbea1acd0f89a2696
       - name: Install native build dependencies
         uses: ./.github/workflow-templates/native-build-deps
       - name: Setup Rust toolchain
@@ -420,7 +424,11 @@ jobs:
           features: metadata-hash
           blacksmith-sticky-sccache: "true"
           blacksmith-sticky-sccache-key: ${{ github.repository }}-sccache-release-${{ runner.os }}-${{ steps.rust-toolchain-cache-key.outputs.cache-key }}
+      # Publish the freshly built binary to the sticky disk from local disk (no
+      # artifact round-trip through GitHub blob storage). Consumers `needs: build`,
+      # so the commit (in the action's post-step) lands before they mount.
       - name: Publish moonbeam to sticky disk
+        if: needs.set-tags.outputs.blacksmith_allowed == 'true'
         uses: ./.github/workflow-templates/moonbeam-sticky-disk
         with:
           mode: publish
@@ -445,7 +453,7 @@ jobs:
     # Rust tests are one of the most expensive PR jobs, so only run them after the
     # quick Rust checks and the moonbase dev-test gate have passed.
     if: |
-      always() &&
+      !cancelled() &&
       needs.set-tags.outputs.rust_changed == 'true' &&
       needs.set-tags.outputs.blacksmith_allowed == 'true' &&
       needs.check-cargo-toml-format.result == 'success' &&
@@ -482,12 +490,12 @@ jobs:
         id: rust-toolchain-cache-key
         uses: ./.github/workflow-templates/rust-toolchain-cache-key
       - name: Mount Blacksmith sccache disk
-        uses: useblacksmith/stickydisk@d58829ad6f9be8822ec5efe74256c82cd62915ab
+        uses: useblacksmith/stickydisk@13af8883542ca949a717e70fef89d15edbb29d88
         with:
           key: ${{ github.repository }}-sccache-rust-test-${{ runner.os }}-${{ steps.rust-toolchain-cache-key.outputs.cache-key }}
           path: .sccache
       - name: Run sccache-cache
-        uses: mozilla-actions/sccache-action@1583d6b38d7be47f593cb472781bbb21cab4321e
+        uses: mozilla-actions/sccache-action@9e7fa8a12102821edf02ca5dbea1acd0f89a2696
       - name: Setup Variables
         shell: bash
         run: |
@@ -558,10 +566,11 @@ jobs:
   dev-test:
     # Moonbase dev tests are the required fast gate. Moonriver and moonbeam still
     # run for signal, but their failures are tolerated because they are flakier.
-    # always() is required because TS-only changes intentionally skip the Rust
-    # check jobs that the build job depends on.
+    # !cancelled() (rather than always()) lets this run even though TS-only changes
+    # skip the Rust check jobs build depends on, while still cancelling on
+    # supersede/manual cancel so we don't burn Blacksmith minutes on stale runs.
     if: |
-      always() &&
+      !cancelled() &&
       needs.build.result == 'success' &&
       (needs.set-tags.outputs.rust_changed == 'true' || needs.set-tags.outputs.ts_tests_changed == 'true') &&
       needs.set-tags.outputs.blacksmith_allowed == 'true'
@@ -631,7 +640,7 @@ jobs:
     # Tracing tests are expensive, so run them on master or when explicitly
     # requested on PRs.
     if: |
-      always() &&
+      !cancelled() &&
       needs.build.result == 'success' &&
       (needs.set-tags.outputs.rust_changed == 'true' || needs.set-tags.outputs.ts_tests_changed == 'true') &&
       needs.set-tags.outputs.blacksmith_allowed == 'true' &&
@@ -683,7 +692,7 @@ jobs:
     # Lazy-loading tests are expensive, so skip them when the required moonbase
     # dev-test gate has already failed.
     if: |
-      always() &&
+      !cancelled() &&
       needs.build.result == 'success' &&
       (needs.set-tags.outputs.rust_changed == 'true' || needs.set-tags.outputs.ts_tests_changed == 'true') &&
       needs.set-tags.outputs.blacksmith_allowed == 'true' &&
@@ -759,13 +768,14 @@ jobs:
     # Upgrade tests consume larger runners, so only start them after moonbase
     # dev tests prove the PR is worth the heavier checks.
     if: |
-      always() &&
+      !cancelled() &&
       needs.build.result == 'success' &&
       (needs.set-tags.outputs.rust_changed == 'true' || needs.set-tags.outputs.ts_tests_changed == 'true') &&
       needs.set-tags.outputs.blacksmith_allowed == 'true' &&
       needs.dev-test.result == 'success'
     runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 60
+    # Does not restore the moonbeam binary (only downloads runtimes).
     needs: ["set-tags", "build", "dev-test"]
     strategy:
       fail-fast: false
@@ -828,7 +838,7 @@ jobs:
     # Zombie upgrade tests are expensive and run serially; run all runtimes on
     # master, but keep PRs to moonbeam only.
     if: |
-      always() &&
+      !cancelled() &&
       needs.build.result == 'success' &&
       (needs.set-tags.outputs.rust_changed == 'true' || needs.set-tags.outputs.ts_tests_changed == 'true') &&
       needs.set-tags.outputs.blacksmith_allowed == 'true' &&
@@ -965,3 +975,29 @@ jobs:
         with:
           name: bridge-integration-tests-logs
           path: ${{ env.LOGS_ZIP }}
+
+  moonbeam-sticky-cleanup:
+    # Best-effort deletion of the per-run moonbeam sticky disk once every job that
+    # mounts it has finished. Runs even when consumers fail or are skipped. If the
+    # workflow is cancelled this may not run, but Blacksmith's 7-day inactivity
+    # eviction is the backstop.
+    if: always() && needs.set-tags.outputs.blacksmith_allowed == 'true'
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    needs:
+      [
+        "set-tags",
+        "build",
+        "dev-test",
+        "typescript-tracing-tests",
+        "lazy-loading-tests",
+        "zombie_upgrade_test",
+      ]
+    steps:
+      - name: Delete per-run moonbeam sticky disk
+        continue-on-error: true
+        uses: useblacksmith/stickydisk-delete@b41313d28b8647d72114c9ba3c96bb04061562b6
+        with:
+          delete-key: ${{ env.MOONBEAM_STICKY_DISK_KEY }}

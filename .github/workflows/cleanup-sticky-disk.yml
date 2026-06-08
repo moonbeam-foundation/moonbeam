@@ -1,0 +1,35 @@
+name: Cleanup moonbeam sticky disk
+
+# Catch-all deletion of the per-run moonbeam sticky disk created by the Build
+# workflow. The in-run `moonbeam-sticky-cleanup` job already deletes it on success
+# and failure; this workflow covers the case the in-run job cannot handle:
+# a cancelled Build run (e.g. superseded by `cancel-in-progress`).
+#
+# `workflow_run` fires for every conclusion (success, failure, cancelled) once the
+# Build workflow concludes. Note: workflow_run workflows only run from the version
+# on the default branch, so this takes effect after it is merged to master.
+on:
+  workflow_run:
+    workflows: ["Build"]
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    # Sticky disks are only created on non-fork runs (blacksmith_allowed). Skip fork
+    # PRs where no disk exists.
+    if: ${{ github.event.workflow_run.head_repository.fork == false }}
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    timeout-minutes: 5
+    steps:
+      - name: Delete per-run moonbeam sticky disk
+        continue-on-error: true
+        uses: useblacksmith/stickydisk-delete@b41313d28b8647d72114c9ba3c96bb04061562b6
+        with:
+          # Must match MOONBEAM_STICKY_DISK_KEY in build.yml, resolved from the
+          # triggering Build run. build.yml uses github.event.repository.{owner.login,name}
+          # and github.run_id; the equivalents here are the workflow_run payload's
+          # repository.{owner.login,name} and the workflow_run id.
+          delete-key: ${{ github.event.workflow_run.repository.owner.login }}-${{ github.event.workflow_run.repository.name }}-ci-moonbeam-${{ github.event.workflow_run.id }}
