@@ -208,24 +208,28 @@ describeSuite({
         });
 
         const events = await context.polkadotJs().query.system.events();
-        const mints = events
-          .filter((evt) => context.polkadotJs().events.balances.Minted.is(evt.event))
-          .map((evt) => evt.event.toJSON().data);
-        const totalMinted = mints.reduce((prev, cur: any) => prev + BigInt(cur[1]), 0n);
-        const executionCost = BigInt((mints[1] as any)[1]);
+        // In stable2603 the credit-based asset model moves native value via Withdraw/Deposit
+        // events (it no longer mints tokens into existence), so the execution fee is derived from
+        // the treasury Deposit rather than from `balances.Minted` events. The native DepositAsset
+        // to Baltathar succeeds even though the erc20 part of the multi-asset deposit fails.
+        const deposits = events
+          .filter((evt) => context.polkadotJs().events.balances.Deposit.is(evt.event))
+          .map((evt) => evt.event.toJSON().data as [string, any]);
+        const feeDeposit = deposits.find(
+          ([who]) => who.toLowerCase() !== BALTATHAR_ADDRESS.toLowerCase()
+        );
+        expect(feeDeposit, "execution fee should be deposited to the treasury").toBeDefined();
+        const executionCost = BigInt(feeDeposit![1]);
+        expect(executionCost > 0n).toBe(true);
+        expect(executionCost <= MAX_EXECUTION_COST).toBe(true);
 
-        expect(mints.length).toBe(2);
-        expect(totalMinted).toBe(DEPOSIT);
-
+        // Baltathar received the full deposit minus the execution fee.
         const finalBaltatharBalance = await getFreeBalance(BALTATHAR_ADDRESS, context);
-        console.log("final_baltathar_balance:", finalBaltatharBalance);
         expect(finalBaltatharBalance).toBe(DEPOSIT - executionCost);
 
+        // The full DEPOSIT was withdrawn from the sovereign account.
         const finalParaSovereignBalance = await getFreeBalance(paraSovereign as any, context);
         const paraSovereignBalanceDiff = initialParaSovereignBalance - finalParaSovereignBalance;
-        console.log("initial_paraSovereign_balance:", initialParaSovereignBalance);
-        console.log("final_paraSovereign_balance:", finalParaSovereignBalance);
-        console.log("diff:", paraSovereignBalanceDiff);
         expect(paraSovereignBalanceDiff).toBe(DEPOSIT);
       },
     });
