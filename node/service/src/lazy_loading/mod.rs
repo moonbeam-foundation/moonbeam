@@ -490,7 +490,7 @@ where
 		let mut env = sc_basic_authorship::ProposerFactory::with_proof_recording(
 			task_manager.spawn_handle(),
 			client.clone(),
-			transaction_pool.clone(),
+			crate::limited_transaction_pool(client.clone(), transaction_pool.clone()),
 			prometheus_registry.as_ref(),
 			telemetry.as_ref().map(|x| x.handle()),
 		);

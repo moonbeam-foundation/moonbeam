@@ -826,6 +826,10 @@ impl pallet_parachain_staking::OnInactiveCollator<Runtime> for OnInactiveCollato
 
 type MonetaryGovernanceOrigin =
 	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
+type RuntimeParametersAdminOrigin = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 5, 9>,
+>;
 
 pub struct RelayChainSlotProvider;
 impl Get<Slot> for RelayChainSlotProvider {
@@ -1393,7 +1397,7 @@ impl pallet_precompile_benchmarks::Config for Runtime {
 }
 
 impl pallet_parameters::Config for Runtime {
-	type AdminOrigin = EnsureRoot<AccountId>;
+	type AdminOrigin = RuntimeParametersAdminOrigin;
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeParameters = RuntimeParameters;
 	type WeightInfo = moonbase_weights::pallet_parameters::WeightInfo<Runtime>;

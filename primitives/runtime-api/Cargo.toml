@@ -1,0 +1,13 @@
+[package]
+name = "moonbeam-runtime-api-primitives"
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+version = "0.1.0"
+
+[dependencies]
+sp-api = { workspace = true }
+
+[features]
+default = [ "std" ]
+std = [ "sp-api/std" ]

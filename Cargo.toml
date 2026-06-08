@@ -35,6 +35,7 @@ members = [
     "precompiles/xcm-transactor",
     "precompiles/xtokens",
     "precompiles/p256verify",
+    "primitives/runtime-api",
     "primitives/storage-proof",
     "primitives/tests-primitives",
     "primitives/bridge/moonbeam",
@@ -66,6 +67,7 @@ account = { path = "primitives/account", default-features = false }
 evm-tracing-events = { path = "primitives/rpc/evm-tracing-events", default-features = false }
 moonbeam-core-primitives = { path = "core-primitives", default-features = false }
 moonbeam-primitives-ext = { path = "primitives/ext", default-features = false }
+moonbeam-runtime-api-primitives = { path = "primitives/runtime-api", default-features = false }
 moonbeam-rpc-primitives-debug = { path = "primitives/rpc/debug", default-features = false, features = [
     "runtime-3900",
 ] }
