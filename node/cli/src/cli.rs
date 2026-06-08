@@ -340,7 +340,7 @@ pub struct RunCmd {
 
 fn block_authoring_duration_parser(s: &str) -> Result<Duration, String> {
 	Ok(Duration::from_millis(clap_num::number_range(
-		s, 250, 2_000,
+		s, 250, 6_000,
 	)?))
 }
 
