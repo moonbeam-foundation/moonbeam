@@ -24,6 +24,7 @@
 
 pub mod rpc;
 
+use async_trait::async_trait;
 use cumulus_client_cli::CollatorOptions;
 use cumulus_client_collator::service::CollatorService;
 use cumulus_client_consensus_common::ParachainBlockImport as TParachainBlockImport;
@@ -52,6 +53,7 @@ use moonbeam_cli_opt::{
 };
 #[cfg(feature = "moonbeam-native")]
 pub use moonbeam_runtime;
+use moonbeam_runtime_api_primitives::AuthoringRuntimeApi;
 use moonbeam_vrf::VrfDigestsProvider;
 #[cfg(feature = "moonriver-native")]
 pub use moonriver_runtime;
@@ -74,9 +76,12 @@ use sc_service::{
 	TFullClient, TaskManager,
 };
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
-use sc_transaction_pool_api::{OffchainTransactionPoolFactory, TransactionPool};
+use sc_transaction_pool_api::{
+	ImportNotificationStream, OffchainTransactionPoolFactory, ReadyTransactions, TransactionFor,
+	TransactionPool, TransactionSource, TransactionStatusStreamFor, TxHash, TxInvalidityReportMap,
+};
 use session_keys_primitives::VrfApi;
-use sp_api::{ConstructRuntimeApi, ProvideRuntimeApi};
+use sp_api::{ApiExt, ConstructRuntimeApi, ProvideRuntimeApi};
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
 use sp_consensus::SyncOracle;
 use sp_core::{ByteArray, Encode, H256};
@@ -84,7 +89,13 @@ use sp_keystore::{Keystore, KeystorePtr};
 use std::str::FromStr;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
-use std::{collections::BTreeMap, path::Path, sync::Mutex, time::Duration};
+use std::{
+	collections::{BTreeMap, HashMap},
+	path::Path,
+	pin::Pin,
+	sync::Mutex,
+	time::Duration,
+};
 use substrate_prometheus_endpoint::Registry;
 
 pub use client::*;
@@ -118,6 +129,159 @@ type PartialComponentsResult<Client, Backend> = Result<
 >;
 
 const RELAY_CHAIN_SLOT_DURATION_MILLIS: u64 = 6_000;
+
+struct LimitedTransactionPool<C, P> {
+	client: Arc<C>,
+	inner: Arc<P>,
+}
+
+fn limited_transaction_pool<C, P>(
+	client: Arc<C>,
+	inner: Arc<P>,
+) -> Arc<LimitedTransactionPool<C, P>> {
+	Arc::new(LimitedTransactionPool { client, inner })
+}
+
+impl<C, P> LimitedTransactionPool<C, P>
+where
+	C: ProvideRuntimeApi<Block>,
+	C::Api: moonbeam_runtime_api_primitives::AuthoringRuntimeApi<Block> + sp_api::ApiExt<Block>,
+{
+	fn max_transactions_per_block(&self, at: Hash) -> u32 {
+		let api = self.client.runtime_api();
+		match api.api_version::<dyn moonbeam_runtime_api_primitives::AuthoringRuntimeApi<Block>>(at)
+		{
+			Ok(Some(_)) => api
+				.max_transactions_per_block(at)
+				.unwrap_or(moonbeam_runtime_api_primitives::DEFAULT_MAX_TRANSACTIONS_PER_BLOCK),
+			_ => moonbeam_runtime_api_primitives::DEFAULT_MAX_TRANSACTIONS_PER_BLOCK,
+		}
+	}
+}
+
+struct LimitedReadyTransactions<T> {
+	inner: Box<dyn ReadyTransactions<Item = T> + Send>,
+	remaining: usize,
+}
+
+impl<T> Iterator for LimitedReadyTransactions<T> {
+	type Item = T;
+
+	fn next(&mut self) -> Option<Self::Item> {
+		if self.remaining == 0 {
+			return None;
+		}
+		let item = self.inner.next();
+		if item.is_some() {
+			self.remaining -= 1;
+		}
+		item
+	}
+}
+
+impl<T> ReadyTransactions for LimitedReadyTransactions<T> {
+	fn report_invalid(&mut self, tx: &Self::Item) {
+		self.inner.report_invalid(tx)
+	}
+}
+
+#[async_trait]
+impl<C, P> TransactionPool for LimitedTransactionPool<C, P>
+where
+	C: ProvideRuntimeApi<Block> + Send + Sync,
+	C::Api: moonbeam_runtime_api_primitives::AuthoringRuntimeApi<Block> + sp_api::ApiExt<Block>,
+	P: TransactionPool<Block = Block>,
+	P::InPoolTransaction: 'static,
+{
+	type Block = P::Block;
+	type Error = P::Error;
+	type Hash = P::Hash;
+	type InPoolTransaction = P::InPoolTransaction;
+
+	async fn submit_at(
+		&self,
+		at: Hash,
+		source: TransactionSource,
+		xts: Vec<TransactionFor<Self>>,
+	) -> Result<Vec<Result<TxHash<Self>, Self::Error>>, Self::Error> {
+		self.inner.submit_at(at, source, xts).await
+	}
+
+	async fn submit_one(
+		&self,
+		at: Hash,
+		source: TransactionSource,
+		xt: TransactionFor<Self>,
+	) -> Result<TxHash<Self>, Self::Error> {
+		self.inner.submit_one(at, source, xt).await
+	}
+
+	async fn submit_and_watch(
+		&self,
+		at: Hash,
+		source: TransactionSource,
+		xt: TransactionFor<Self>,
+	) -> Result<Pin<Box<TransactionStatusStreamFor<Self>>>, Self::Error> {
+		self.inner.submit_and_watch(at, source, xt).await
+	}
+
+	async fn ready_at(
+		&self,
+		at: Hash,
+	) -> Box<dyn ReadyTransactions<Item = Arc<Self::InPoolTransaction>> + Send> {
+		Box::new(LimitedReadyTransactions {
+			inner: self.inner.ready_at(at).await,
+			remaining: self.max_transactions_per_block(at) as usize,
+		})
+	}
+
+	fn ready(&self) -> Box<dyn ReadyTransactions<Item = Arc<Self::InPoolTransaction>> + Send> {
+		self.inner.ready()
+	}
+
+	async fn report_invalid(
+		&self,
+		at: Option<Hash>,
+		invalid_tx_errors: TxInvalidityReportMap<TxHash<Self>>,
+	) -> Vec<Arc<Self::InPoolTransaction>> {
+		self.inner.report_invalid(at, invalid_tx_errors).await
+	}
+
+	fn futures(&self) -> Vec<Self::InPoolTransaction> {
+		self.inner.futures()
+	}
+
+	fn status(&self) -> sc_transaction_pool_api::PoolStatus {
+		self.inner.status()
+	}
+
+	fn import_notification_stream(&self) -> ImportNotificationStream<TxHash<Self>> {
+		self.inner.import_notification_stream()
+	}
+
+	fn on_broadcasted(&self, propagations: HashMap<TxHash<Self>, Vec<String>>) {
+		self.inner.on_broadcasted(propagations)
+	}
+
+	fn hash_of(&self, xt: &TransactionFor<Self>) -> TxHash<Self> {
+		self.inner.hash_of(xt)
+	}
+
+	fn ready_transaction(&self, hash: &TxHash<Self>) -> Option<Arc<Self::InPoolTransaction>> {
+		self.inner.ready_transaction(hash)
+	}
+
+	async fn ready_at_with_timeout(
+		&self,
+		at: Hash,
+		timeout: Duration,
+	) -> Box<dyn ReadyTransactions<Item = Arc<Self::InPoolTransaction>> + Send> {
+		Box::new(LimitedReadyTransactions {
+			inner: self.inner.ready_at_with_timeout(at, timeout).await,
+			remaining: self.max_transactions_per_block(at) as usize,
+		})
+	}
+}
 
 static TIMESTAMP: AtomicU64 = AtomicU64::new(0);
 
@@ -1071,7 +1235,7 @@ where
 	let proposer = sc_basic_authorship::ProposerFactory::with_proof_recording(
 		task_manager.spawn_handle(),
 		client.clone(),
-		transaction_pool,
+		limited_transaction_pool(client.clone(), transaction_pool),
 		prometheus_registry,
 		telemetry.clone(),
 	);
@@ -1390,7 +1554,7 @@ where
 		let mut env = sc_basic_authorship::ProposerFactory::with_proof_recording(
 			task_manager.spawn_handle(),
 			client.clone(),
-			transaction_pool.clone(),
+			limited_transaction_pool(client.clone(), transaction_pool.clone()),
 			prometheus_registry.as_ref(),
 			telemetry.as_ref().map(|x| x.handle()),
 		);

@@ -14,6 +14,7 @@ import type { KeyringPair } from "@polkadot/keyring/types";
 import { u8aToHex } from "@polkadot/util";
 import { encodeFunctionData } from "viem";
 import { ConstantStore } from "../../../../helpers";
+import { getTransactionReceiptWithRetry } from "../../../../helpers/eth-transactions";
 
 describeSuite({
   id: "D010411",
@@ -56,9 +57,10 @@ describeSuite({
           })
         );
 
-        const receipt = await context
-          .viem("public")
-          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
+        const receipt = await getTransactionReceiptWithRetry(
+          context,
+          result?.hash as `0x${string}`
+        );
         expect(receipt.status).to.equal("success");
 
         // Verify we removed the association

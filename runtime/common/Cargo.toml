@@ -17,6 +17,7 @@ log = { workspace = true }
 # Moonbeam
 ethereum = { workspace = true }
 moonbeam-core-primitives = { workspace = true }
+moonbeam-runtime-api-primitives = { workspace = true }
 pallet-migrations = { workspace = true }
 pallet-moonbeam-foreign-assets = { workspace = true }
 pallet-xcm-transactor = { workspace = true }
@@ -54,6 +55,6 @@ account = { workspace = true }
 cumulus-primitives-core = { workspace = true, default-features = false }
 
 [features]
-std = [ "account/std", "cumulus-primitives-core/std", "ethereum/std", "frame-support/std", "frame-system/std", "log/std", "moonbeam-core-primitives/std", "pallet-author-inherent/std", "pallet-author-slot-filter/std", "pallet-balances/std", "pallet-identity/std", "pallet-message-queue/std", "pallet-migrations/std", "pallet-moonbeam-foreign-assets/std", "pallet-treasury/std", "pallet-xcm-bridge/std", "pallet-xcm-bridge/std", "pallet-xcm-transactor/std", "pallet-xcm-weight-trader/std", "pallet-xcm/std", "parity-scale-codec/std", "scale-info/std", "sp-core/std", "sp-io/std", "sp-runtime/std", "sp-std/std", "xcm-builder/std", "xcm/std" ]
+std = [ "account/std", "cumulus-primitives-core/std", "ethereum/std", "frame-support/std", "frame-system/std", "log/std", "moonbeam-core-primitives/std", "moonbeam-runtime-api-primitives/std", "pallet-author-inherent/std", "pallet-author-slot-filter/std", "pallet-balances/std", "pallet-identity/std", "pallet-message-queue/std", "pallet-migrations/std", "pallet-moonbeam-foreign-assets/std", "pallet-treasury/std", "pallet-xcm-bridge/std", "pallet-xcm-bridge/std", "pallet-xcm-transactor/std", "pallet-xcm-weight-trader/std", "pallet-xcm/std", "parity-scale-codec/std", "scale-info/std", "sp-core/std", "sp-io/std", "sp-runtime/std", "sp-std/std", "xcm-builder/std", "xcm/std" ]
 runtime-benchmarks = [ "cumulus-primitives-core/runtime-benchmarks", "frame-support/runtime-benchmarks", "frame-system/runtime-benchmarks", "pallet-author-inherent/runtime-benchmarks", "pallet-author-slot-filter/runtime-benchmarks", "pallet-balances/runtime-benchmarks", "pallet-identity/runtime-benchmarks", "pallet-message-queue/runtime-benchmarks", "pallet-migrations/runtime-benchmarks", "pallet-moonbeam-foreign-assets/runtime-benchmarks", "pallet-treasury/runtime-benchmarks", "pallet-xcm-bridge/runtime-benchmarks", "pallet-xcm-transactor/runtime-benchmarks", "pallet-xcm-weight-trader/runtime-benchmarks", "pallet-xcm/runtime-benchmarks", "sp-runtime/runtime-benchmarks", "xcm-builder/runtime-benchmarks", "xcm/runtime-benchmarks" ]
 try-runtime = [ "frame-support/try-runtime", "frame-system/try-runtime", "pallet-author-inherent/try-runtime", "pallet-author-slot-filter/try-runtime", "pallet-balances/try-runtime", "pallet-identity?/try-runtime", "pallet-message-queue/try-runtime", "pallet-migrations/try-runtime", "pallet-moonbeam-foreign-assets/try-runtime", "pallet-treasury/try-runtime", "pallet-xcm-bridge/try-runtime", "pallet-xcm-transactor/try-runtime", "pallet-xcm-weight-trader/try-runtime", "pallet-xcm/try-runtime", "sp-runtime/try-runtime" ]

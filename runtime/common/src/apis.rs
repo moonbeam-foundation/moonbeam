@@ -137,6 +137,12 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 			}
 
+			impl moonbeam_runtime_api_primitives::AuthoringRuntimeApi<Block> for Runtime {
+				fn max_transactions_per_block() -> u32 {
+					dynamic_params::runtime_config::MaxTransactionsPerBlock::get()
+				}
+			}
+
 			impl sp_session::SessionKeys<Block> for Runtime {
 				fn decode_session_keys(
 					encoded: Vec<u8>,

@@ -74,6 +74,7 @@ export async function createViemTransaction(
   const chainId = await context.viem().getChainId();
   const txnCount = await context.viem().getTransactionCount({ address: account.address });
   const gasPrice = await context.viem().getGasPrice();
+  const maxFeePerGas = gasPrice * 2n;
   const data = options?.data ? options.data : "0x";
 
   let estimatedGas = 1_500_000n;
@@ -94,7 +95,7 @@ export async function createViemTransaction(
       ? ({
           to,
           value,
-          maxFeePerGas: options.maxFeePerGas !== undefined ? options.maxFeePerGas : gasPrice,
+          maxFeePerGas: options.maxFeePerGas !== undefined ? options.maxFeePerGas : maxFeePerGas,
           maxPriorityFeePerGas:
             options.maxPriorityFeePerGas !== undefined ? options.maxPriorityFeePerGas : gasPrice,
           gas: options.gas !== undefined ? options.gas : estimatedGas,
@@ -127,7 +128,8 @@ export async function createViemTransaction(
             ? ({
                 to,
                 value,
-                maxFeePerGas: options.maxFeePerGas !== undefined ? options.maxFeePerGas : gasPrice,
+                maxFeePerGas:
+                  options.maxFeePerGas !== undefined ? options.maxFeePerGas : maxFeePerGas,
                 maxPriorityFeePerGas:
                   options.maxPriorityFeePerGas !== undefined
                     ? options.maxPriorityFeePerGas
