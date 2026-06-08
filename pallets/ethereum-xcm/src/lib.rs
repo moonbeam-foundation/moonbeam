@@ -50,15 +50,7 @@ pub use fp_rpc::TransactionStatus;
 pub use xcm_primitives::{EnsureProxy, EthereumXcmTransaction, XcmToEthereum};
 
 #[derive(
-	PartialEq,
-	Eq,
-	Clone,
-	Encode,
-	Decode,
-	Debug,
-	TypeInfo,
-	MaxEncodedLen,
-	DecodeWithMemTracking,
+	PartialEq, Eq, Clone, Encode, Decode, Debug, TypeInfo, MaxEncodedLen, DecodeWithMemTracking,
 )]
 pub enum RawOrigin {
 	XcmEthereumTransaction(H160),

@@ -29,9 +29,7 @@ use frame_support::traits::Get;
 use frame_support::BoundedVec;
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
-use sp_runtime::{
-	traits::{Saturating, Zero},
-};
+use sp_runtime::traits::{Saturating, Zero};
 
 /// An action that can be performed upon a delegation
 #[derive(

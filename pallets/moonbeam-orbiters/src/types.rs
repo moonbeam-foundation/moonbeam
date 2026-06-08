@@ -15,9 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>
 
 use scale_info::TypeInfo;
-use sp_runtime::{
-	codec::{Decode, Encode},
-};
+use sp_runtime::codec::{Decode, Encode};
 use sp_std::vec::Vec;
 
 #[derive(Decode, Encode, Debug, TypeInfo)]

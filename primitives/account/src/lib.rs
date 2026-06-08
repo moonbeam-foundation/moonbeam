@@ -194,16 +194,7 @@ impl sp_runtime::traits::Verify for EthereumSignature {
 
 /// Public key for an Ethereum / Moonbeam compatible account
 #[derive(
-	Eq,
-	PartialEq,
-	Ord,
-	PartialOrd,
-	Clone,
-	Encode,
-	Decode,
-	Debug,
-	TypeInfo,
-	DecodeWithMemTracking,
+	Eq, PartialEq, Ord, PartialOrd, Clone, Encode, Decode, Debug, TypeInfo, DecodeWithMemTracking,
 )]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct EthereumSigner([u8; 20]);

@@ -612,7 +612,10 @@ fn pending_deposits_overflow() {
 			&beneficiary_location,
 			None,
 		);
-		assert_eq!(result.map_err(|(_, e)| e), Err(xcm::latest::Error::Overflow.into()));
+		assert_eq!(
+			result.map_err(|(_, e)| e),
+			Err(xcm::latest::Error::Overflow.into())
+		);
 
 		// Pending deposit unchanged
 		assert_eq!(

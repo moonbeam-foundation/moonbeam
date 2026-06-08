@@ -237,14 +237,7 @@ pub mod pallet {
 
 	/// Enum defining the way to express a Currency.
 	#[derive(
-		Clone,
-		Encode,
-		Decode,
-		Eq,
-		PartialEq,
-		Debug,
-		scale_info::TypeInfo,
-		DecodeWithMemTracking,
+		Clone, Encode, Decode, Eq, PartialEq, Debug, scale_info::TypeInfo, DecodeWithMemTracking,
 	)]
 	pub enum Currency<CurrencyId> {
 		// Express the Currency as a CurrencyId
@@ -260,14 +253,7 @@ pub mod pallet {
 	}
 
 	#[derive(
-		Clone,
-		Encode,
-		Decode,
-		Eq,
-		PartialEq,
-		Debug,
-		scale_info::TypeInfo,
-		DecodeWithMemTracking,
+		Clone, Encode, Decode, Eq, PartialEq, Debug, scale_info::TypeInfo, DecodeWithMemTracking,
 	)]
 	pub struct HrmpInitParams {
 		pub para_id: ParaId,
@@ -277,14 +263,7 @@ pub mod pallet {
 
 	/// Enum defining the way to express a Currency.
 	#[derive(
-		Clone,
-		Encode,
-		Decode,
-		Eq,
-		PartialEq,
-		Debug,
-		scale_info::TypeInfo,
-		DecodeWithMemTracking,
+		Clone, Encode, Decode, Eq, PartialEq, Debug, scale_info::TypeInfo, DecodeWithMemTracking,
 	)]
 	pub enum HrmpOperation {
 		InitOpen(HrmpInitParams),

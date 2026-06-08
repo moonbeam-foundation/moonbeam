@@ -49,9 +49,7 @@ pub mod pallet {
 	use sp_core::{H160, H256, U256};
 	use sp_std::boxed::Box;
 	use sp_std::vec::Vec;
-	use xcm::latest::{
-		Asset, AssetId, Error as XcmError, Junction, Location, XcmContext,
-	};
+	use xcm::latest::{Asset, AssetId, Error as XcmError, Junction, Location, XcmContext};
 	use xcm_executor::traits::ConvertLocation;
 	use xcm_executor::traits::{Error as MatchError, MatchesFungibles};
 	use xcm_executor::AssetsInHolding;
@@ -184,8 +182,9 @@ pub mod pallet {
 				let gas_limit = Self::gas_limit_of_erc20_transfer(&asset.id);
 
 				// Get the global context to recover accounts origins and perform the transfers.
-				let outcome = XcmHoldingErc20sOrigins::with(|erc20s_origins| {
-					match erc20s_origins.drain(contract_address, amount) {
+				let outcome =
+					XcmHoldingErc20sOrigins::with(|erc20s_origins| {
+						match erc20s_origins.drain(contract_address, amount) {
 						// We perform the evm transfers in a storage transaction to ensure that if
 						// one of them fails all the changes of the previous evm calls are rolled
 						// back.
@@ -209,7 +208,7 @@ pub mod pallet {
 							"SplitError: each withdrawal of erc20 tokens must be deposited at once",
 						)),
 					}
-				});
+					});
 
 				match outcome {
 					Some(Ok(())) => {}
