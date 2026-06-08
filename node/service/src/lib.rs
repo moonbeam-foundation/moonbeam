@@ -1068,14 +1068,13 @@ where
 	sc_client_api::StateBackendFor<FullBackend, Block>: sc_client_api::StateBackend<BlakeTwo256>,
 	SO: SyncOracle + Send + Sync + Clone + 'static,
 {
-	let mut proposer = sc_basic_authorship::ProposerFactory::with_proof_recording(
+	let proposer = sc_basic_authorship::ProposerFactory::with_proof_recording(
 		task_manager.spawn_handle(),
 		client.clone(),
 		transaction_pool,
 		prometheus_registry,
 		telemetry.clone(),
 	);
-	proposer.set_force_empty_blocks(node_extra_args.force_empty_blocks);
 
 	let collator_service = CollatorService::new(
 		client.clone(),
@@ -1307,7 +1306,6 @@ where
 	use futures::Stream;
 	use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams};
 
-	let force_empty_blocks = node_extra_args.force_empty_blocks;
 	let sc_service::PartialComponents {
 		client,
 		backend,
@@ -1398,7 +1396,6 @@ where
 			telemetry.as_ref().map(|x| x.handle()),
 		);
 		env.set_soft_deadline(SOFT_DEADLINE_PERCENT);
-		env.set_force_empty_blocks(force_empty_blocks);
 
 		let commands_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> =
 			match sealing {

@@ -142,7 +142,4 @@ pub struct NodeExtraArgs {
 
 	/// Enable the legacy block import strategy
 	pub legacy_block_import_strategy: bool,
-
-	/// Force collators to skip transaction inclusion and produce inherents-only blocks.
-	pub force_empty_blocks: bool,
 }
