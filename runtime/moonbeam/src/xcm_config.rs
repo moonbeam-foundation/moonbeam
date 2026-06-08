@@ -668,8 +668,8 @@ parameter_types! {
 		].into()
 	};
 
-	// To be able to support almost all erc20 implementations,
-	// we provide a sufficiently hight gas limit.
+	// Default gas limit for ERC20 transfers executed through XCM when no
+	// gas_limit override is provided.
 	pub Erc20XcmBridgeTransferGasLimit: u64 = 400_000;
 }
 

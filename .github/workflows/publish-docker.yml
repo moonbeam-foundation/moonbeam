@@ -23,14 +23,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
+          ref: ${{ github.event.inputs.tag }}
           fetch-depth: 0
       - name: Prepare
         id: prep
         run: |
           DOCKER_IMAGE=moonbeamfoundation/moonbeam
           VERSION="${{ github.event.inputs.tag }}"
-          COMMIT=`git rev-list -n 1 '${{ github.event.inputs.tag }}'`
-          COMMIT_SHA8=sha-${COMMIT::8}
+          COMMIT=$(git rev-parse HEAD)
+          COMMIT_SHA8=${COMMIT::8}
 
           mkdir -p build
           wget https://github.com/moonbeam-foundation/moonbeam/releases/download/$VERSION/moonbeam -O build/moonbeam
@@ -56,16 +57,33 @@ jobs:
 
           echo "tags=${TAGS}" >> $GITHUB_OUTPUT
           echo "created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
-      - name: Cargo build
-        uses: ./.github/workflow-templates/publish-docker
+          echo "commit_sha=${COMMIT}" >> $GITHUB_OUTPUT
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.8.0
         with:
-          dockerhub_username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
-          dockerhub_password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
-          image_tags: ${{ steps.prep.outputs.tags }}
-          image_title: ${{ github.event.repository.name }}
-          image_description: ${{ github.event.repository.description }}
-          image_url: ${{ github.event.repository.html_url }}
-          image_source: ${{ github.event.repository.clone_url }}
-          image_created: ${{ steps.prep.outputs.created }}
-          image_revision: ${{ github.sha }}
-          image_licenses: ${{ github.event.repository.license.spdx_id }}
+          version: latest
+          driver-opts: |
+            image=moby/buildkit:v0.30.0
+      - name: Login to DockerHub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
+          password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
+      - name: Build and push moonbeam
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./docker/moonbeam.Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.prep.outputs.tags }}
+          labels: |
+            org.opencontainers.image.title=${{ github.event.repository.name }}
+            org.opencontainers.image.description=${{ github.event.repository.description }}
+            org.opencontainers.image.url=${{ github.event.repository.html_url }}
+            org.opencontainers.image.source=${{ github.event.repository.clone_url }}
+            org.opencontainers.image.created=${{ steps.prep.outputs.created }}
+            org.opencontainers.image.revision=${{ steps.prep.outputs.commit_sha }}
+            org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}

@@ -55,6 +55,7 @@ pub trait WeightInfo {
 	fn update_reward_address() -> Weight;
 	fn associate_native_identity() -> Weight;
 	fn change_association_with_relay_keys(x: u32) -> Weight;
+	fn complete_unclaimed_rewards() -> Weight;
 }
 
 /// Weights for pallet_crowdloan_rewards using the Substrate node and recommended hardware.
@@ -82,6 +83,11 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(6))
 			.saturating_add(T::DbWeight::get().writes(4))
 	}
+	fn complete_unclaimed_rewards() -> Weight {
+		Weight::from_all(80_000_000)
+			.saturating_add(T::DbWeight::get().reads(3))
+			.saturating_add(T::DbWeight::get().writes(3))
+	}
 }
 
 // For backwards compatibility and tests
@@ -107,5 +113,10 @@ impl WeightInfo for () {
 			.saturating_add(Weight::from_all(47_373_000_u64.saturating_mul(x as u64)))
 			.saturating_add(RocksDbWeight::get().reads(6))
 			.saturating_add(RocksDbWeight::get().writes(4))
+	}
+	fn complete_unclaimed_rewards() -> Weight {
+		Weight::from_all(80_000_000)
+			.saturating_add(RocksDbWeight::get().reads(3))
+			.saturating_add(RocksDbWeight::get().writes(3))
 	}
 }

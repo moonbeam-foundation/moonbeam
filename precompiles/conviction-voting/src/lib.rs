@@ -20,6 +20,7 @@ use account::SYSTEM_ACCOUNT_SIZE;
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::{Currency, Polling};
+use frame_support::BoundedVec;
 use pallet_conviction_voting::Call as ConvictionVotingCall;
 use pallet_conviction_voting::{
 	AccountVote, Casting, ClassLocksFor, Conviction, Delegating, Tally, TallyOf, Vote, Voting,
@@ -27,7 +28,7 @@ use pallet_conviction_voting::{
 };
 use pallet_evm::{AddressMapping, Log};
 use precompile_utils::prelude::*;
-use sp_core::{Get, MaxEncodedLen, H160, H256, U256};
+use sp_core::{MaxEncodedLen, H160, H256, U256};
 use sp_runtime::traits::{Dispatchable, StaticLookup};
 use sp_std::marker::PhantomData;
 use sp_std::vec::Vec;
@@ -56,6 +57,13 @@ type ClassOf<Runtime> = <<Runtime as pallet_conviction_voting::Config>::Polls as
 		<Runtime as pallet_conviction_voting::Config>::MaxTurnout,
 	>,
 >>::Class;
+type ClassLocksForOf<Runtime> = BoundedVec<
+	(ClassOf<Runtime>, BalanceOf<Runtime>),
+	frame_support::traits::ClassCountOf<
+		<Runtime as pallet_conviction_voting::Config>::Polls,
+		TallyOf<Runtime>,
+	>,
+>;
 type VotingOf<Runtime, Instance = ()> = Voting<
 	BalanceOf<Runtime>,
 	<Runtime as frame_system::Config>::AccountId,
@@ -104,7 +112,7 @@ pub struct ConvictionVotingPrecompile<Runtime>(PhantomData<Runtime>);
 impl<Runtime> ConvictionVotingPrecompile<Runtime>
 where
 	Runtime: pallet_conviction_voting::Config + pallet_evm::Config + frame_system::Config,
-	BalanceOf<Runtime>: TryFrom<U256> + Into<U256>,
+	BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + MaxEncodedLen,
 	<Runtime as frame_system::Config>::RuntimeCall:
 		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
@@ -112,7 +120,7 @@ where
 	Runtime::AccountId: Into<H160>,
 	<Runtime as frame_system::Config>::RuntimeCall: From<ConvictionVotingCall<Runtime>>,
 	IndexOf<Runtime>: TryFrom<u32> + TryInto<u32>,
-	ClassOf<Runtime>: TryFrom<u16> + TryInto<u16>,
+	ClassOf<Runtime>: TryFrom<u16> + TryInto<u16> + MaxEncodedLen,
 	<Runtime as pallet_conviction_voting::Config>::Polls: Polling<
 		Tally<
 			<<Runtime as pallet_conviction_voting::Config>::Currency as Currency<
@@ -469,18 +477,8 @@ where
 		handle: &mut impl PrecompileHandle,
 		who: Address,
 	) -> EvmResult<Vec<OutputClassLock>> {
-		// ClassLocksFor: Twox64Concat(8) + 20 + BoundedVec(TransInfo::Id(2) * ClassCountOf)
-		handle.record_db_read::<Runtime>(
-			28 + ((2 * frame_support::traits::ClassCountOf::<
-				<Runtime as pallet_conviction_voting::Config>::Polls,
-				Tally<
-					<<Runtime as pallet_conviction_voting::Config>::Currency as Currency<
-						<Runtime as frame_system::Config>::AccountId,
-					>>::Balance,
-					<Runtime as pallet_conviction_voting::Config>::MaxTurnout,
-				>,
-			>::get()) as usize),
-		)?;
+		// ClassLocksFor: Twox64Concat(8) + AccountId(20) + BoundedVec((ClassOf, BalanceOf)).
+		handle.record_db_read::<Runtime>(28 + ClassLocksForOf::<Runtime>::max_encoded_len())?;
 
 		let who = Runtime::AddressMapping::into_account_id(who.into());
 

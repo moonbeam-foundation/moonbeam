@@ -31,7 +31,7 @@
       "multiThreads": false,
       "runScripts": ["download-polkadot.sh"],
       "foundation": {
-        "rtUpgradePath": "../target/release/wbuild/moonbeam-runtime/moonbeam_runtime.compact.compressed.wasm",
+        "rtUpgradePath": "../target/debug/wbuild/moonbeam-runtime/moonbeam_runtime.compact.compressed.wasm",
         "type": "zombie",
         "zombieSpec": {
           "configPath": "./configs/zombieMoonbeam.json"
@@ -66,7 +66,7 @@
       "multiThreads": false,
       "runScripts": ["download-polkadot.sh"],
       "foundation": {
-        "rtUpgradePath": "../target/release/wbuild/moonriver-runtime/moonriver_runtime.compact.compressed.wasm",
+        "rtUpgradePath": "../target/debug/wbuild/moonriver-runtime/moonriver_runtime.compact.compressed.wasm",
         "type": "zombie",
         "zombieSpec": {
           "configPath": "./configs/zombieMoonriver.json"
@@ -101,7 +101,7 @@
       "multiThreads": false,
       "runScripts": ["download-polkadot.sh"],
       "foundation": {
-        "rtUpgradePath": "../target/release/wbuild/moonbase-runtime/moonbase_runtime.compact.compressed.wasm",
+        "rtUpgradePath": "../target/debug/wbuild/moonbase-runtime/moonbase_runtime.compact.compressed.wasm",
         "type": "zombie",
         "zombieSpec": {
           "configPath": "./configs/zombieAlphanet.json"
@@ -388,8 +388,8 @@
       "contracts": "contracts/",
       "runScripts": [
         "compile-contracts.ts compile",
-        "compile-wasm.ts compile -b ../target/release/moonbeam -o wasm -c moonbeam-dev",
-        "prepare-lazy-loading-overrides.ts process configs/lazyLoadingStateOverrides.json tmp/lazyLoadingStateOverrides.json ../target/release/wbuild/moonbeam-runtime/moonbeam_runtime.compact.compressed.wasm"
+        "compile-wasm.ts compile -b ../target/debug/moonbeam -o wasm -c moonbeam-dev",
+        "prepare-lazy-loading-overrides.ts process configs/lazyLoadingStateOverrides.json tmp/lazyLoadingStateOverrides.json ../target/debug/wbuild/moonbeam-runtime/moonbeam_runtime.compact.compressed.wasm"
       ],
       "multiThreads": 4,
       "envVars": ["DEBUG_COLORS=1"],
@@ -402,7 +402,7 @@
         "launchSpec": [
           {
             "name": "moonbeam",
-            "binPath": "../target/release/moonbeam",
+            "binPath": "../target/debug/moonbeam",
             "newRpcBehaviour": true,
             "legacy": false,
             "options": [
@@ -424,7 +424,7 @@
               "--max-pov-percentage=100"
             ],
             "defaultForkConfig": {
-              "url": "https://trace.api.moonbeam.network",
+              "url": "https://rpc.api.moonbeam.network",
               "stateOverridePath": "tmp/lazyLoadingStateOverrides.json",
               "verbose": true
             }
@@ -440,7 +440,7 @@
       "contracts": "contracts/",
       "runScripts": [
         "compile-contracts.ts compile",
-        "compile-wasm.ts compile -b ../target/release/moonbeam -o wasm -c moonbeam-dev"
+        "compile-wasm.ts compile -b ../target/debug/moonbeam -o wasm -c moonbeam-dev"
       ],
       "multiThreads": 4,
       "envVars": ["DEBUG_COLORS=1"],
@@ -453,7 +453,7 @@
         "launchSpec": [
           {
             "name": "moonbeam",
-            "binPath": "../target/release/moonbeam",
+            "binPath": "../target/debug/moonbeam",
             "newRpcBehaviour": true,
             "legacy": false,
             "options": [
@@ -485,7 +485,7 @@
       "contracts": "contracts/",
       "runScripts": [
         "compile-contracts.ts compile",
-        "compile-wasm.ts compile -b ../target/release/moonbeam -o wasm -c moonriver-dev"
+        "compile-wasm.ts compile -b ../target/debug/moonbeam -o wasm -c moonriver-dev"
       ],
       "multiThreads": 8,
       "envVars": ["DEBUG_COLORS=1"],
@@ -498,7 +498,7 @@
         "launchSpec": [
           {
             "name": "moonbeam",
-            "binPath": "../target/release/moonbeam",
+            "binPath": "../target/debug/moonbeam",
             "newRpcBehaviour": true,
             "legacy": false,
             "options": [
@@ -530,7 +530,7 @@
       "contracts": "contracts/",
       "runScripts": [
         "compile-contracts.ts compile",
-        "compile-wasm.ts compile -b ../target/release/moonbeam -o wasm -c moonbase-dev"
+        "compile-wasm.ts compile -b ../target/debug/moonbeam -o wasm -c moonbase-dev"
       ],
       "multiThreads": 4,
       "envVars": ["DEBUG_COLORS=1"],
@@ -543,7 +543,7 @@
         "launchSpec": [
           {
             "name": "moonbeam",
-            "binPath": "../target/release/moonbeam",
+            "binPath": "../target/debug/moonbeam",
             "newRpcBehaviour": true,
             "legacy": false,
             "options": [
@@ -574,7 +574,7 @@
       "contracts": "contracts/",
       "runScripts": [
         "compile-contracts.ts compile",
-        "compile-wasm.ts compile -b ../target/release/moonbeam -o wasm -c moonbase-dev"
+        "compile-wasm.ts compile -b ../target/debug/moonbeam -o wasm -c moonbase-dev"
       ],
       "multiThreads": 4,
       "envVars": ["DEBUG_COLORS=1"],
@@ -584,7 +584,7 @@
         "launchSpec": [
           {
             "name": "moonbeam",
-            "binPath": "../target/release/moonbeam",
+            "binPath": "../target/debug/moonbeam",
             "newRpcBehaviour": true,
             "options": [
               "--ethapi=txpool,debug,trace",
@@ -665,7 +665,7 @@
       "testFileDir": ["suites/chopsticks/"],
       "foundation": {
         "type": "chopsticks",
-        "rtUpgradePath": "../target/release/wbuild/moonbeam-runtime/moonbeam_runtime.compact.compressed.wasm",
+        "rtUpgradePath": "../target/debug/wbuild/moonbeam-runtime/moonbeam_runtime.compact.compressed.wasm",
         "launchSpec": [
           {
             "name": "mb",
@@ -688,7 +688,7 @@
       "testFileDir": ["suites/chopsticks/"],
       "foundation": {
         "type": "chopsticks",
-        "rtUpgradePath": "../target/release/wbuild/moonriver-runtime/moonriver_runtime.compact.compressed.wasm",
+        "rtUpgradePath": "../target/debug/wbuild/moonriver-runtime/moonriver_runtime.compact.compressed.wasm",
         "launchSpec": [
           {
             "name": "mb",
@@ -711,7 +711,7 @@
       "testFileDir": ["suites/chopsticks/"],
       "foundation": {
         "type": "chopsticks",
-        "rtUpgradePath": "../target/release/wbuild/moonbase-runtime/moonbase_runtime.compact.compressed.wasm",
+        "rtUpgradePath": "../target/debug/wbuild/moonbase-runtime/moonbase_runtime.compact.compressed.wasm",
         "launchSpec": [
           {
             "name": "mb",

@@ -1,7 +1,9 @@
 import "@moonbeam-network/api-augment";
 import {
   ALITH_ADDRESS,
+  ALITH_PRIVATE_KEY,
   beforeAll,
+  createViemTransaction,
   deployCreateCompiledContract,
   describeSuite,
   expect,
@@ -61,20 +63,23 @@ describeSuite({
           value: 0n,
         });
 
-        const txHash = await context.viem().sendTransaction({
+        const rawTx = await createViemTransaction(context, {
           to: subCallOogAddress,
           data: encodeFunctionData({
             abi: subCallOogAbi,
             functionName: "subCallLooper",
             args: [looperAddress, 999],
           }),
+          privateKey: ALITH_PRIVATE_KEY,
           txnType: "eip1559",
-          gasLimit: estimatedGas,
+          gas: estimatedGas,
+          maxPriorityFeePerGas: 0n,
         });
+        const { result } = await context.createBlock(rawTx);
 
-        await context.createBlock();
-
-        const receipt = await context.viem().getTransactionReceipt({ hash: txHash });
+        const receipt = await context
+          .viem("public")
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
 
         const decoded = decodeEventLog({
           abi: subCallOogAbi,
@@ -102,20 +107,23 @@ describeSuite({
 
         log(`Estimated gas: ${estimatedGas}`);
 
-        const txHash = await context.viem().sendTransaction({
+        const rawTx = await createViemTransaction(context, {
           to: subCallOogAddress,
           data: encodeFunctionData({
             abi: subCallOogAbi,
             functionName: "subCallPov",
             args: [bloatedContracts],
           }),
+          privateKey: ALITH_PRIVATE_KEY,
           txnType: "eip1559",
-          gasLimit: estimatedGas,
+          gas: estimatedGas,
+          maxPriorityFeePerGas: 0n,
         });
+        const { result } = await context.createBlock(rawTx);
 
-        await context.createBlock();
-
-        const receipt = await context.viem().getTransactionReceipt({ hash: txHash });
+        const receipt = await context
+          .viem("public")
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         const decoded = decodeEventLog({
           abi: subCallOogAbi,
           data: receipt.logs[bloatedContracts.length - 1].data,

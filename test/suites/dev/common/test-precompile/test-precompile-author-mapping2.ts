@@ -62,7 +62,7 @@ describeSuite({
 
         const receipt = await context
           .viem("public")
-          .getTransactionReceipt({ hash: result?.hash as `0x${string}` });
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).to.equal("success");
 
         // Verify we updated firstMappingAccount for secondMappingAccount

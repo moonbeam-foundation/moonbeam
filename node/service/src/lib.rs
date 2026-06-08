@@ -34,7 +34,7 @@ use cumulus_client_service::{
 };
 use cumulus_primitives_core::{
 	relay_chain::{self, well_known_keys, CollatorPair},
-	CollectCollationInfo, ParaId,
+	CollectCollationInfo, ParaId, RelayParentOffsetApi,
 };
 use cumulus_relay_chain_inprocess_interface::build_inprocess_relay_chain;
 use cumulus_relay_chain_interface::{OverseerHandle, RelayChainInterface, RelayChainResult};
@@ -1299,7 +1299,8 @@ pub async fn new_dev<RuntimeApi, Customizations, Net>(
 ) -> Result<TaskManager, ServiceError>
 where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi: RuntimeApiCollection,
+	RuntimeApi::RuntimeApi:
+		RuntimeApiCollection + cumulus_primitives_core::RelayParentOffsetApi<Block>,
 	Customizations: ClientCustomizations + 'static,
 	Net: NetworkBackend<Block, Hash>,
 {
@@ -1550,6 +1551,9 @@ where
 							}
 						};
 
+						let relay_parent_offset =
+							client_for_xcm.runtime_api().relay_parent_offset(block)?;
+
 						let mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
 							para_id: parachain_id,
@@ -1562,7 +1566,7 @@ where
 							}),
 							current_para_block_head,
 							relay_offset: additional_relay_offset.load(Ordering::SeqCst),
-							relay_parent_offset: 0,
+							relay_parent_offset,
 							relay_blocks_per_para_block: 1,
 							para_blocks_per_relay_epoch: 10,
 							relay_randomness_config: (),
@@ -1769,6 +1773,7 @@ mod tests {
 		config::{BasePath, DatabaseSource, KeystoreConfig},
 		Configuration, Role,
 	};
+	use sp_state_machine::BasicExternalities;
 	use std::path::Path;
 	use std::str::FromStr;
 
@@ -1860,17 +1865,6 @@ mod tests {
 
 	#[test]
 	fn dalek_does_not_panic() {
-		use futures::executor::block_on;
-		use sc_block_builder::BlockBuilderBuilder;
-		use sc_client_db::{Backend, BlocksPruning, DatabaseSettings, DatabaseSource, PruningMode};
-		use sp_api::ProvideRuntimeApi;
-		use sp_consensus::BlockOrigin;
-		use substrate_test_runtime::TestAPI;
-		use substrate_test_runtime_client::runtime::Block;
-		use substrate_test_runtime_client::{
-			ClientBlockImportExt, TestClientBuilder, TestClientBuilderExt,
-		};
-
 		fn zero_ed_pub() -> sp_core::ed25519::Public {
 			sp_core::ed25519::Public::default()
 		}
@@ -1886,56 +1880,16 @@ mod tests {
 			sp_core::ed25519::Signature::from_raw(signature[0..64].try_into().unwrap())
 		}
 
-		let tmp = tempfile::tempdir().unwrap();
-		let backend = Arc::new(
-			Backend::new(
-				DatabaseSettings {
-					trie_cache_maximum_size: Some(1 << 20),
-					state_pruning: Some(PruningMode::ArchiveAll),
-					blocks_pruning: BlocksPruning::KeepAll,
-					source: DatabaseSource::RocksDb {
-						path: tmp.path().into(),
-						cache_size: 1024,
-					},
-					metrics_registry: None,
-				},
-				u64::MAX,
-			)
-			.unwrap(),
-		);
-		let client = TestClientBuilder::with_backend(backend).build();
+		let mut ext = BasicExternalities::default();
+		ext.register_extension(sp_io::UseDalekExt::default());
 
-		client
-			.execution_extensions()
-			.set_extensions_factory(sc_client_api::execution_extensions::ExtensionBeforeBlock::<
-			Block,
-			sp_io::UseDalekExt,
-		>::new(1));
-
-		let a1 = BlockBuilderBuilder::new(&client)
-			.on_parent_block(client.chain_info().genesis_hash)
-			.with_parent_block_number(0)
-			// Enable proof recording if required. This call is optional.
-			.enable_proof_recording()
-			.build()
-			.unwrap()
-			.build()
-			.unwrap()
-			.block;
-
-		block_on(client.import(BlockOrigin::NetworkInitialSync, a1.clone())).unwrap();
-
-		// On block zero it will use dalek
-		// shouldnt panic on importing invalid sig
-		assert!(!client
-			.runtime_api()
-			.verify_ed25519(
-				client.chain_info().genesis_hash,
-				invalid_sig(),
-				zero_ed_pub(),
-				vec![]
-			)
-			.unwrap());
+		ext.execute_with(|| {
+			assert!(!sp_io::crypto::ed25519_verify(
+				&invalid_sig(),
+				&Vec::new(),
+				&zero_ed_pub()
+			));
+		});
 	}
 
 	fn test_config(chain_id: &str) -> Configuration {

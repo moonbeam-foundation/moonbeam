@@ -3334,11 +3334,16 @@ declare module "@polkadot/types/lookup" {
     readonly asUpdateRewardAddress: {
       readonly newRewardAccount: AccountId20;
     } & Struct;
+    readonly isCompleteUnclaimedRewards: boolean;
+    readonly asCompleteUnclaimedRewards: {
+      readonly target: AccountId20;
+    } & Struct;
     readonly type:
       | "AssociateNativeIdentity"
       | "ChangeAssociationWithRelayKeys"
       | "Claim"
-      | "UpdateRewardAddress";
+      | "UpdateRewardAddress"
+      | "CompleteUnclaimedRewards";
   }
 
   /** @name SpRuntimeMultiSignature (268) */

@@ -14,9 +14,9 @@ CallPermit constant CALL_PERMIT_CONTRACT = CallPermit(CALL_PERMIT_ADDRESS);
 /// @custom:address 0x000000000000000000000000000000000000080a
 interface CallPermit {
     /// @dev Dispatch a call on the behalf of an other user with a EIP712 permit.
-    /// Will revert if the permit is not valid or if the dispatched call reverts or errors (such as
-    /// out of gas).
-    /// If successful the EIP712 nonce is increased to prevent this permit to be replayed.
+    /// Will revert if the permit is not valid.
+    /// If the permit is valid, the EIP712 nonce is increased to prevent this permit from being
+    /// replayed even when the dispatched call reverts or errors (such as out of gas).
     /// @param from Who made the permit and want its call to be dispatched on their behalf.
     /// @param to Which address the call is made to.
     /// @param value Value being transfered from the "from" account.

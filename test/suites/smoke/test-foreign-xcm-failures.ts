@@ -20,6 +20,43 @@ type NetworkBlockEvents = {
 
 let skip = false;
 
+const getHrmpChannel = async (relayApi: ApiPromise, sender: number, recipient: number) => {
+  return (relayApi.query.hrmp.hrmpChannels as any)([sender, recipient]);
+};
+
+const getHrmpOpenRequest = async (relayApi: ApiPromise, sender: number, recipient: number) => {
+  return (relayApi.query.hrmp.hrmpOpenChannelRequests as any)({ sender, recipient });
+};
+
+const getHrmpCloseRequest = async (relayApi: ApiPromise, sender: number, recipient: number) => {
+  return (relayApi.query.hrmp.hrmpCloseChannelRequests as any)({ sender, recipient });
+};
+
+const hasHrmpChannelOrPendingRequest = async (
+  relayApi: ApiPromise,
+  moonbeamParaId: number,
+  foreignParaId: number
+) => {
+  const pairs = [
+    [foreignParaId, moonbeamParaId],
+    [moonbeamParaId, foreignParaId],
+  ] as const;
+
+  for (const [sender, recipient] of pairs) {
+    const [channel, openRequest, closeRequest] = await Promise.all([
+      getHrmpChannel(relayApi, sender, recipient),
+      getHrmpOpenRequest(relayApi, sender, recipient),
+      getHrmpCloseRequest(relayApi, sender, recipient),
+    ]);
+
+    if (channel.isSome || openRequest.isSome || closeRequest.isSome) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
 describeSuite({
   id: "S13",
   title:
@@ -30,9 +67,11 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     const networkBlockEvents: NetworkBlockEvents[] = [];
     let paraApi: ApiPromise;
+    let relayApi: ApiPromise;
 
     beforeAll(async function () {
       paraApi = context.polkadotJs("para");
+      relayApi = context.polkadotJs("relay");
       const networkName = paraApi.runtimeChain.toString();
       const foreignChainInfos = ForeignChainsEndpoints.find(
         (a) => a.moonbeamNetworkName === networkName
@@ -64,8 +103,20 @@ describeSuite({
         };
       });
 
-      for (const { name, endpoints, mutedUntil = 0 } of chainsWithRpcs) {
+      for (const { name, paraId, endpoints, mutedUntil = 0 } of chainsWithRpcs) {
         let blockEvents: BlockEventsRecord[] = [];
+
+        const hasChannel = await hasHrmpChannelOrPendingRequest(
+          relayApi,
+          foreignChainInfos.moonbeamParaId,
+          paraId
+        );
+
+        if (!hasChannel) {
+          log(`Network tests for ${name} have been skipped, HRMP channels are closed.`);
+          networkBlockEvents.push({ networkName: name, blockEvents });
+          continue;
+        }
 
         if (!endpoints.length) {
           console.warn(`Parachain ${name} did not provide any public endpoints`);

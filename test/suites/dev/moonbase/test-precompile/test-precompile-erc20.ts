@@ -107,7 +107,7 @@ describeSuite({
 
         const { status, logs } = await context
           .viem()
-          .getTransactionReceipt({ hash: result?.hash as `0x${string}` });
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
 
         expect(status).to.equal("success");
         expect(logs.length).to.eq(1);
@@ -145,7 +145,7 @@ describeSuite({
         const { result } = await context.createBlock(rawTx);
         const { status, gasUsed } = await context
           .viem()
-          .getTransactionReceipt({ hash: result?.hash as `0x${string}` });
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(status).to.equal("success");
 
         const balanceAfter = await context.viem().getBalance({ address: BALTATHAR_ADDRESS });
@@ -188,7 +188,7 @@ describeSuite({
         const { result } = await context.createBlock(rawTx);
         const { logs, status } = await context
           .viem()
-          .getTransactionReceipt({ hash: result?.hash as `0x${string}` });
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
 
         const fromBalAfter = (
           await context.polkadotJs().query.system.account(ALITH_ADDRESS)

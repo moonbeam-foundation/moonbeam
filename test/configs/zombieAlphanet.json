@@ -49,10 +49,11 @@
         {
           "name": "alith",
           "rpc_port": 33345,
-          "command": "../target/release/moonbeam",
+          "command": "../target/debug/moonbeam",
           "args": [
             "--no-hardware-benchmarks",
             "--force-authoring",
+            "--authoring=slot-based",
             "-lparachain=debug",
             "--database=paritydb",
             "--pool-type=fork-aware"
@@ -63,7 +64,7 @@
           "validator": false,
           "rpc_port": 33048,
           "p2p_port": 33049,
-          "command": "../target/release/moonbeam",
+          "command": "../target/debug/moonbeam",
           "args": [
             "--no-hardware-benchmarks",
             "-lparachain=trace",
