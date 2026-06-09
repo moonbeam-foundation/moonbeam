@@ -172,57 +172,71 @@ pub mod pallet {
 			// Collect the assets first so the borrow on `what` ends and it can be returned
 			// unspent on error.
 			let assets: Vec<Asset> = what.fungible_assets_iter().collect();
-			for asset in assets {
-				let (contract_address, amount) =
-					match Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(&asset) {
-						Ok(matched) => matched,
-						Err(err) => return Err((what, err.into())),
-					};
 
-				let gas_limit = Self::gas_limit_of_erc20_transfer(&asset.id);
+			// Process every asset inside a single storage layer so that an EVM transfer that
+			// fails for a later asset rolls back the transfers already performed for earlier
+			// ones, keeping the `(unspent_assets, error)` contract honest regardless of how
+			// many assets are batched. `with_storage_layer` requires the closure error to be
+			// `From<DispatchError>`, which `XcmError` is not, so we carry the real error out
+			// through `captured` and only return a dummy `DispatchError` to trigger rollback.
+			// (The `XcmHoldingErc20sOrigins` drain is per-message thread-local state, not
+			// storage, and is reset by the executor when the message unwinds.)
+			let mut captured: Option<XcmError> = None;
+			let outcome = frame_support::storage::with_storage_layer(|| -> DispatchResult {
+				for asset in &assets {
+					let result = (|| -> Result<(), XcmError> {
+						let (contract_address, amount) =
+							Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(asset)?;
 
-				// Get the global context to recover accounts origins and perform the transfers.
-				let outcome =
-					XcmHoldingErc20sOrigins::with(|erc20s_origins| {
-						match erc20s_origins.drain(contract_address, amount) {
-						// We perform the evm transfers in a storage transaction to ensure that if
-						// one of them fails all the changes of the previous evm calls are rolled
-						// back.
-						Ok(tokens_to_transfer) => frame_support::storage::with_storage_layer(|| {
-							tokens_to_transfer.into_iter().try_for_each(|(from, subamount)| {
-								Self::erc20_transfer(
-									contract_address,
-									from,
-									beneficiary,
-									subamount,
-									gas_limit,
-								)
-							})
+						let gas_limit = Self::gas_limit_of_erc20_transfer(&asset.id);
+
+						// Get the global context to recover accounts origins and perform the
+						// transfers.
+						XcmHoldingErc20sOrigins::with(|erc20s_origins| {
+							match erc20s_origins.drain(contract_address, amount) {
+								Ok(tokens_to_transfer) => tokens_to_transfer
+									.into_iter()
+									.try_for_each(|(from, subamount)| {
+										Self::erc20_transfer(
+											contract_address,
+											from,
+											beneficiary,
+											subamount,
+											gas_limit,
+										)
+									})
+									.map_err(Into::into),
+								Err(DrainError::AssetNotFound) => Err(XcmError::AssetNotFound),
+								Err(DrainError::NotEnoughFounds) => Err(
+									XcmError::FailedToTransactAsset("not enough founds in xcm holding"),
+								),
+								Err(DrainError::SplitError) => Err(XcmError::FailedToTransactAsset(
+									"SplitError: each withdrawal of erc20 tokens must be deposited at once",
+								)),
+							}
 						})
-						.map_err(Into::into),
-						Err(DrainError::AssetNotFound) => Err(XcmError::AssetNotFound),
-						Err(DrainError::NotEnoughFounds) => Err(XcmError::FailedToTransactAsset(
-							"not enough founds in xcm holding",
-						)),
-						Err(DrainError::SplitError) => Err(XcmError::FailedToTransactAsset(
-							"SplitError: each withdrawal of erc20 tokens must be deposited at once",
-						)),
-					}
-					});
+						.unwrap_or(Err(XcmError::FailedToTransactAsset(
+							"missing erc20 executor context",
+						)))
+					})();
 
-				match outcome {
-					Some(Ok(())) => {}
-					Some(Err(err)) => return Err((what, err)),
-					None => {
-						return Err((
-							what,
-							XcmError::FailedToTransactAsset("missing erc20 executor context"),
-						))
+					if let Err(err) = result {
+						captured = Some(err);
+						return Err(DispatchError::Other("erc20 deposit rolled back"));
 					}
 				}
-			}
 
-			Ok(())
+				Ok(())
+			});
+
+			match outcome {
+				Ok(()) => Ok(()),
+				// `captured` is always set before we return the dummy `DispatchError`.
+				Err(_) => Err((
+					what,
+					captured.unwrap_or(XcmError::FailedToTransactAsset("deposit_asset failed")),
+				)),
+			}
 		}
 
 		fn internal_transfer_asset(
