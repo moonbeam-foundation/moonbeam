@@ -34,7 +34,7 @@ use sp_runtime::BuildStorage;
 use xcm::latest::{
 	opaque, Asset, Error as XcmError, Instruction, InstructionError, InteriorLocation,
 	Junction::{AccountKey20, GlobalConsensus, PalletInstance, Parachain},
-	Location, NetworkId, Result as XcmResult, SendError, SendResult, SendXcm, Xcm, XcmContext,
+	Location, NetworkId, SendError, SendResult, SendXcm, Xcm, XcmContext,
 	XcmHash,
 };
 use xcm::{IntoVersion, VersionedXcm, WrapVersion};
