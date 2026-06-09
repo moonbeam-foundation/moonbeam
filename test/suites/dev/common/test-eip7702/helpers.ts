@@ -4,12 +4,10 @@ import { ALITH_PRIVATE_KEY } from "moonwall";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { fundAccount } from "../../../../helpers";
 
-const EIP7702_TEST_ACCOUNT_FUNDING = 10_000_000_000_000_000_000_000n;
-
 export async function createFundedAccount(context: DevModeContext) {
   const privateKey = generatePrivateKey();
   const account = privateKeyToAccount(privateKey);
-  await fundAccount(account.address, EIP7702_TEST_ACCOUNT_FUNDING, context);
+  await fundAccount(account.address, 100_000_000_000_000_000_000n, context);
 
   return {
     account: account,

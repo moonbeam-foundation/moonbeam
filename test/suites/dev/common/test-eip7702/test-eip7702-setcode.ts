@@ -189,7 +189,7 @@ describeSuite({
         await context.createBlock([
           context
             .polkadotJs()
-            .tx.balances.transferAllowDeath(existingEOA.address, parseEther("10000")),
+            .tx.balances.transferAllowDeath(existingEOA.address, parseEther("10")),
         ]);
 
         // Make a transaction to increase nonce

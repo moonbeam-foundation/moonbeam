@@ -9,9 +9,8 @@ import {
   describeSuite,
   expect,
 } from "moonwall";
+import fs from "node:fs";
 import { jumpRounds, getRewardedAndCompoundedEvents } from "../../../../helpers";
-
-const PREIMAGE_PAYLOAD = `0x${"42".repeat(1024)}`;
 
 describeSuite({
   id: "D023319",
@@ -27,9 +26,13 @@ describeSuite({
           "Balance should be untouched from genesis amount"
         ).toBe(DEFAULT_GENESIS_BALANCE);
 
-        // Submit a preimage with a deposit greater than the staked amount.
+        // Submit a huge preimage (to have a deposit greater than the staked amount)
+        const wasm = fs.readFileSync(
+          "../target/debug/wbuild/moonbase-runtime/moonbase_runtime.compact.compressed.wasm"
+        );
+        const encodedPreimage = `0x${wasm.toString("hex")}`;
         await context.createBlock(
-          context.polkadotJs().tx.preimage.notePreimage(PREIMAGE_PAYLOAD).signAsync(baltathar)
+          context.polkadotJs().tx.preimage.notePreimage(encodedPreimage).signAsync(baltathar)
         );
 
         // Stake some tokens (less than the preimage deposit) with auto-compound

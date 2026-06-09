@@ -1,10 +1,8 @@
 import "@moonbeam-network/api-augment/moonbase";
 import {
-  BALTATHAR_ADDRESS,
-  BALTATHAR_PRIVATE_KEY,
   alith,
   baltathar,
-  charleth,
+  beforeEach,
   createEthersTransaction,
   deployCreateCompiledContract,
   describeSuite,
@@ -25,14 +23,7 @@ describeSuite({
   title: "Max Fee Multiplier",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
-    let testQueue = Promise.resolve();
-    const sequential = (test: () => Promise<void>) => async () => {
-      const run = testQueue.then(test, test);
-      testQueue = run.catch(() => {});
-      return run;
-    };
-
-    const setMaxFeeMultiplier = async () => {
+    beforeEach(async () => {
       const MULTIPLIER_STORAGE_KEY = context
         .polkadotJs()
         .query.transactionPayment.nextFeeMultiplier.key(0)
@@ -53,14 +44,12 @@ describeSuite({
         )
         .signAndSend(alith);
       await context.createBlock();
-    };
+    });
 
     it({
       id: "T01",
       title: "should enforce upper bound",
-      test: sequential(async function () {
-        await setMaxFeeMultiplier();
-
+      test: async function () {
         // we set it to u128_max, but the max should have been enforced in on_finalize()
         const multiplier = (
           await context.polkadotJs().query.transactionPayment.nextFeeMultiplier()
@@ -68,15 +57,46 @@ describeSuite({
         expect(multiplier).toBe(100_000_000_000_000_000_000_000n);
         const gasPrice = await context.viem().getGasPrice();
         expect(gasPrice).toBe(31_250_000_000_000n);
-      }),
+      },
+    });
+
+    it({
+      id: "T02",
+      title: "should have spendable runtime upgrade",
+      test: async () => {
+        const multiplier = (
+          await context.polkadotJs().query.transactionPayment.nextFeeMultiplier()
+        ).toBigInt();
+        expect(multiplier).to.equal(100_000_000_000_000_000_000_000n);
+
+        const initialBalance = (
+          await context.polkadotJs().query.system.account(baltathar.address as string)
+        ).data.free.toBigInt();
+
+        // generate a mock runtime upgrade hex string
+        const size = 4194304; // 2MB bytes represented in hex
+        const hex = "0x" + "F".repeat(size);
+
+        // send an applyAuthorizedUpgrade. we expect this to fail, but we just want to see that it
+        // was included in a block (not rejected) and was charged based on its length
+        await context.polkadotJs().tx.system.applyAuthorizedUpgrade(hex).signAndSend(baltathar);
+        await context.createBlock();
+
+        const afterBalance = (
+          await context.polkadotJs().query.system.account(baltathar.address as string)
+        ).data.free.toBigInt();
+
+        // note that this is not really affected by the high multiplier because most of its fee is
+        // derived from the length_fee, which is not scaled by the multiplier
+        // ~/4 to compensate for the ref time XCM fee changes
+        expect(initialBalance - afterBalance).toMatchInlineSnapshot(`150888033314090313277n`);
+      },
     });
 
     it({
       id: "T03",
       title: "should have spendable fill_block",
-      test: sequential(async () => {
-        await setMaxFeeMultiplier();
-
+      test: async () => {
         const multiplier = (
           await context.polkadotJs().query.transactionPayment.nextFeeMultiplier()
         ).toBigInt();
@@ -90,7 +110,7 @@ describeSuite({
 
         const { result } = await context.createBlock(
           context.polkadotJs().tx.rootTesting.fillBlock(fillAmount),
-          { allowFailures: true, signer: charleth }
+          { allowFailures: true }
         );
 
         // grab the first withdraw event and hope it's the right one...
@@ -99,7 +119,7 @@ describeSuite({
         // ~/4 to compensate for the ref time XCM fee changes
         // Previous value: 6_000_000_012_598_000_941_192n
         expect(amount).to.equal(1_500_000_003_224_000_970_299n);
-      }),
+      },
     });
 
     // similar to tests in test-contract-fibonacci.ts, which implements an Ethereum txn which uses
@@ -107,9 +127,7 @@ describeSuite({
     it({
       id: "T04",
       title: "fibonacci[370] should be spendable",
-      test: sequential(async function () {
-        await setMaxFeeMultiplier();
-
+      test: async function () {
         let blockNumber = (await context.polkadotJs().rpc.chain.getHeader()).number.toBigInt();
         let baseFeePerGas = (await context.viem().getBlock({ blockNumber: blockNumber }))
           .baseFeePerGas!;
@@ -139,11 +157,6 @@ describeSuite({
           }),
           gasLimit: 95132, // Replace this if OPCODE prices change
           gasPrice: baseFeePerGas,
-          nonce: await context.viem().getTransactionCount({
-            address: BALTATHAR_ADDRESS,
-            blockTag: "pending",
-          }),
-          privateKey: BALTATHAR_PRIVATE_KEY,
           txnType: "legacy",
         });
         const { result: interactionResult } = await context.createBlock(rawSigned);
@@ -166,42 +179,7 @@ describeSuite({
         const withdrawEvent = withdrawEvents![0];
         const amount = (withdrawEvent.event.data as any).amount.toBigInt();
         expect(amount).to.equal(2_968_760_727_009_792_092n);
-      }),
-    });
-
-    it({
-      id: "T02",
-      title: "should have spendable runtime upgrade",
-      test: sequential(async () => {
-        await setMaxFeeMultiplier();
-
-        const multiplier = (
-          await context.polkadotJs().query.transactionPayment.nextFeeMultiplier()
-        ).toBigInt();
-        expect(multiplier).to.equal(100_000_000_000_000_000_000_000n);
-
-        const initialBalance = (
-          await context.polkadotJs().query.system.account(baltathar.address as string)
-        ).data.free.toBigInt();
-
-        // generate a mock runtime upgrade hex string
-        const size = 4194304; // 2MB bytes represented in hex
-        const hex = "0x" + "F".repeat(size);
-
-        // send an applyAuthorizedUpgrade. we expect this to fail, but we just want to see that it
-        // was included in a block (not rejected) and was charged based on its length
-        await context.polkadotJs().tx.system.applyAuthorizedUpgrade(hex).signAndSend(baltathar);
-        await context.createBlock();
-
-        const afterBalance = (
-          await context.polkadotJs().query.system.account(baltathar.address as string)
-        ).data.free.toBigInt();
-
-        // note that this is not really affected by the high multiplier because most of its fee is
-        // derived from the length_fee, which is not scaled by the multiplier
-        // ~/4 to compensate for the ref time XCM fee changes
-        expect(initialBalance - afterBalance).toMatchInlineSnapshot(`150888033314090313277n`);
-      }),
+      },
     });
   },
 });

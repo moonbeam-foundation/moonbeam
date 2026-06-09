@@ -32,7 +32,6 @@ macro_rules! generate_common_xcm_tests {
 			use moonbeam_core_primitives::{AccountId, Balance};
 			use pallet_xcm_weight_trader::{SupportedAssets, RELATIVE_PRICE_DECIMALS};
 			use parity_scale_codec::Encode;
-			use sp_core::U256;
 			use sp_weights::Weight;
 			use xcm::latest::Location;
 			use xcm::{
@@ -68,13 +67,9 @@ macro_rules! generate_common_xcm_tests {
 						.map_err(|_| ())?;
 					let precision_factor = 10u128.pow(RELATIVE_PRICE_DECIMALS);
 					let relative_price: u128 = if fee_per_second > 0u128 {
-						U256::from(native_amount_per_second)
-							.checked_mul(U256::from(precision_factor))
-							.ok_or(())?
-							.checked_div(U256::from(fee_per_second))
-							.ok_or(())?
-							.try_into()
-							.map_err(|_| ())?
+						native_amount_per_second
+							.saturating_mul(precision_factor)
+							.saturating_div(fee_per_second)
 					} else {
 						0u128
 					};
@@ -90,12 +85,7 @@ macro_rules! generate_common_xcm_tests {
 				ExtBuilder::default().build().execute_with(|| {
 					// Scenario: the reserve asset is 5x more valuable than the native asset.
 					// The actual fee-per-second on the reserve chain is native_fee_per_second / 5.
-					let native_fee_per_second: u128 =
-						<Runtime as pallet_xcm_weight_trader::Config>::WeightToFee::weight_to_fee(
-							&Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND, 0),
-						)
-						.try_into()
-						.expect("native fee per second should fit in u128");
+					let native_fee_per_second = WEIGHT_REF_TIME_PER_SECOND as u128;
 					let actual_fee_per_second = native_fee_per_second
 						.checked_div(5)
 						.expect("division by 5 should not overflow");

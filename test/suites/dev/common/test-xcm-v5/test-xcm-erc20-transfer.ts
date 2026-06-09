@@ -116,7 +116,7 @@ describeSuite({
 
         // Send some native tokens to the sovereign account of paraId (to pay fees)
         await polkadotJs.tx.balances
-          .transferAllowDeath(paraSovereign, parseEther("10000"))
+          .transferAllowDeath(paraSovereign, parseEther("1"))
           .signAndSend(alith);
         await context.createBlock();
 
@@ -151,7 +151,7 @@ describeSuite({
                   X1: { PalletInstance: Number(balancesPalletIndex) },
                 },
               },
-              fungible: parseEther("1000"),
+              fungible: 100_000_000_000_000_000n,
             },
             {
               multilocation: {

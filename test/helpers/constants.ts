@@ -187,28 +187,15 @@ export const RUNTIME_CONSTANTS = {
     MIN_FEE_MULTIPLIER: 1_000_000_000_000_000_000n,
     MAX_FEE_MULTIPLIER: 100_000_000_000_000_000_000_000n,
     WEIGHT_FEE: new RuntimeConstant({
-      4303: (50_000n * KILOWEI * MOONBEAM_CONSTANTS.SUPPLY_FACTOR) / 4n,
       3400: (50n * KILOWEI * MOONBEAM_CONSTANTS.SUPPLY_FACTOR) / 4n,
       0: 50n * KILOWEI * MOONBEAM_CONSTANTS.SUPPLY_FACTOR,
     }),
 
-    GENESIS_BASE_FEE: new RuntimeConstant({
-      4303: 31_250_000_000_000n,
-      3400: 250_000_000_000n,
-      0: 1_000_000_000_000n,
-    }),
+    GENESIS_BASE_FEE: new RuntimeConstant({ 3400: 250_000_000_000n, 0: 1_000_000_000_000n }),
     // (MinimumMultiplier = 1) * WEIGHT_FEE * WEIGHT_PER_GAS
-    MIN_BASE_FEE: new RuntimeConstant({
-      4303: 31_250_000_000_000n,
-      3400: 31_250_000_000n,
-      0: 125_000_000_000n,
-    }),
+    MIN_BASE_FEE: new RuntimeConstant({ 3400: 31_250_000_000n, 0: 125_000_000_000n }),
     // (MaximumMultiplier = 100_000) * WEIGHT_FEE * WEIGHT_PER_GAS
-    MAX_BASE_FEE: new RuntimeConstant({
-      4303: 3_125_000_000_000_000_000n,
-      3400: 3_125_000_000_000_000n,
-      0: 12_500_000_000_000_000n,
-    }),
+    MAX_BASE_FEE: new RuntimeConstant({ 3400: 3_125_000_000_000_000n, 0: 12_500_000_000_000_000n }),
 
     TARGET_FILL_PERMILL: new RuntimeConstant({ 3000: 350_000n, 2801: 500_000n, 0: 250_000n }),
     // Deadline for block production in milliseconds
