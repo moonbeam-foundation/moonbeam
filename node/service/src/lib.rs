@@ -1070,7 +1070,7 @@ where
 	sc_client_api::StateBackendFor<FullBackend, Block>: sc_client_api::StateBackend<BlakeTwo256>,
 	SO: SyncOracle + Send + Sync + Clone + 'static,
 {
-	let proposer = sc_basic_authorship::ProposerFactory::with_proof_recording(
+	let proposer = sc_basic_authorship::ProposerFactory::new(
 		task_manager.spawn_handle(),
 		client.clone(),
 		transaction_pool,
@@ -1391,7 +1391,7 @@ where
 		.into();
 
 	if collator {
-		let mut env = sc_basic_authorship::ProposerFactory::with_proof_recording(
+		let mut env = sc_basic_authorship::ProposerFactory::new(
 			task_manager.spawn_handle(),
 			client.clone(),
 			transaction_pool.clone(),

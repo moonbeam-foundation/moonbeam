@@ -488,7 +488,7 @@ where
 		.into();
 
 	if collator {
-		let mut env = sc_basic_authorship::ProposerFactory::with_proof_recording(
+		let mut env = sc_basic_authorship::ProposerFactory::new(
 			task_manager.spawn_handle(),
 			client.clone(),
 			transaction_pool.clone(),
