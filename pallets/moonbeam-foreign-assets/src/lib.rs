@@ -820,73 +820,70 @@ pub mod pallet {
 			who: &Location,
 			_context: Option<&XcmContext>,
 		) -> Result<(), (AssetsInHolding, XcmError)> {
+			// The executor deposits a single fungible per call and wraps the whole
+			// `DepositAsset` instruction in the runtime's `TransactionalProcessor`
+			// (`FrameTransactionalProcessor`), which provides cross-asset rollback. Mirror the
+			// SDK's reference adapters: assert the single-asset invariant and process that one
+			// asset, returning it as the unspent holding on error.
+			frame_support::defensive_assert!(
+				what.len() == 1,
+				"Trying to deposit more than one asset!"
+			);
+
+			let next_asset = what.fungible_assets_iter().next();
+			let asset = match next_asset {
+				Some(asset) => asset,
+				None => return Err((what, XcmError::AssetNotFound)),
+			};
+
+			let (asset_id, contract_address, amount, asset_status) =
+				match ForeignAssetsMatcher::<T>::match_asset(&asset) {
+					Ok(matched) => matched,
+					Err(err) => return Err((what, err.into())),
+				};
+
+			if let AssetStatus::FrozenXcmDepositForbidden = asset_status {
+				return Err((
+					what,
+					XcmError::FailedToTransactAsset(
+						"asset is frozen and XCM deposits are forbidden",
+					),
+				));
+			}
+
 			let beneficiary = match T::XcmLocationToH160::convert_location(who) {
 				Some(beneficiary) => beneficiary,
 				None => return Err((what, MatchError::AccountIdConversionFailed.into())),
 			};
 
-			// Collect the assets first so the borrow on `what` ends and it can be returned
-			// unspent on error.
-			let assets: Vec<Asset> = what.fungible_assets_iter().collect();
+			if matches!(asset_status, AssetStatus::FrozenXcmDepositAllowed) {
+				let total_pending = match PendingDeposits::<T>::get(asset_id, beneficiary)
+					.unwrap_or(U256::zero())
+					.checked_add(amount)
+				{
+					Some(total_pending) => total_pending,
+					None => return Err((what, XcmError::Overflow)),
+				};
 
-			// Process every asset inside a single storage layer so that a failure on any
-			// asset rolls back the mints / pending writes already applied to earlier ones.
-			// This keeps the `(unspent_assets, error)` contract honest regardless of how many
-			// assets are batched: on error nothing is committed, so the whole `what` is
-			// genuinely unspent. `with_storage_layer` requires the closure error to be
-			// `From<DispatchError>`, which `XcmError` is not, so we carry the real error out
-			// through `captured` and only return a dummy `DispatchError` to trigger rollback.
-			let mut captured: Option<XcmError> = None;
-			let outcome = frame_support::storage::with_storage_layer(|| -> DispatchResult {
-				for asset in &assets {
-					let result = (|| -> Result<(), XcmError> {
-						let (asset_id, contract_address, amount, asset_status) =
-							ForeignAssetsMatcher::<T>::match_asset(asset)?;
+				PendingDeposits::<T>::insert(asset_id, beneficiary, total_pending);
 
-						if let AssetStatus::FrozenXcmDepositForbidden = asset_status {
-							return Err(XcmError::FailedToTransactAsset(
-								"asset is frozen and XCM deposits are forbidden",
-							));
-						}
-
-						if matches!(asset_status, AssetStatus::FrozenXcmDepositAllowed) {
-							let total_pending = PendingDeposits::<T>::get(asset_id, beneficiary)
-								.unwrap_or(U256::zero())
-								.checked_add(amount)
-								.ok_or(XcmError::Overflow)?;
-
-							PendingDeposits::<T>::insert(asset_id, beneficiary, total_pending);
-
-							Pallet::<T>::deposit_event(Event::PendingDepositRecorded {
-								asset_id,
-								beneficiary,
-								amount,
-								total_pending,
-							});
-						} else {
-							EvmCaller::<T>::erc20_mint_into(contract_address, beneficiary, amount)?;
-						}
-
-						Ok(())
-					})();
-
-					if let Err(err) = result {
-						captured = Some(err);
-						return Err(DispatchError::Other("foreign-assets deposit rolled back"));
-					}
+				Pallet::<T>::deposit_event(Event::PendingDepositRecorded {
+					asset_id,
+					beneficiary,
+					amount,
+					total_pending,
+				});
+			} else {
+				// We perform the evm transfers in a storage transaction to ensure
+				// that if it fails any contract storage changes are rolled back.
+				if let Err(err) = frame_support::storage::with_storage_layer(|| {
+					EvmCaller::<T>::erc20_mint_into(contract_address, beneficiary, amount)
+				}) {
+					return Err((what, err.into()));
 				}
-
-				Ok(())
-			});
-
-			match outcome {
-				Ok(()) => Ok(()),
-				// `captured` is always set before we return the dummy `DispatchError`.
-				Err(_) => Err((
-					what,
-					captured.unwrap_or(XcmError::FailedToTransactAsset("deposit_asset failed")),
-				)),
 			}
+
+			Ok(())
 		}
 
 		fn internal_transfer_asset(
