@@ -61,8 +61,7 @@ use frame_support::{pallet, Deserialize, Serialize};
 use frame_system::pallet_prelude::*;
 use sp_std::{vec, vec::Vec};
 use xcm::latest::{
-	Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, Result as XcmResult,
-	XcmContext,
+	Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, XcmContext,
 };
 use xcm::prelude::Parachain;
 use xcm_executor::traits::ConvertLocation;
@@ -954,7 +953,11 @@ pub mod pallet {
 		}
 
 		#[cfg(feature = "runtime-benchmarks")]
-		fn can_check_out(_dest: &Location, _what: &Asset, _context: &XcmContext) -> XcmResult {
+		fn can_check_out(
+			_dest: &Location,
+			_what: &Asset,
+			_context: &XcmContext,
+		) -> Result<(), XcmError> {
 			// Needed for the benchmarks to work
 			Ok(())
 		}
