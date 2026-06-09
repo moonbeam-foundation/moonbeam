@@ -227,7 +227,9 @@ Order: **polkadot-sdk → (evm, ethereum) → (moonkit, frontier)**.
 
 ## Phase 6 — Verification
 
-- [ ] `cargo check --workspace --all-features`
+- [ ] `cargo check --workspace`
+- [ ] `cargo check --workspace --features runtime-benchmarks`
+- [ ] `cargo check --workspace --features try-runtime`
 - [ ] Rust unit tests: `cargo test --workspace`
 - [ ] TypeScript integration tests (`testing-moonbeam` skill).
 - [ ] Smoke tests against moonbase/moonriver chain specs.
