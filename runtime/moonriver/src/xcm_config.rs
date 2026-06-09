@@ -209,10 +209,14 @@ parameter_types! {
 
 pub struct SafeCallFilter;
 impl frame_support::traits::Contains<RuntimeCall> for SafeCallFilter {
-	fn contains(_call: &RuntimeCall) -> bool {
-		// TODO review
-		// This needs to be addressed at EVM level
-		true
+	fn contains(call: &RuntimeCall) -> bool {
+		match call {
+			RuntimeCall::Balances(_) => true,
+			RuntimeCall::Ethereum(_) => true,
+			RuntimeCall::EVM(_) => true,
+			RuntimeCall::Utility(_) => true,
+			_ => false,
+		}
 	}
 }
 
