@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use cumulus_primitives_core::BlockT;
-use frame_benchmarking::__private::codec::Encode;
+use parity_scale_codec::Encode;
 use futures::{Stream, StreamExt, TryFutureExt};
 use sc_client_api::backend::Backend as ClientBackend;
 use sc_client_api::Finalizer;
