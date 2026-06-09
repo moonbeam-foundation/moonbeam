@@ -200,15 +200,17 @@ pub mod pallet {
 					// one of them fails all the changes of the previous evm calls are rolled
 					// back.
 					Ok(tokens_to_transfer) => frame_support::storage::with_storage_layer(|| {
-						tokens_to_transfer.into_iter().try_for_each(|(from, subamount)| {
-							Self::erc20_transfer(
-								contract_address,
-								from,
-								beneficiary,
-								subamount,
-								gas_limit,
-							)
-						})
+						tokens_to_transfer
+							.into_iter()
+							.try_for_each(|(from, subamount)| {
+								Self::erc20_transfer(
+									contract_address,
+									from,
+									beneficiary,
+									subamount,
+									gas_limit,
+								)
+							})
 					})
 					.map_err(Into::into),
 					Err(DrainError::AssetNotFound) => Err(XcmError::AssetNotFound),
