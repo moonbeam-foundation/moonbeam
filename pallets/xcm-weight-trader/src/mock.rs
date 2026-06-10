@@ -134,6 +134,11 @@ impl TransactAsset for MockAssetTransactor {
 		who: &Location,
 		_context: Option<&XcmContext>,
 	) -> Result<(), (xcm_executor::AssetsInHolding, XcmError)> {
+		// The executor deposits a single fungible per call and provides cross-asset
+		// rollback. Mirror the production adapters: assert the single-asset invariant
+		// rather than silently ignoring any extra fungibles in the holding.
+		frame_support::defensive_assert!(what.len() == 1, "Trying to deposit more than one asset!");
+
 		// Extract the (single) fungible asset from the holding.
 		let asset = what.fungible_assets_iter().next();
 		let asset = match asset {
