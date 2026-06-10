@@ -48,6 +48,7 @@ pub mod tests;
 pub mod weights;
 
 mod evm;
+mod notional;
 
 pub use pallet::*;
 pub use weights::WeightInfo;
@@ -60,8 +61,7 @@ use frame_support::{pallet, Deserialize, Serialize};
 use frame_system::pallet_prelude::*;
 use sp_std::{vec, vec::Vec};
 use xcm::latest::{
-	Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, Result as XcmResult,
-	XcmContext,
+	Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, XcmContext,
 };
 use xcm::prelude::Parachain;
 use xcm_executor::traits::ConvertLocation;
@@ -179,9 +179,11 @@ pub struct EvmForeignAssetInfo {
 #[pallet]
 pub mod pallet {
 	use super::*;
+	use crate::notional::NotionalImbalance;
 	use frame_support::traits::{Currency, ReservableCurrency};
 	use pallet_evm::{GasWeightMapping, Runner};
 	use sp_runtime::traits::{AccountIdConversion, AtLeast32BitUnsigned, Convert};
+	use sp_std::boxed::Box;
 	use xcm_executor::traits::ConvertLocation;
 	use xcm_executor::traits::Error as MatchError;
 	use xcm_executor::AssetsInHolding;
@@ -813,24 +815,55 @@ pub mod pallet {
 		// For optimization reasons, the asset we want to deposit has not really been withdrawn,
 		// we have just traced from which account it should have been withdrawn.
 		// So we will retrieve these information and make the transfer from the origin account.
-		fn deposit_asset(what: &Asset, who: &Location, _context: Option<&XcmContext>) -> XcmResult {
+		fn deposit_asset(
+			what: AssetsInHolding,
+			who: &Location,
+			_context: Option<&XcmContext>,
+		) -> Result<(), (AssetsInHolding, XcmError)> {
+			// The executor deposits a single fungible per call and wraps the whole
+			// `DepositAsset` instruction in the runtime's `TransactionalProcessor`
+			// (`FrameTransactionalProcessor`), which provides cross-asset rollback. Mirror the
+			// SDK's reference adapters: assert the single-asset invariant and process that one
+			// asset, returning it as the unspent holding on error.
+			frame_support::defensive_assert!(
+				what.len() == 1,
+				"Trying to deposit more than one asset!"
+			);
+
+			let next_asset = what.fungible_assets_iter().next();
+			let asset = match next_asset {
+				Some(asset) => asset,
+				None => return Err((what, XcmError::AssetNotFound)),
+			};
+
 			let (asset_id, contract_address, amount, asset_status) =
-				ForeignAssetsMatcher::<T>::match_asset(what)?;
+				match ForeignAssetsMatcher::<T>::match_asset(&asset) {
+					Ok(matched) => matched,
+					Err(err) => return Err((what, err.into())),
+				};
 
 			if let AssetStatus::FrozenXcmDepositForbidden = asset_status {
-				return Err(XcmError::FailedToTransactAsset(
-					"asset is frozen and XCM deposits are forbidden",
+				return Err((
+					what,
+					XcmError::FailedToTransactAsset(
+						"asset is frozen and XCM deposits are forbidden",
+					),
 				));
 			}
 
-			let beneficiary = T::XcmLocationToH160::convert_location(who)
-				.ok_or(MatchError::AccountIdConversionFailed)?;
+			let beneficiary = match T::XcmLocationToH160::convert_location(who) {
+				Some(beneficiary) => beneficiary,
+				None => return Err((what, MatchError::AccountIdConversionFailed.into())),
+			};
 
 			if matches!(asset_status, AssetStatus::FrozenXcmDepositAllowed) {
-				let total_pending = PendingDeposits::<T>::get(asset_id, beneficiary)
+				let total_pending = match PendingDeposits::<T>::get(asset_id, beneficiary)
 					.unwrap_or(U256::zero())
 					.checked_add(amount)
-					.ok_or(XcmError::Overflow)?;
+				{
+					Some(total_pending) => total_pending,
+					None => return Err((what, XcmError::Overflow)),
+				};
 
 				PendingDeposits::<T>::insert(asset_id, beneficiary, total_pending);
 
@@ -843,9 +876,11 @@ pub mod pallet {
 			} else {
 				// We perform the evm transfers in a storage transaction to ensure
 				// that if it fails any contract storage changes are rolled back.
-				frame_support::storage::with_storage_layer(|| {
+				if let Err(err) = frame_support::storage::with_storage_layer(|| {
 					EvmCaller::<T>::erc20_mint_into(contract_address, beneficiary, amount)
-				})?;
+				}) {
+					return Err((what, err.into()));
+				}
 			}
 
 			Ok(())
@@ -856,7 +891,7 @@ pub mod pallet {
 			from: &Location,
 			to: &Location,
 			_context: &XcmContext,
-		) -> Result<AssetsInHolding, XcmError> {
+		) -> Result<Asset, XcmError> {
 			let (_asset_id, contract_address, amount, asset_status) =
 				ForeignAssetsMatcher::<T>::match_asset(asset)?;
 
@@ -876,7 +911,7 @@ pub mod pallet {
 				EvmCaller::<T>::erc20_transfer(contract_address, from, to, amount)
 			})?;
 
-			Ok(asset.clone().into())
+			Ok(asset.clone())
 		}
 
 		// Since we don't control the erc20 contract that manages the asset we want to withdraw,
@@ -906,11 +941,34 @@ pub mod pallet {
 				EvmCaller::<T>::erc20_burn_from(contract_address, who, amount)
 			})?;
 
-			Ok(what.clone().into())
+			// Represent the withdrawn erc20 amount in holding via a notional credit (erc20 has no
+			// real `fungible::Credit`); the actual burn happened above.
+			let amount: u128 = amount.try_into().map_err(|_| XcmError::Overflow)?;
+			Ok(AssetsInHolding::new_from_fungible_credit(
+				what.id.clone(),
+				Box::new(NotionalImbalance(amount)),
+			))
+		}
+
+		// stable2603: the executor calls `mint_asset` when an asset is reserve-deposited or
+		// teleported in, to put it into holding. erc20 has no real `fungible::Credit`, so we
+		// represent it with a notional credit; the actual erc20 mint happens in `deposit_asset`.
+		fn mint_asset(what: &Asset, _context: &XcmContext) -> Result<AssetsInHolding, XcmError> {
+			let (_asset_id, _contract_address, amount, _asset_status) =
+				ForeignAssetsMatcher::<T>::match_asset(what)?;
+			let amount: u128 = amount.try_into().map_err(|_| XcmError::Overflow)?;
+			Ok(AssetsInHolding::new_from_fungible_credit(
+				what.id.clone(),
+				Box::new(NotionalImbalance(amount)),
+			))
 		}
 
 		#[cfg(feature = "runtime-benchmarks")]
-		fn can_check_out(_dest: &Location, _what: &Asset, _context: &XcmContext) -> XcmResult {
+		fn can_check_out(
+			_dest: &Location,
+			_what: &Asset,
+			_context: &XcmContext,
+		) -> Result<(), XcmError> {
 			// Needed for the benchmarks to work
 			Ok(())
 		}

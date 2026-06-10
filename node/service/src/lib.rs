@@ -562,6 +562,7 @@ where
 			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
 			executor,
 			true,
+			Vec::new(),
 		)?;
 
 	if let Some(block_number) = Customizations::first_block_number_compatible_with_ed25519_zebra() {
@@ -777,6 +778,7 @@ where
 			client: client.clone(),
 			transaction_pool: transaction_pool.clone(),
 			spawn_handle: task_manager.spawn_handle(),
+			spawn_essential_handle: task_manager.spawn_essential_handle(),
 			import_queue: params.import_queue,
 			para_id: para_id.clone(),
 			relay_chain_interface: relay_chain_interface.clone(),
@@ -1068,7 +1070,7 @@ where
 	sc_client_api::StateBackendFor<FullBackend, Block>: sc_client_api::StateBackend<BlakeTwo256>,
 	SO: SyncOracle + Send + Sync + Clone + 'static,
 {
-	let proposer = sc_basic_authorship::ProposerFactory::with_proof_recording(
+	let proposer = sc_basic_authorship::ProposerFactory::new(
 		task_manager.spawn_handle(),
 		client.clone(),
 		transaction_pool,
@@ -1347,6 +1349,7 @@ where
 			client: client.clone(),
 			transaction_pool: transaction_pool.clone(),
 			spawn_handle: task_manager.spawn_handle(),
+			spawn_essential_handle: task_manager.spawn_essential_handle(),
 			import_queue,
 			block_announce_validator_builder: None,
 			warp_sync_config: None,
@@ -1388,7 +1391,7 @@ where
 		.into();
 
 	if collator {
-		let mut env = sc_basic_authorship::ProposerFactory::with_proof_recording(
+		let mut env = sc_basic_authorship::ProposerFactory::new(
 			task_manager.spawn_handle(),
 			client.clone(),
 			transaction_pool.clone(),
@@ -1478,7 +1481,6 @@ where
 					keystore: keystore_container.keystore(),
 					client: client.clone(),
 					additional_digests_provider: maybe_provide_vrf_digest,
-					_phantom: Default::default(),
 				})),
 				create_inherent_data_providers: move |block: H256, ()| {
 					let maybe_current_para_block = client_for_cidp.number(block);
@@ -1563,8 +1565,8 @@ where
 								UpgradeGoAhead::GoAhead
 							}),
 							current_para_block_head,
-							relay_offset: relay_parent_offset
-								.saturating_add(additional_relay_offset.load(Ordering::SeqCst)),
+							relay_offset: additional_relay_offset.load(Ordering::SeqCst),
+							relay_parent_offset,
 							relay_blocks_per_para_block: 1,
 							para_blocks_per_relay_epoch: 10,
 							relay_randomness_config: (),

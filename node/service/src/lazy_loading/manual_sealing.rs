@@ -15,8 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use cumulus_primitives_core::BlockT;
-use frame_benchmarking::__private::codec;
 use futures::{Stream, StreamExt, TryFutureExt};
+use parity_scale_codec::Encode;
 use sc_client_api::backend::Backend as ClientBackend;
 use sc_client_api::Finalizer;
 use sc_consensus::{BlockImport, BlockImportParams, ForkChoiceStrategy, ImportResult, StateAction};
@@ -25,15 +25,17 @@ use sc_consensus_manual_seal::{
 	SealBlockParams, MANUAL_SEAL_ENGINE_ID,
 };
 use sc_transaction_pool_api::TransactionPool;
-use sp_api::ProvideRuntimeApi;
+use sp_api::{ProofRecorder, ProvideRuntimeApi};
 use sp_blockchain::HeaderBackend;
-use sp_consensus::{BlockOrigin, Environment, Proposer, SelectChain};
+use sp_consensus::{BlockOrigin, Environment, ProposeArgs, Proposer, SelectChain};
+use sp_externalities::Extensions;
 use sp_inherents::{CreateInherentDataProviders, InherentDataProvider};
 use sp_runtime::traits::Header;
+use sp_trie::proof_size_extension::ProofSizeExt;
 use std::marker::PhantomData;
 use std::time::Duration;
 
-pub async fn run_manual_seal<B, BI, CB, E, C, TP, SC, CS, CIDP, P>(
+pub async fn run_manual_seal<B, BI, CB, E, C, TP, SC, CS, CIDP>(
 	ManualSealParams {
 		mut block_import,
 		mut env,
@@ -43,19 +45,18 @@ pub async fn run_manual_seal<B, BI, CB, E, C, TP, SC, CS, CIDP, P>(
 		select_chain,
 		consensus_data_provider,
 		create_inherent_data_providers,
-	}: ManualSealParams<B, BI, E, C, TP, SC, CS, CIDP, P>,
+	}: ManualSealParams<B, BI, E, C, TP, SC, CS, CIDP>,
 ) where
 	B: BlockT + 'static,
 	BI: BlockImport<B, Error = sp_consensus::Error> + Send + Sync + 'static,
 	C: HeaderBackend<B> + Finalizer<B, CB> + ProvideRuntimeApi<B> + 'static,
 	CB: ClientBackend<B> + 'static,
 	E: Environment<B> + 'static,
-	E::Proposer: Proposer<B, Proof = P>,
+	E::Proposer: Proposer<B>,
 	CS: Stream<Item = EngineCommand<<B as BlockT>::Hash>> + Unpin + 'static,
 	SC: SelectChain<B> + 'static,
 	TP: TransactionPool<Block = B>,
 	CIDP: CreateInherentDataProviders<B, ()>,
-	P: codec::Encode + Send + Sync + 'static,
 {
 	while let Some(command) = commands_stream.next().await {
 		match command {
@@ -103,7 +104,7 @@ pub async fn run_manual_seal<B, BI, CB, E, C, TP, SC, CS, CIDP, P>(
 pub const MAX_PROPOSAL_DURATION: u64 = 60;
 
 /// seals a new block with the given params
-pub async fn seal_block<B, BI, SC, C, E, TP, CIDP, P>(
+pub async fn seal_block<B, BI, SC, C, E, TP, CIDP>(
 	SealBlockParams {
 		create_empty,
 		finalize,
@@ -116,17 +117,16 @@ pub async fn seal_block<B, BI, SC, C, E, TP, CIDP, P>(
 		create_inherent_data_providers,
 		consensus_data_provider: digest_provider,
 		mut sender,
-	}: SealBlockParams<'_, B, BI, SC, C, E, TP, CIDP, P>,
+	}: SealBlockParams<'_, B, BI, SC, C, E, TP, CIDP>,
 ) where
 	B: BlockT,
 	BI: BlockImport<B, Error = sp_consensus::Error> + Send + Sync + 'static,
 	C: HeaderBackend<B> + ProvideRuntimeApi<B>,
 	E: Environment<B>,
-	E::Proposer: Proposer<B, Proof = P>,
+	E::Proposer: Proposer<B>,
 	TP: TransactionPool<Block = B>,
 	SC: SelectChain<B>,
 	CIDP: CreateInherentDataProviders<B, ()>,
-	P: codec::Encode + Send + Sync + 'static,
 {
 	let future = async {
 		if pool.status().ready == 0 && !create_empty {
@@ -156,19 +156,31 @@ pub async fn seal_block<B, BI, SC, C, E, TP, CIDP, P>(
 			.await?;
 		let inherents_len = inherent_data.len();
 
-		let digest = if let Some(digest_provider) = digest_provider {
+		let inherent_digests = if let Some(digest_provider) = digest_provider {
 			digest_provider.create_digest(&parent, &inherent_data)?
 		} else {
 			Default::default()
 		};
 
+		// stable2603: proof recording moved out of the proposer. Record the storage proof via a
+		// `ProofRecorder` wired into the proposal extensions, then drain it after proposing.
+		let storage_proof_recorder = ProofRecorder::<B>::default();
+
+		let mut extra_extensions = Extensions::default();
+		// Required by parachains
+		extra_extensions.register(ProofSizeExt::new(storage_proof_recorder.clone()));
+
+		let propose_args = ProposeArgs {
+			inherent_data: inherent_data.clone(),
+			inherent_digests,
+			max_duration: Duration::from_secs(MAX_PROPOSAL_DURATION),
+			storage_proof_recorder: Some(storage_proof_recorder.clone()),
+			extra_extensions,
+			..Default::default()
+		};
+
 		let proposal = proposer
-			.propose(
-				inherent_data.clone(),
-				digest,
-				Duration::from_secs(MAX_PROPOSAL_DURATION),
-				None,
-			)
+			.propose(propose_args)
 			.map_err(|err| Error::StringError(err.to_string()))
 			.await?;
 
@@ -176,9 +188,10 @@ pub async fn seal_block<B, BI, SC, C, E, TP, CIDP, P>(
 			return Err(Error::EmptyTransactionPool);
 		}
 
-		let (header, body) = proposal.block.deconstruct();
-		let proof = proposal.proof;
+		let proof = storage_proof_recorder.drain_storage_proof();
 		let proof_size = proof.encoded_size();
+
+		let (header, body) = proposal.block.deconstruct();
 		let mut params = BlockImportParams::new(BlockOrigin::Own, header.clone());
 		params.body = Some(body);
 		params.finalized = finalize;

@@ -26,6 +26,7 @@ mod tests;
 mod erc20_matcher;
 mod erc20_trap;
 mod errors;
+mod notional;
 mod xcm_holding_ext;
 
 use frame_support::pallet;
@@ -39,16 +40,16 @@ pub mod pallet {
 
 	use crate::erc20_matcher::*;
 	use crate::errors::*;
+	use crate::notional::NotionalImbalance;
 	use crate::xcm_holding_ext::*;
 	use ethereum_types::BigEndianHash;
 	use fp_evm::{ExitReason, ExitSucceed};
 	use frame_support::pallet_prelude::*;
 	use pallet_evm::{GasWeightMapping, Runner};
 	use sp_core::{H160, H256, U256};
+	use sp_std::boxed::Box;
 	use sp_std::vec::Vec;
-	use xcm::latest::{
-		Asset, AssetId, Error as XcmError, Junction, Location, Result as XcmResult, XcmContext,
-	};
+	use xcm::latest::{Asset, AssetId, Error as XcmError, Junction, Location, XcmContext};
 	use xcm_executor::traits::ConvertLocation;
 	use xcm_executor::traits::{Error as MatchError, MatchesFungibles};
 	use xcm_executor::AssetsInHolding;
@@ -128,6 +129,7 @@ pub mod pallet {
 				false,
 				Some(weight_limit),
 				Some(0),
+				None,
 				&<T as pallet_evm::Config>::config(),
 			)
 			.map_err(|_| Erc20TransferError::EvmCallFail)?;
@@ -157,20 +159,46 @@ pub mod pallet {
 		// For optimization reasons, the asset we want to deposit has not really been withdrawn,
 		// we have just traced from which account it should have been withdrawn.
 		// So we will retrieve these information and make the transfer from the origin account.
-		fn deposit_asset(what: &Asset, who: &Location, _context: Option<&XcmContext>) -> XcmResult {
+		fn deposit_asset(
+			what: AssetsInHolding,
+			who: &Location,
+			_context: Option<&XcmContext>,
+		) -> Result<(), (AssetsInHolding, XcmError)> {
+			// The executor deposits a single fungible per call and wraps the whole
+			// `DepositAsset` instruction in the runtime's `TransactionalProcessor`
+			// (`FrameTransactionalProcessor`), which provides cross-asset rollback. Mirror the
+			// SDK's reference adapters: assert the single-asset invariant and process that one
+			// asset, returning it as the unspent holding on error.
+			frame_support::defensive_assert!(
+				what.len() == 1,
+				"Trying to deposit more than one asset!"
+			);
+
+			let next_asset = what.fungible_assets_iter().next();
+			let asset = match next_asset {
+				Some(asset) => asset,
+				None => return Err((what, XcmError::AssetNotFound)),
+			};
+
 			let (contract_address, amount) =
-				Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(what)?;
+				match Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(&asset) {
+					Ok(matched) => matched,
+					Err(err) => return Err((what, err.into())),
+				};
 
-			let beneficiary = T::AccountIdConverter::convert_location(who)
-				.ok_or(MatchError::AccountIdConversionFailed)?;
+			let beneficiary = match T::AccountIdConverter::convert_location(who) {
+				Some(beneficiary) => beneficiary,
+				None => return Err((what, MatchError::AccountIdConversionFailed.into())),
+			};
 
-			let gas_limit = Self::gas_limit_of_erc20_transfer(&what.id);
+			let gas_limit = Self::gas_limit_of_erc20_transfer(&asset.id);
 
-			// Get the global context to recover accounts origins.
-			XcmHoldingErc20sOrigins::with(|erc20s_origins| {
+			// Get the global context to recover accounts origins and perform the transfers.
+			let outcome = XcmHoldingErc20sOrigins::with(|erc20s_origins| {
 				match erc20s_origins.drain(contract_address, amount) {
-					// We perform the evm transfers in a storage transaction to ensure that if one
-					// of them fails all the changes of the previous evm calls are rolled back.
+					// We perform the evm transfers in a storage transaction to ensure that if
+					// one of them fails all the changes of the previous evm calls are rolled
+					// back.
 					Ok(tokens_to_transfer) => frame_support::storage::with_storage_layer(|| {
 						tokens_to_transfer
 							.into_iter()
@@ -193,10 +221,16 @@ pub mod pallet {
 						"SplitError: each withdrawal of erc20 tokens must be deposited at once",
 					)),
 				}
-			})
-			.ok_or(XcmError::FailedToTransactAsset(
-				"missing erc20 executor context",
-			))?
+			});
+
+			match outcome {
+				Some(Ok(())) => Ok(()),
+				Some(Err(err)) => Err((what, err)),
+				None => Err((
+					what,
+					XcmError::FailedToTransactAsset("missing erc20 executor context"),
+				)),
+			}
 		}
 
 		fn internal_transfer_asset(
@@ -204,7 +238,7 @@ pub mod pallet {
 			from: &Location,
 			to: &Location,
 			_context: &XcmContext,
-		) -> Result<AssetsInHolding, XcmError> {
+		) -> Result<Asset, XcmError> {
 			let (contract_address, amount) =
 				Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(asset)?;
 
@@ -222,7 +256,7 @@ pub mod pallet {
 				Self::erc20_transfer(contract_address, from, to, amount, gas_limit)
 			})?;
 
-			Ok(asset.clone().into())
+			Ok(asset.clone())
 		}
 
 		// Since we don't control the erc20 contract that manages the asset we want to withdraw,
@@ -249,7 +283,13 @@ pub mod pallet {
 				"missing erc20 executor context",
 			))?;
 
-			Ok(what.clone().into())
+			// Represent the withdrawn erc20 amount in holding via a notional credit (erc20 has no
+			// real `fungible::Credit`); the EVM transfer happens later in `deposit_asset`.
+			let amount: u128 = amount.try_into().map_err(|_| XcmError::Overflow)?;
+			Ok(AssetsInHolding::new_from_fungible_credit(
+				what.id.clone(),
+				Box::new(NotionalImbalance(amount)),
+			))
 		}
 	}
 }

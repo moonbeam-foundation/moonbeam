@@ -385,7 +385,11 @@ impl SendXcm for TestSendXcm {
 
 pub struct DummyAssetTransactor;
 impl TransactAsset for DummyAssetTransactor {
-	fn deposit_asset(_what: &Asset, _who: &Location, _context: Option<&XcmContext>) -> XcmResult {
+	fn deposit_asset(
+		_what: AssetsInHolding,
+		_who: &Location,
+		_context: Option<&XcmContext>,
+	) -> Result<(), (AssetsInHolding, XcmError)> {
 		Ok(())
 	}
 
@@ -394,7 +398,7 @@ impl TransactAsset for DummyAssetTransactor {
 		_who: &Location,
 		_maybe_context: Option<&XcmContext>,
 	) -> Result<AssetsInHolding, XcmError> {
-		Ok(AssetsInHolding::default())
+		Ok(AssetsInHolding::new())
 	}
 }
 
@@ -407,15 +411,15 @@ impl WeightTrader for DummyWeightTrader {
 	fn buy_weight(
 		&mut self,
 		weight: Weight,
-		payment: AssetsInHolding,
+		mut payment: AssetsInHolding,
 		_context: &XcmContext,
-	) -> Result<AssetsInHolding, XcmError> {
+	) -> Result<AssetsInHolding, (AssetsInHolding, XcmError)> {
 		let asset_to_charge: Asset = (Location::parent(), weight.ref_time() as u128).into();
-		let unused = payment
-			.checked_sub(asset_to_charge)
-			.map_err(|_| XcmError::TooExpensive)?;
-
-		Ok(unused)
+		// Take the charge out of `payment`; the remainder is the unused amount.
+		match payment.try_take(asset_to_charge.into()) {
+			Ok(_taken) => Ok(payment),
+			Err(_) => Err((payment, XcmError::TooExpensive)),
+		}
 	}
 }
 
@@ -465,7 +469,6 @@ impl xcm_executor::Config for XcmConfig {
 	type ResponseHandler = ();
 	type SubscriptionService = ();
 	type AssetTrap = ();
-	type AssetClaims = ();
 	type CallDispatcher = RuntimeCall;
 	type AssetLocker = ();
 	type AssetExchanger = ();

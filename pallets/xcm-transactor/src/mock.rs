@@ -34,8 +34,7 @@ use sp_runtime::BuildStorage;
 use xcm::latest::{
 	opaque, Asset, Error as XcmError, Instruction, InstructionError, InteriorLocation,
 	Junction::{AccountKey20, GlobalConsensus, PalletInstance, Parachain},
-	Location, NetworkId, Result as XcmResult, SendError, SendResult, SendXcm, Xcm, XcmContext,
-	XcmHash,
+	Location, NetworkId, SendError, SendResult, SendXcm, Xcm, XcmContext, XcmHash,
 };
 use xcm::{IntoVersion, VersionedXcm, WrapVersion};
 use xcm_primitives::XcmTransact;
@@ -172,7 +171,11 @@ impl SendXcm for DoNothingRouter {
 
 pub struct DummyAssetTransactor;
 impl TransactAsset for DummyAssetTransactor {
-	fn deposit_asset(_what: &Asset, _who: &Location, _context: Option<&XcmContext>) -> XcmResult {
+	fn deposit_asset(
+		_what: AssetsInHolding,
+		_who: &Location,
+		_context: Option<&XcmContext>,
+	) -> Result<(), (AssetsInHolding, XcmError)> {
 		Ok(())
 	}
 
@@ -181,7 +184,7 @@ impl TransactAsset for DummyAssetTransactor {
 		_who: &Location,
 		_context: Option<&XcmContext>,
 	) -> Result<AssetsInHolding, XcmError> {
-		Ok(AssetsInHolding::default())
+		Ok(AssetsInHolding::new())
 	}
 }
 
@@ -196,8 +199,8 @@ impl WeightTrader for DummyWeightTrader {
 		_weight: Weight,
 		_payment: AssetsInHolding,
 		_context: &XcmContext,
-	) -> Result<AssetsInHolding, XcmError> {
-		Ok(AssetsInHolding::default())
+	) -> Result<AssetsInHolding, (AssetsInHolding, XcmError)> {
+		Ok(AssetsInHolding::new())
 	}
 }
 

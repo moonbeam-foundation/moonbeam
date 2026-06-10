@@ -22,6 +22,19 @@ use frame_support::{assert_noop, assert_ok};
 use precompile_utils::testing::Bob;
 use xcm::latest::prelude::*;
 
+/// Build a single-asset `AssetsInHolding` for `deposit_asset` tests. erc20/foreign assets are
+/// not a Substrate `fungible`, so the holding carries a notional credit (see `crate::notional`).
+fn holding(asset: &Asset) -> xcm_executor::AssetsInHolding {
+	let amount = match asset.fun {
+		Fungibility::Fungible(amount) => amount,
+		_ => 0,
+	};
+	xcm_executor::AssetsInHolding::new_from_fungible_credit(
+		asset.id.clone(),
+		Box::new(crate::notional::NotionalImbalance(amount)),
+	)
+}
+
 fn encode_ticker(str_: &str) -> BoundedVec<u8, ConstU32<256>> {
 	BoundedVec::try_from(str_.as_bytes().to_vec()).expect("too long")
 }
@@ -454,7 +467,7 @@ fn xcm_deposit_succeeds_on_frozen_xcm_deposit_allowed_asset() {
 		// Deposit succeeds on an active (unpaused) asset — mints directly via EVM
 		assert_ok!(
 			<EvmForeignAssets as xcm_executor::traits::TransactAsset>::deposit_asset(
-				&xcm_asset,
+				holding(&xcm_asset),
 				&beneficiary_location,
 				None,
 			)
@@ -479,7 +492,7 @@ fn xcm_deposit_succeeds_on_frozen_xcm_deposit_allowed_asset() {
 		// Deposit succeeds but goes to PendingDeposits storage (not EVM mint)
 		assert_ok!(
 			<EvmForeignAssets as xcm_executor::traits::TransactAsset>::deposit_asset(
-				&xcm_asset,
+				holding(&xcm_asset),
 				&beneficiary_location,
 				None,
 			)
@@ -532,7 +545,7 @@ fn pending_deposits_accumulate() {
 		// First deposit
 		assert_ok!(
 			<EvmForeignAssets as xcm_executor::traits::TransactAsset>::deposit_asset(
-				&xcm_asset_100,
+				holding(&xcm_asset_100),
 				&beneficiary_location,
 				None,
 			)
@@ -545,7 +558,7 @@ fn pending_deposits_accumulate() {
 		// Second deposit accumulates
 		assert_ok!(
 			<EvmForeignAssets as xcm_executor::traits::TransactAsset>::deposit_asset(
-				&xcm_asset_200,
+				holding(&xcm_asset_200),
 				&beneficiary_location,
 				None,
 			)
@@ -595,11 +608,14 @@ fn pending_deposits_overflow() {
 			fun: Fungibility::Fungible(1),
 		};
 		let result = <EvmForeignAssets as xcm_executor::traits::TransactAsset>::deposit_asset(
-			&xcm_asset_one,
+			holding(&xcm_asset_one),
 			&beneficiary_location,
 			None,
 		);
-		assert_eq!(result, Err(xcm::latest::Error::Overflow.into()));
+		assert_eq!(
+			result.map_err(|(_, e)| e),
+			Err(xcm::latest::Error::Overflow.into())
+		);
 
 		// Pending deposit unchanged
 		assert_eq!(
@@ -646,7 +662,7 @@ fn claim_pending_deposit_success() {
 		// Deposit goes to pending
 		assert_ok!(
 			<EvmForeignAssets as xcm_executor::traits::TransactAsset>::deposit_asset(
-				&xcm_asset,
+				holding(&xcm_asset),
 				&beneficiary_location,
 				None,
 			)
@@ -724,7 +740,7 @@ fn claim_pending_deposit_fails_when_asset_frozen() {
 		// Deposit goes to pending
 		assert_ok!(
 			<EvmForeignAssets as xcm_executor::traits::TransactAsset>::deposit_asset(
-				&xcm_asset,
+				holding(&xcm_asset),
 				&beneficiary_location,
 				None,
 			)
@@ -812,12 +828,12 @@ fn xcm_deposit_blocked_on_frozen_xcm_deposit_forbidden_asset() {
 
 		// Deposit is rejected at the pallet level (before EVM call)
 		let result = <EvmForeignAssets as xcm_executor::traits::TransactAsset>::deposit_asset(
-			&xcm_asset,
+			holding(&xcm_asset),
 			&beneficiary_location,
 			None,
 		);
 		assert_eq!(
-			result,
+			result.map_err(|(_, e)| e),
 			Err(XcmError::FailedToTransactAsset(
 				"asset is frozen and XCM deposits are forbidden"
 			)),
