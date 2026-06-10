@@ -82,4 +82,15 @@ impl<T: frame_system::Config> pallet_precompile_benchmarks::WeightInfo for Weigh
 			// takes longer to verify
 			.saturating_mul(1u64)
 	}
+	// PLACEHOLDER WEIGHTS — not yet benchmarked on reference hardware. Regenerate with
+	// `--pallet=pallet_precompile_benchmarks --extrinsic=gmp`.
+	/// The range of component `x` is `[0, 65536]`.
+	fn gmp(x: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		Weight::from_parts(62_500_000, 0)
+			// Standard Error: 0
+			.saturating_add(Weight::from_parts(25_000, 0).saturating_mul(x.into()))
+	}
 }

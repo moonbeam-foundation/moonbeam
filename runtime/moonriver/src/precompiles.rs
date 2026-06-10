@@ -68,6 +68,15 @@ parameter_types! {
 	pub AssetHubTransactor: crate::xcm_config::Transactors = crate::xcm_config::Transactors::AssetHub;
 }
 
+/// Adapts the runtime's generated benchmark weights to the GMP precompile's `GmpWeightInfo` trait,
+/// so the precompile meters gas proportional to the supplied VAA size.
+pub struct GmpWeight;
+impl pallet_evm_precompile_gmp::GmpWeightInfo for GmpWeight {
+	fn gmp(input_len: u32) -> frame_support::weights::Weight {
+		moonriver_weights::pallet_precompile_benchmarks::WeightInfo::<Runtime>::gmp(input_len)
+	}
+}
+
 pub struct NativeErc20Metadata;
 
 /// ERC20 metadata for the native token.
@@ -277,7 +286,7 @@ type MoonriverPrecompilesAt<R> = (
 		PrecompileRegistry<R>,
 		(CallableByContract, CallableByPrecompile),
 	>,
-	PrecompileAt<AddressU64<2070>, GmpPrecompile<R>, SubcallWithMaxNesting<0>>,
+	PrecompileAt<AddressU64<2070>, GmpPrecompile<R, GmpWeight>, SubcallWithMaxNesting<0>>,
 	PrecompileAt<
 		AddressU64<2071>,
 		XcmTransactorPrecompileV3<R>,
