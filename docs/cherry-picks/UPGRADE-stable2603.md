@@ -8,7 +8,7 @@
 ## Context
 
 - **Current pin (Cargo.toml):** `moonbeam-polkadot-stable2512` for polkadot-sdk, frontier, evm, ethereum, moonkit.
-- **Target upstream:** `polkadot-stable2603-1` (paritytech/polkadot-sdk, released 2026-05-04).
+- **Target upstream:** `polkadot-stable2603-1` (paritytech/polkadot-sdk, released 2026-05-01).
 - **Sibling upstream bases:**
   - frontier → tag `frontier-stable2603` (polkadot-evm/frontier)
   - evm → 0.43.x line (rust-ethereum/evm) — diverged from upstream v1.0
@@ -205,7 +205,7 @@ Order: **polkadot-sdk → (evm, ethereum) → (moonkit, frontier)**.
   - **runtime-benchmarks**: weight-reclaim benchmark needed the `GetCallMetadata` bound the logging cherry-pick added (fixed in the fork at `ddba2453`); `pallet_transaction_payment::benchmarking` is now private (use `Pallet` + `BenchmarkConfig`); `worst_case_holding` returns `AssetsInHolding` (built via `generate_holding_assets`).
 - [x] **XCM credit-based holding migration** (the substantive piece): stable2603 reworked `AssetsInHolding` to carry `fungible::Credit` imbalances. Real impls for `erc20-xcm-bridge` / `moonbeam-foreign-assets` (`deposit_asset`/`withdraw_asset` via a notional credit, since erc20 isn't a Substrate `fungible`) and `xcm-weight-trader` (`buy_weight`/`refund_weight`/`Drop`).
 - [x] No `[patch.crates-io]` needed — the fork branches resolve directly from the moonbeam-foundation remotes.
-- [ ] Update `tests/` TS fixtures referencing changed types/RPCs. — *pending; requires a built node binary.*
+- [x] Update `tests/` TS fixtures referencing changed types/RPCs. — regenerated `typescript-api/` types and updated the dev fixtures (`test-block-mocked-relay.ts`, `test-transactional-outcomes.ts`, `test-precompile-relay-verifier.ts`) for the new relay / credit-model XCM events. *Running* them against a built node binary is deferred to Phase 6.
 
 > **Note — `--all-features` is NOT a valid check for moonbeam.** It forces the mutually-exclusive `disable-genesis-builder` feature on, which strips `genesis_config_preset` (needed by the node's chain_spec). Use the realistic feature matrix (default / `runtime-benchmarks` / `try-runtime`) instead. Pallet unit tests can't be run in isolation either (`sp-session`/`sp-authority-discovery` fail to build no_std standalone — pre-existing infra quirk); run via the full workspace test.
 >
