@@ -25,8 +25,9 @@ use frame_support::{
 	dispatch::{GetDispatchInfo, PostDispatchInfo},
 	sp_runtime::traits::Zero,
 	traits::ConstU32,
+	weights::Weight,
 };
-use pallet_evm::AddressMapping;
+use pallet_evm::{AddressMapping, GasWeightMapping};
 use parity_scale_codec::{Decode, DecodeLimit};
 use precompile_utils::{prelude::*, solidity::revert::revert_as_bytes};
 use sp_core::{H160, U256};
@@ -62,12 +63,23 @@ const CHAIN_ID_SELECTOR: u32 = 0x9a8a0592_u32;
 const BALANCE_OF_SELECTOR: u32 = 0x70a08231_u32;
 const TRANSFER_SELECTOR: u32 = 0xa9059cbb_u32;
 
+/// Weight information for the GMP precompile, used to meter the precompile's input-size-dependent
+/// native work (ABI/SCALE decoding of the up-to-`CALL_DATA_LIMIT`-byte VAA and its payloads).
+///
+/// Defined here -- rather than reusing `pallet_precompile_benchmarks::WeightInfo` -- to avoid a
+/// dependency cycle: the benchmarks pallet depends on this precompile, not the other way around.
+/// Each runtime adapts its generated weights to this trait when registering the precompile.
+pub trait GmpWeightInfo {
+	/// Weight of a `wormholeTransferERC20` call carrying a VAA of `input_len` bytes.
+	fn gmp(input_len: u32) -> Weight;
+}
+
 /// Gmp precompile.
 #[derive(Debug, Clone)]
-pub struct GmpPrecompile<Runtime>(PhantomData<Runtime>);
+pub struct GmpPrecompile<Runtime, WeightInfo>(PhantomData<(Runtime, WeightInfo)>);
 
 #[precompile_utils::precompile]
-impl<Runtime> GmpPrecompile<Runtime>
+impl<Runtime, WeightInfo> GmpPrecompile<Runtime, WeightInfo>
 where
 	Runtime: pallet_evm::Config
 		+ frame_system::Config
@@ -79,6 +91,7 @@ where
 	<Runtime as frame_system::Config>::RuntimeCall: From<pallet_xcm::Call<Runtime>>,
 	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
 	<Runtime as pallet_evm::Config>::AddressMapping: AddressMapping<Runtime::AccountId>,
+	WeightInfo: GmpWeightInfo,
 {
 	#[precompile::public("wormholeTransferERC20(bytes)")]
 	pub fn wormhole_transfer_erc20(
@@ -88,10 +101,15 @@ where
 		log::debug!(target: "gmp-precompile", "wormhole_vaa: {:?}", wormhole_vaa.clone());
 
 		// tally up gas cost:
-		// 1 read for enabled flag
-		// 2 reads for contract addresses
-		// 2500 as fudge for computation, esp. payload decoding (TODO: benchmark?)
-		handle.record_cost(2500)?;
+		// The computation cost (dominated by decoding the VAA and its payloads) scales with the
+		// size of the supplied VAA, so we charge a benchmarked, input-length-dependent weight.
+		// This must be done up front, before any of that decoding happens.
+		let weight = WeightInfo::gmp(wormhole_vaa.as_bytes().len() as u32);
+		handle.record_cost(
+			<Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(weight),
+		)?;
+		handle.record_external_cost(Some(weight.ref_time()), Some(weight.proof_size()), None)?;
+		// 2 reads for contract addresses + 1 read for the enabled flag.
 		// CoreAddress: AccountId(20)
 		handle.record_db_read::<Runtime>(20)?;
 		// BridgeAddress: AccountId(20)
