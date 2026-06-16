@@ -562,7 +562,7 @@ where
 			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
 			executor,
 			true,
-			Vec::new(),
+			Default::default(),
 		)?;
 
 	if let Some(block_number) = Customizations::first_block_number_compatible_with_ed25519_zebra() {
