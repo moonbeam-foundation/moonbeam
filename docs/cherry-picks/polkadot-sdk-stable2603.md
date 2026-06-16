@@ -1,8 +1,11 @@
 # Cherry-picks for stable2603
 
-> **Draft.** Commit hashes are placeholders (`TBD`) until the `moonbeam-polkadot-stable2603`
-> branches are created in each fork. Rows marked **`Verify`** in the Note column require
-> confirmation against upstream `stable2603` before finalizing — see
+> **Draft.** Most included cherry-picks below have finalized commit links on the
+> `moonbeam-polkadot-stable2603` fork branches; no Commit cells use `TBD` placeholders.
+> Blank Commit cells are rows marked `Dropped`, where the change is inherited from upstream
+> or not re-applied this cycle. Remaining verification work is limited to rows explicitly
+> marked **`Verify`** in the Note column (currently in the `frontier` section), which still
+> require confirmation against upstream `stable2603` before finalizing — see
 > `.claude/skills/qa-cherry-picks/verify-cherry-picks.md`.
 
 ## `polkadot-sdk`
