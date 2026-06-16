@@ -26,7 +26,6 @@ mod tests;
 mod erc20_matcher;
 mod erc20_trap;
 mod errors;
-mod notional;
 mod xcm_holding_ext;
 
 use frame_support::pallet;
@@ -40,7 +39,6 @@ pub mod pallet {
 
 	use crate::erc20_matcher::*;
 	use crate::errors::*;
-	use crate::notional::NotionalImbalance;
 	use crate::xcm_holding_ext::*;
 	use ethereum_types::BigEndianHash;
 	use fp_evm::{ExitReason, ExitSucceed};
@@ -53,6 +51,7 @@ pub mod pallet {
 	use xcm_executor::traits::ConvertLocation;
 	use xcm_executor::traits::{Error as MatchError, MatchesFungibles};
 	use xcm_executor::AssetsInHolding;
+	use xcm_primitives::NotionalImbalance;
 
 	const ERC20_TRANSFER_CALL_DATA_SIZE: usize = 4 + 32 + 32; // selector + from + amount
 	const ERC20_TRANSFER_SELECTOR: [u8; 4] = [0xa9, 0x05, 0x9c, 0xbb];

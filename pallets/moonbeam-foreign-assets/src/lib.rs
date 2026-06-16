@@ -48,7 +48,6 @@ pub mod tests;
 pub mod weights;
 
 mod evm;
-mod notional;
 
 pub use pallet::*;
 pub use weights::WeightInfo;
@@ -179,7 +178,6 @@ pub struct EvmForeignAssetInfo {
 #[pallet]
 pub mod pallet {
 	use super::*;
-	use crate::notional::NotionalImbalance;
 	use frame_support::traits::{Currency, ReservableCurrency};
 	use pallet_evm::{GasWeightMapping, Runner};
 	use sp_runtime::traits::{AccountIdConversion, AtLeast32BitUnsigned, Convert};
@@ -187,6 +185,7 @@ pub mod pallet {
 	use xcm_executor::traits::ConvertLocation;
 	use xcm_executor::traits::Error as MatchError;
 	use xcm_executor::AssetsInHolding;
+	use xcm_primitives::NotionalImbalance;
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]

@@ -21,9 +21,10 @@ use frame_support::traits::Currency;
 use frame_support::{assert_noop, assert_ok};
 use precompile_utils::testing::Bob;
 use xcm::latest::prelude::*;
+use xcm_primitives::NotionalImbalance;
 
 /// Build a single-asset `AssetsInHolding` for `deposit_asset` tests. erc20/foreign assets are
-/// not a Substrate `fungible`, so the holding carries a notional credit (see `crate::notional`).
+/// not a Substrate `fungible`, so the holding carries a notional credit.
 fn holding(asset: &Asset) -> xcm_executor::AssetsInHolding {
 	let amount = match asset.fun {
 		Fungibility::Fungible(amount) => amount,
@@ -31,7 +32,7 @@ fn holding(asset: &Asset) -> xcm_executor::AssetsInHolding {
 	};
 	xcm_executor::AssetsInHolding::new_from_fungible_credit(
 		asset.id.clone(),
-		Box::new(crate::notional::NotionalImbalance(amount)),
+		Box::new(NotionalImbalance(amount)),
 	)
 }
 

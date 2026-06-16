@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>
 
-//! Notional fungible imbalance for representing erc20 amounts inside the XCM holding.
+//! Notional fungible imbalance for representing externally-accounted amounts inside XCM holding.
 //!
 //! As of polkadot-sdk stable2603, `xcm_executor::AssetsInHolding` tracks real
-//! `fungible::Credit` imbalances rather than plain `Asset` descriptors. erc20 tokens are
-//! EVM-side balances, not a Substrate `fungible`, so they have no real `Credit` to hold. This
-//! type carries only the amount (mirroring the executor's own `MockCredit`); the actual token
-//! movement is performed by EVM calls in `withdraw_asset`/`deposit_asset`, and the notional
-//! credit exists purely so the XCM executor can thread the asset through holding.
+//! `fungible::Credit` imbalances rather than plain `Asset` descriptors. Externally-accounted
+//! assets, such as EVM-side ERC20 balances, may not have a native Substrate `fungible::Credit` to
+//! hold. This type carries only the amount (mirroring the executor's own `MockCredit`); the actual
+//! token movement must be performed by the corresponding `TransactAsset` implementation.
 
 use frame_support::traits::tokens::imbalance::{
 	ImbalanceAccounting, UnsafeConstructorDestructor, UnsafeManualAccounting,
@@ -35,6 +34,7 @@ impl UnsafeConstructorDestructor<u128> for NotionalImbalance {
 	fn unsafe_clone(&self) -> Box<dyn ImbalanceAccounting<u128>> {
 		Box::new(NotionalImbalance(self.0))
 	}
+
 	fn forget_imbalance(&mut self) -> u128 {
 		let amount = self.0;
 		self.0 = 0;
@@ -52,6 +52,7 @@ impl ImbalanceAccounting<u128> for NotionalImbalance {
 	fn amount(&self) -> u128 {
 		self.0
 	}
+
 	fn saturating_take(&mut self, amount: u128) -> Box<dyn ImbalanceAccounting<u128>> {
 		let taken = self.0.min(amount);
 		self.0 -= taken;
