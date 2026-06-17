@@ -28,38 +28,8 @@ use {
 	xcm_executor::traits::WeightTrader,
 };
 
-use frame_support::traits::tokens::imbalance::{
-	ImbalanceAccounting, UnsafeConstructorDestructor, UnsafeManualAccounting,
-};
 use xcm_executor::AssetsInHolding;
-
-/// A notional (amount-only) credit, used to build `AssetsInHolding` payments in trader tests.
-struct TestCredit(u128);
-impl UnsafeConstructorDestructor<u128> for TestCredit {
-	fn unsafe_clone(&self) -> Box<dyn ImbalanceAccounting<u128>> {
-		Box::new(TestCredit(self.0))
-	}
-	fn forget_imbalance(&mut self) -> u128 {
-		let amount = self.0;
-		self.0 = 0;
-		amount
-	}
-}
-impl UnsafeManualAccounting<u128> for TestCredit {
-	fn saturating_subsume(&mut self, mut other: Box<dyn ImbalanceAccounting<u128>>) {
-		self.0 = self.0.saturating_add(other.forget_imbalance());
-	}
-}
-impl ImbalanceAccounting<u128> for TestCredit {
-	fn amount(&self) -> u128 {
-		self.0
-	}
-	fn saturating_take(&mut self, amount: u128) -> Box<dyn ImbalanceAccounting<u128>> {
-		let taken = self.0.min(amount);
-		self.0 -= taken;
-		Box::new(TestCredit(taken))
-	}
-}
+use xcm_primitives::NotionalImbalance;
 
 /// Build an `AssetsInHolding` payment from a single fungible asset.
 fn holding(asset: Asset) -> AssetsInHolding {
@@ -67,7 +37,7 @@ fn holding(asset: Asset) -> AssetsInHolding {
 		Fungibility::Fungible(amount) => amount,
 		_ => 0,
 	};
-	AssetsInHolding::new_from_fungible_credit(asset.id.clone(), Box::new(TestCredit(amount)))
+	AssetsInHolding::new_from_fungible_credit(asset.id.clone(), Box::new(NotionalImbalance(amount)))
 }
 
 /// Build an `AssetsInHolding` payment from multiple fungible assets.
