@@ -483,7 +483,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					estimate: bool,
 					access_list: Option<Vec<(H160, Vec<H256>)>>,
 					authorization_list: Option<AuthorizationList>,
-				state_override: fp_evm::StateOverride,
+				    state_override: fp_evm::StateOverride,
 				) -> Result<pallet_evm::CallInfo, sp_runtime::DispatchError> {
 					let config = if estimate {
 						let mut config = <Runtime as pallet_evm::Config>::config().clone();
