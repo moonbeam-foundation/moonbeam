@@ -87,6 +87,5 @@
 
 | Applied | Title | Commit | Cherry pick | Status | Upstream PR | Note |
 | --- | --- | --- | --- | --- | --- | --- |
-| Yes | Update to polkadot-sdk stable2603 |  | Dropped | Needs PR upstream | [Moonsong-Labs/moonkit#95](https://github.com/Moonsong-Labs/moonkit/pull/95) | Tracking row for the moonkit base bump to stable2603 (PR #95, open). Interim `moonbeam-polkadot-stable2603` cut off the open PR head (`adfff2d` = `main` + base-bump); reconcile against the merge commit once #95 lands in `main`. |
 | Yes | Add using_fake_author logic to author-slot-filter |  | Dropped | PR Merged | [Moonsong-Labs/moonkit#92](https://github.com/Moonsong-Labs/moonkit/pull/92) | Already merged into `main` during the stable2512 cycle. |
 | Yes | Make relay offset dynamic |  | Dropped | PR Merged | [Moonsong-Labs/moonkit#94](https://github.com/Moonsong-Labs/moonkit/pull/94) | Discovered in Phase 0.5 audit. Confirmed inherited from upstream `main` (commit `c0cf857`): `moonbeam-polkadot-stable2603` is `main` + base-bump, so #94 is present with no cherry-pick. Flipped TBD → Dropped during Phase 1.4 verification (2026-06-08). |
