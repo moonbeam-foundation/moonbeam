@@ -75,8 +75,13 @@ describeSuite({
 
     it({
       id: "T01",
-      title: "Assert balances after XCM message",
+      title: "Native deposit is recovered when a multi-asset erc20 leg fails",
       test: async function () {
+        // Multi-asset XCM (native + erc20) whose erc20 leg is doomed to fail: the paraId
+        // sovereign holds 0 of the erc20, so its deferred EVM transfer reverts at DepositAsset.
+        // Asserts the partial failure is contained transactionally -- atomic rollback, native
+        // recovered via the SetErrorHandler, value conserved. Happy-path mirror (funded
+        // sovereign, erc20 succeeds): test-xcm-v5/test-xcm-erc20-transfer.ts (T02).
         const xcmMessage = new XcmFragment({} as any)
           .push_any({
             WithdrawAsset: [
@@ -113,7 +118,8 @@ describeSuite({
                   },
                 },
                 fun: {
-                  // The sovereign account balance should be zero, this will fail
+                  // erc20 withdraw is notional: records the sovereign as drain origin, no balance
+                  // check. It does NOT fail here -- the failure is the EVM transfer in DepositAsset.
                   Fungible: 1,
                 },
               },
@@ -189,7 +195,8 @@ describeSuite({
                         },
                       },
                     },
-                    // The sovereign account balance should be zero, this will fail
+                    // Deferred EVM transfer drains from the sovereign (0 balance) and reverts:
+                    // the leg that fails and rolls back the whole DepositAsset instruction.
                     fun: { Fungible: 1 },
                   },
                 ],
@@ -208,10 +215,11 @@ describeSuite({
         });
 
         const events = await context.polkadotJs().query.system.events();
-        // In stable2603 the credit-based asset model moves native value via Withdraw/Deposit
-        // events (it no longer mints tokens into existence), so the execution fee is derived from
-        // the treasury Deposit rather than from `balances.Minted` events. The native DepositAsset
-        // to Baltathar succeeds even though the erc20 part of the multi-asset deposit fails.
+        // stable2603 credit model (polkadot-sdk #10384) moves native value via Withdraw/Deposit
+        // imbalances instead of minting, so the execution fee surfaces as a treasury
+        // `balances.Deposit`, not `balances.Minted`. The multi-asset DepositAsset fails atomically
+        // (erc20 revert rolls back the native leg via FrameTransactionalProcessor); Baltathar is
+        // funded by the SetErrorHandler's native-only deposit afterwards.
         const deposits = events
           .filter((evt) => context.polkadotJs().events.balances.Deposit.is(evt.event))
           .map((evt) => evt.event.toJSON().data as [string, any]);
