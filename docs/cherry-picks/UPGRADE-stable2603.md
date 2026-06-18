@@ -211,11 +211,10 @@ Order: **polkadot-sdk → (evm, ethereum) → (moonkit, frontier)**.
 >
 > **Fork-side fixes pushed this cycle** (need recording in `polkadot-sdk-stable2603.md` / Phase 1 trackers): moonkit `ba06fb0` → rebased to `9d71129` after [moonkit#95](https://github.com/Moonsong-Labs/moonkit/pull/95) merged (redirect deps to MBF forks) and polkadot-sdk `ddba2453` (weight-reclaim benchmark `GetCallMetadata` bound — completes the weight-reclaim-logs cherry-pick `b0b4fd52a9e`).
 
-## Phase 4 — Runtime, weights, version bump
+## Phase 4 — Runtime, weights, migrations
 
 - [ ] Re-run benchmarks for any pallet whose weight signature changed (`benchmarking-pallets` skill).
 - [ ] Run `analyzing-weights` over the diff; flag regressions in ref_time / proof_size / DB reads.
-- [ ] Bump `spec_version` in each runtime (last bump: commit b4f02de7b5).
 - [ ] Author migrations for any pallet whose `StorageVersion` advanced upstream (`writing-migrations` skill).
 - [ ] Run `try-runtime` against current production state for moonbase, moonriver, moonbeam.
 
