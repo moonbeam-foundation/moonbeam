@@ -125,17 +125,17 @@ Order: **polkadot-sdk → (evm, ethereum) → (moonkit, frontier)**.
 - [x] Re-cherry-pick `Add encoded length methods to transactions` (rust-ethereum/ethereum#77 still open). Already on the branch as `58a5a8a` — inherited as-is.
 - [x] Push branch and update tracker.
 
-### 1.4 moonkit — interim branch cut off PR #95 (reconcile when #95 merges to `main`)
+### 1.4 moonkit — interim branch cut off PR #95 (reconciled — #95 merged to `main` 2026-06-18) ✅
 - [x] **Interim (unblocks moonbeam Phase 3):** created `moonbeam-polkadot-stable2603` at the head of the open base-bump PR branch `mb/polkadot-sdk-stable2603` (`adfff2d`) and pushed to `Moonsong-Labs/moonkit`. PR [#95](https://github.com/Moonsong-Labs/moonkit/pull/95) is `main` + 11 base-bump commits (linear — `main` is a direct ancestor), so the release branch already equals `main` + base-bump, i.e. exactly what it would be if cut from the eventual merge commit. Original SHAs preserved; the branch is its own ref so it survives the PR branch being deleted on merge.
 - [x] Confirmed `using_fake_author` (#92) **and** `make relay offset dynamic` (#94) are already in `main` (and therefore on this branch) — no extra moonbeam-only cherry-picks needed. Resolves the Phase 0.5 `#94` follow-up: inherited from `main`, flip tracker row to Dropped.
-- [ ] **When [#95](https://github.com/Moonsong-Labs/moonkit/pull/95) merges to `main`:** reconcile `moonbeam-polkadot-stable2603` against the merge/squash commit (if squash-merged it'll be a single new SHA — reset/rebase the release branch onto it), confirm content parity, then update tracker.
+- [x] **[#95](https://github.com/Moonsong-Labs/moonkit/pull/95) merged to `main` 2026-06-18** (squash commit `4088d76`). Rebased `moonbeam-polkadot-stable2603` onto `main` via `git rebase --onto origin/main adfff2d` (new head `9d71129` = `main` + the dep-redirect commit). Content parity confirmed (tree hash identical to pre-rebase `ba06fb0`). Moonbeam `Cargo.lock` re-pinned `ba06fb0` → `9d71129`; base-bump row removed from the tracker (not a cherry-pick).
 
-### 1.4a moonkit upstream base-bump PR (we author) — PR open, awaiting merge
+### 1.4a moonkit upstream base-bump PR (we author) — merged 2026-06-18 ✅
 - [x] In `~/Workspace/moonkit`, branch off `main` as `mb/polkadot-sdk-stable2603`.
 - [x] Bump polkadot-sdk dependencies in moonkit's `Cargo.toml` from `stable2512` → `stable2603`.
 - [x] Compile-fix loop until `cargo check --workspace --all-features` is clean.
 - [x] Open PR on `Moonsong-Labs/moonkit`; coordinate review with Moonsong-Labs → [moonkit#95](https://github.com/Moonsong-Labs/moonkit/pull/95). CI green; reviewed (CodeRabbit + manual). Review feedback applied: `b9c467e` (drop dead `Option` from the vendored `ProposerInterface`, debug-log unfound parent, `test_helpers` TODO) and `56e4a92` (linkspector npmjs ignore).
-- [ ] Once merged, proceed to Phase 1.4.
+- [x] Merged 2026-06-18 (squash commit `4088d76`); Phase 1.4 reconciliation completed.
 
 ### 1.5a frontier upstream base-bump (we own — B1) ✅ — done by upstream
 - [x] In `~/Workspace/frontier`, branch off a chosen `upstream/master` SHA (e.g. `mb/polkadot-sdk-stable2603`). Pick the most recent stable master commit that doesn't introduce unrelated risk.
@@ -209,7 +209,7 @@ Order: **polkadot-sdk → (evm, ethereum) → (moonkit, frontier)**.
 
 > **Note — `--all-features` is NOT a valid check for moonbeam.** It forces the mutually-exclusive `disable-genesis-builder` feature on, which strips `genesis_config_preset` (needed by the node's chain_spec). Use the realistic feature matrix (default / `runtime-benchmarks` / `try-runtime`) instead. Pallet unit tests can't be run in isolation either (`sp-session`/`sp-authority-discovery` fail to build no_std standalone — pre-existing infra quirk); run via the full workspace test.
 >
-> **Fork-side fixes pushed this cycle** (need recording in `polkadot-sdk-stable2603.md` / Phase 1 trackers): moonkit `ba06fb0` (redirect deps to MBF forks — re-apply when [moonkit#95](https://github.com/Moonsong-Labs/moonkit/pull/95) merges) and polkadot-sdk `ddba2453` (weight-reclaim benchmark `GetCallMetadata` bound — completes the weight-reclaim-logs cherry-pick `b0b4fd52a9e`).
+> **Fork-side fixes pushed this cycle** (need recording in `polkadot-sdk-stable2603.md` / Phase 1 trackers): moonkit `ba06fb0` → rebased to `9d71129` after [moonkit#95](https://github.com/Moonsong-Labs/moonkit/pull/95) merged (redirect deps to MBF forks) and polkadot-sdk `ddba2453` (weight-reclaim benchmark `GetCallMetadata` bound — completes the weight-reclaim-logs cherry-pick `b0b4fd52a9e`).
 
 ## Phase 4 — Runtime, weights, version bump
 
@@ -238,7 +238,7 @@ Order: **polkadot-sdk → (evm, ethereum) → (moonkit, frontier)**.
 
 ## Risks & open questions
 
-- **moonkit dependency** — no longer blocks moonbeam Phase 3: an interim `moonbeam-polkadot-stable2603` branch is cut off the open base-bump PR head (see Phase 1.4). Still need [moonkit#95](https://github.com/Moonsong-Labs/moonkit/pull/95) merged to `main` to finalize — PR is open with CI green and review feedback applied; nudge Moonsong-Labs for final review/merge, then reconcile the release branch against the merge commit.
+- **moonkit dependency** — ✅ resolved. [moonkit#95](https://github.com/Moonsong-Labs/moonkit/pull/95) merged to `main` 2026-06-18 (squash `4088d76`); the `moonbeam-polkadot-stable2603` release branch was rebased onto `main` (head `9d71129`) and moonbeam re-pinned its `Cargo.lock` to it. See Phase 1.4.
 - **EVM divergence** — anything new in upstream v1.0 (new EIPs, gas changes) must be backported manually onto the 0.43.x fork.
 - **Deferred EIPs** — confirm no EIP from stable2603 needs implementation work in our fork (`implementing-eips` skill).
 - **Verification cost** — Phase 1.5 frontier verification has 14 rows; parallelize via sub-agents.
