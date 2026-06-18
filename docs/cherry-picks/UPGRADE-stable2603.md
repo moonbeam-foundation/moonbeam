@@ -226,14 +226,16 @@ Order: **polkadot-sdk → (evm, ethereum) → (moonkit, frontier)**.
 
 ## Phase 6 — Verification
 
-- [ ] `cargo check --workspace`
-- [ ] `cargo check --workspace --features runtime-benchmarks`
-- [ ] `cargo check --workspace --features try-runtime`
-- [ ] Rust unit tests: `cargo test --workspace`
-- [ ] TypeScript integration tests (`testing-moonbeam` skill).
-- [ ] Smoke tests against moonbase/moonriver chain specs.
-- [ ] XCM cross-chain test scenarios.
-- [ ] Spot-check for cherry-pick regressions: confirm each Included row's behaviour still works (e.g. PrecompileWasmCmd, WildMultiAsset bound, POV underestimation fix).
+> Run 2026-06-18 after the moonkit re-pin (`9d71129`), on macOS with the warm 37 GB `target/` cache.
+
+- [x] `cargo check --workspace` — clean, 2m30s.
+- [x] `cargo check --workspace --features runtime-benchmarks` — clean, 2m17s.
+- [x] `cargo check --workspace --features try-runtime` — clean, 2m00s.
+- [x] Rust unit tests: `cargo test --workspace --no-fail-fast` — 1347 passed / 0 failed / 0 ignored across 134 suites in ~7.5m; the 3 runtime `integration_test` suites (moonbase 61, moonbeam 55, moonriver 55) and `xcm_tests` all green. Also closes the `--tests` compile gap the check matrix skipped.
+- [x] TypeScript integration tests — built the debug `metadata-hash` node binary and ran the upgrade-touched dev fixtures against `dev_moonbase`: D010105 (mocked-relay block), D010701 (transactional XCM outcomes), D022749 (relay-verifier precompile) — all pass. The full moonwall suite is left to CI (large + known-flaky).
+- [ ] Smoke tests against moonbase/moonriver chain specs. — **CI/ops only**: the `smoke_*` moonwall envs target live production endpoints (`wss://…`), so they validate live chain state, not this branch.
+- [ ] XCM cross-chain test scenarios. — emulated/dev XCM is green (rust `xcm_tests` + dev D010701); full **zombienet** multi-node scenarios are a CI concern (require relay+parachain infra).
+- [x] Spot-check for cherry-pick regressions: `PrecompileWasmCmd` → `moonbeam precompile-wasm` subcommand present in the built binary; `WildMultiAsset` bound (20) exercised by the green rust `xcm_tests`. POV-underestimation (frontier #244) is frontier-side and not independently re-checked locally — covered by frontier's own suite.
 
 ## Risks & open questions
 
