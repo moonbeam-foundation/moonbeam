@@ -213,10 +213,12 @@ Order: **polkadot-sdk → (evm, ethereum) → (moonkit, frontier)**.
 
 ## Phase 4 — Runtime, weights, migrations
 
-- [ ] Re-run benchmarks for any pallet whose weight signature changed (`benchmarking-pallets` skill).
-- [ ] Run `analyzing-weights` over the diff; flag regressions in ref_time / proof_size / DB reads.
-- [ ] Author migrations for any pallet whose `StorageVersion` advanced upstream (`writing-migrations` skill).
-- [ ] Run `try-runtime` against current production state for moonbase, moonriver, moonbeam.
+> Analysis 2026-06-18. The only weight-signature change in this upgrade: `cumulus_pallet_parachain_system::WeightInfo` gained 3 methods (`block_weight_tx_extension_{max_weight,stays_fraction_of_core,full_core}`).
+
+- [x] Re-run benchmarks for any pallet whose weight signature changed. — **Not required.** The 3 new methods were added as `Weight::zero()` stubs; their only consumer is the `DynamicMaxBlockWeight` tx-extension (elastic scaling), which moonbeam does **not** wire in (`TxExtension = cumulus_pallet_weight_reclaim::StorageWeightReclaim` only; no `DynamicMaxBlockWeight`/`MaxParachainBlockWeight` reference anywhere in the repo). The stubs exist solely to satisfy the upstream `WeightInfo` trait — the path is dead for moonbeam, so zero is safe. (A full re-benchmark is reference-hardware/CI work regardless.)
+- [x] Run `analyzing-weights` over the diff. — Weight-file diff vs `master` = 3 files (`cumulus_pallet_parachain_system.rs` × moonbase/moonbeam/moonriver), +9 lines each (the stubs above). No ref_time / proof_size / DB-read regressions.
+- [ ] Author migrations for any pallet whose `StorageVersion` advanced upstream (`writing-migrations` skill). — No moonbeam migrations added this cycle: `runtime/common/src/migrations.rs` is unchanged vs `master` and both lists are empty (`UnreleasedSingleBlockMigrations = ()`, `MultiBlockMigrations = ()`). Whether any SDK pallet needs a storage migration is validated authoritatively by the try-runtime step below (`try_state` flags `StorageVersion` mismatches). **Open, pending try-runtime.**
+- [ ] Run `try-runtime` against current production state for moonbase, moonriver, moonbeam. — `try-runtime` CLI installed; needs a try-runtime wasm build + a live/snapshot state pull per chain. **Next step.**
 
 ## Phase 5 — Bridge maintenance
 
