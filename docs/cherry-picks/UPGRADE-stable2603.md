@@ -73,8 +73,8 @@ on its upstream base, then reconcile with the corresponding table in
 
 For each commit not represented in the tracker:
 - [x] Add a row to `polkadot-sdk-stable2603.md` matching the existing schema (Applied / Title / Commit / Cherry pick / Status / Upstream PR / Note).
-- [ ] Decide Included vs Dropped using the same rule as Phase 0: search upstream stable2603 (`git log --grep` on PR number, title, or a stable code fragment) for an equivalent merge before deciding. — *Deferred to Phase 2 verification for the rows added with `TBD` status.*
-- [ ] If Included, add it to the appropriate Phase 1.x re-cherry-pick list below. — *Deferred to Phase 2 verification.*
+- [x] Decide Included vs Dropped using the same rule as Phase 0: search upstream stable2603 (`git log --grep` on PR number, title, or a stable code fragment) for an equivalent merge before deciding. — *Resolved in Phase 1.5 (frontier) + Phase 2 verification (2026-06-18): all frontier `Verify` rows confirmed present in `upstream/stable2603`.*
+- [x] If Included, add it to the appropriate Phase 1.x re-cherry-pick list below. — *Resolved: no TBD row flipped to Included; the only untracked moonbeam-only commit found was polkadot-sdk `ddba2453` (added as a tracker row, not a new re-cherry-pick).*
 
 ### Phase 0.5 results (2026-05-08)
 
@@ -185,9 +185,9 @@ Order: **polkadot-sdk → (evm, ethereum) → (moonkit, frontier)**.
 ## Phase 2 — Tracking doc finalization
 
 - [x] Draft `polkadot-sdk-stable2603.md` (TBD placeholders for commits).
-- [ ] Run merge-base verification per repo (one `cherry-pick-specialist` agent per fork, dispatched in parallel).
-- [ ] Update tracker: real commit hashes for Included rows, finalize Cherry-pick column for every Verify row.
-- [ ] Reconcile any agent-reported discrepancies.
+- [x] Run merge-base verification per repo (sub-agents, dispatched in parallel). 2026-06-18: frontier + polkadot-sdk verified via agents; evm/ethereum/moonkit have no `Verify` rows and were settled in Phase 0.5/1 (evm = 1 moonbeam-only commit, ethereum = #77 only, moonkit = reconciled in Phase 1.4).
+- [x] Update tracker: real commit hashes for Included rows, finalize Cherry-pick column for every Verify row. All 13 frontier Included SHAs confirmed present + moonbeam-only; all 18 frontier `Verify` rows confirmed in `upstream/stable2603` and the `**Verify**` flags removed; all 9 polkadot-sdk Included SHAs confirmed.
+- [x] Reconcile any agent-reported discrepancies. (1) polkadot-sdk `ddba2453` was untracked → row added. (2) frontier #1856 note cited the stable2512 cherry-pick SHA `54396433…` instead of the upstream commit `46cf7a43e` → corrected.
 
 ## Phase 3 — Moonbeam repository upgrade ✅ (Rust compile; TS fixtures pending)
 
