@@ -7,14 +7,14 @@
 
 ## Context
 
-- **Current pin (Cargo.toml):** `moonbeam-polkadot-stable2512` for polkadot-sdk, frontier, evm, ethereum, moonkit.
+- **Starting pin (Cargo.toml):** `moonbeam-polkadot-stable2512` for polkadot-sdk, frontier, evm, ethereum, moonkit — migrated to `moonbeam-polkadot-stable2603` in Phase 3 ✅.
 - **Target upstream:** `polkadot-stable2603-1` (paritytech/polkadot-sdk, released 2026-05-01).
 - **Sibling upstream bases:**
   - frontier → tag `frontier-stable2603` (polkadot-evm/frontier)
   - evm → 0.43.x line (rust-ethereum/evm) — diverged from upstream v1.0
   - ethereum → master (rust-ethereum/ethereum)
-  - moonkit → `main` (Moonsong-Labs/moonkit) once the stable2603 base-bump PR lands
-- **No fork has a `moonbeam-polkadot-stable2603` branch yet** (verified via `git branch -r` in each `~/Workspace/<fork>` checkout).
+  - moonkit → `main` (Moonsong-Labs/moonkit); base-bump PR [#95](https://github.com/Moonsong-Labs/moonkit/pull/95) merged 2026-06-18
+- **All five forks now have a `moonbeam-polkadot-stable2603` branch** (Phase 1 ✅; each cut from its upstream stable2603 base + cherry-picks).
 
 ## Branch
 
@@ -189,7 +189,7 @@ Order: **polkadot-sdk → (evm, ethereum) → (moonkit, frontier)**.
 - [x] Update tracker: real commit hashes for Included rows, finalize Cherry-pick column for every Verify row. All 13 frontier Included SHAs confirmed present + moonbeam-only; all 18 frontier `Verify` rows confirmed in `upstream/stable2603` and the `**Verify**` flags removed; all 9 polkadot-sdk Included SHAs confirmed.
 - [x] Reconcile any agent-reported discrepancies. (1) polkadot-sdk `ddba2453` was untracked → row added. (2) frontier #1856 note cited the stable2512 cherry-pick SHA `54396433…` instead of the upstream commit `46cf7a43e` → corrected.
 
-## Phase 3 — Moonbeam repository upgrade ✅ (Rust compile; TS fixtures pending)
+## Phase 3 — Moonbeam repository upgrade ✅
 
 - [x] `Cargo.toml`: replace `moonbeam-polkadot-stable2512` → `moonbeam-polkadot-stable2603` (180 occurrences across the 5 forks).
 - [x] Refresh the lockfile (re-resolved to stable2603).
@@ -205,7 +205,7 @@ Order: **polkadot-sdk → (evm, ethereum) → (moonkit, frontier)**.
   - **runtime-benchmarks**: weight-reclaim benchmark needed the `GetCallMetadata` bound the logging cherry-pick added (fixed in the fork at `ddba2453`); `pallet_transaction_payment::benchmarking` is now private (use `Pallet` + `BenchmarkConfig`); `worst_case_holding` returns `AssetsInHolding` (built via `generate_holding_assets`).
 - [x] **XCM credit-based holding migration** (the substantive piece): stable2603 reworked `AssetsInHolding` to carry `fungible::Credit` imbalances. Real impls for `erc20-xcm-bridge` / `moonbeam-foreign-assets` (`deposit_asset`/`withdraw_asset` via a notional credit, since erc20 isn't a Substrate `fungible`) and `xcm-weight-trader` (`buy_weight`/`refund_weight`/`Drop`).
 - [x] No `[patch.crates-io]` needed — the fork branches resolve directly from the moonbeam-foundation remotes.
-- [x] Update `tests/` TS fixtures referencing changed types/RPCs. — regenerated `typescript-api/` types and updated the dev fixtures (`test-block-mocked-relay.ts`, `test-transactional-outcomes.ts`, `test-precompile-relay-verifier.ts`) for the new relay / credit-model XCM events. *Running* them against a built node binary is deferred to Phase 6.
+- [x] Update `tests/` TS fixtures referencing changed types/RPCs. — regenerated `typescript-api/` types and updated the dev fixtures (`test-block-mocked-relay.ts`, `test-transactional-outcomes.ts`, `test-precompile-relay-verifier.ts`) for the new relay / credit-model XCM events. Run against a built node binary in Phase 6 (2026-06-18) — suites D010105 / D010701 / D022749 all pass.
 
 > **Note — `--all-features` is NOT a valid check for moonbeam.** It forces the mutually-exclusive `disable-genesis-builder` feature on, which strips `genesis_config_preset` (needed by the node's chain_spec). Use the realistic feature matrix (default / `runtime-benchmarks` / `try-runtime`) instead. Pallet unit tests can't be run in isolation either (`sp-session`/`sp-authority-discovery` fail to build no_std standalone — pre-existing infra quirk); run via the full workspace test.
 >
@@ -242,7 +242,7 @@ Order: **polkadot-sdk → (evm, ethereum) → (moonkit, frontier)**.
 - **moonkit dependency** — ✅ resolved. [moonkit#95](https://github.com/Moonsong-Labs/moonkit/pull/95) merged to `main` 2026-06-18 (squash `4088d76`); the `moonbeam-polkadot-stable2603` release branch was rebased onto `main` (head `9d71129`) and moonbeam re-pinned its `Cargo.lock` to it. See Phase 1.4.
 - **EVM divergence** — anything new in upstream v1.0 (new EIPs, gas changes) must be backported manually onto the 0.43.x fork.
 - **Deferred EIPs** — confirm no EIP from stable2603 needs implementation work in our fork (`implementing-eips` skill).
-- **Verification cost** — Phase 1.5 frontier verification has 14 rows; parallelize via sub-agents.
+- **Verification cost** — ✅ resolved. Phase 2 verified the frontier rows via parallel sub-agents (2026-06-18); all confirmed present in `upstream/stable2603` (plus one SHA-citation fix and one new polkadot-sdk row). See Phase 2.
 
 ## Drop / archive checklist
 
