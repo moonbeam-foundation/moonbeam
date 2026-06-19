@@ -83,6 +83,16 @@ where
 		})
 }
 
+fn weigh_erc20_asset_filter<Runtime>(assets: &AssetFilter, benchmark_weight: Weight) -> XCMWeight
+where
+	Runtime: pallet_erc20_xcm_bridge::Config,
+{
+	match assets {
+		Definite(assets) => weigh_erc20_assets::<Runtime>(assets, benchmark_weight),
+		_ => assets.weigh_assets(benchmark_weight),
+	}
+}
+
 pub struct XcmWeight<Runtime, Call>(core::marker::PhantomData<(Runtime, Call)>);
 impl<Runtime, Call> XcmWeightInfo<Call> for XcmWeight<Runtime, Call>
 where
@@ -151,7 +161,7 @@ where
 		XcmGeneric::<Runtime>::report_error()
 	}
 	fn deposit_asset(assets: &AssetFilter, _dest: &Location) -> XCMWeight {
-		assets.weigh_assets(XcmFungibleWeight::<Runtime>::deposit_asset())
+		weigh_erc20_asset_filter::<Runtime>(assets, XcmFungibleWeight::<Runtime>::deposit_asset())
 	}
 	fn deposit_reserve_asset(assets: &AssetFilter, _dest: &Location, _xcm: &Xcm<()>) -> XCMWeight {
 		assets.weigh_assets(XcmFungibleWeight::<Runtime>::deposit_reserve_asset())
