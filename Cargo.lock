@@ -8112,6 +8112,7 @@ name = "moonbeam-runtime-common"
 version = "0.8.0-dev"
 dependencies = [
  "account",
+ "cumulus-pallet-xcmp-queue",
  "cumulus-primitives-core",
  "ethereum 0.18.2 (git+https://github.com/moonbeam-foundation/ethereum?branch=moonbeam-polkadot-stable2603)",
  "frame-support",
