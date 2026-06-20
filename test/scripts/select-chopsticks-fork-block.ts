@@ -2,6 +2,7 @@ import "@moonbeam-network/api-augment";
 
 import fs from "node:fs";
 import { ApiPromise, WsProvider } from "@polkadot/api";
+import { blake2AsHex } from "@polkadot/util-crypto";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
@@ -12,6 +13,12 @@ const DEFAULT_ENDPOINTS = {
 } as const;
 
 type Chain = keyof typeof DEFAULT_ENDPOINTS;
+
+type SetValidationDataMetrics = {
+  descendantsLength: number;
+  relayChainTrieNodes: number;
+  proofAnchored: boolean;
+};
 
 const argv = yargs(hideBin(process.argv))
   .usage("Usage: $0 --chain <moonbase|moonbeam|moonriver>")
@@ -33,7 +40,7 @@ const argv = yargs(hideBin(process.argv))
     "min-descendants": {
       type: "number",
       default: 2,
-      description: "Minimum relay parent descendants required",
+      description: "Minimum relay parent descendants required (moonbase-style inherents)",
     },
     "github-env": {
       type: "string",
@@ -42,7 +49,37 @@ const argv = yargs(hideBin(process.argv))
   })
   .parseSync();
 
-const getRelayParentDescendantsLength = (extrinsic: any): number | undefined => {
+const toU8a = (node: any): Uint8Array =>
+  typeof node?.toU8a === "function" ? node.toU8a(true) : (node as Uint8Array);
+
+/**
+ * Verify the relay-chain state proof carried by `setValidationData` is well-formed
+ * and anchored: the proof must include the root trie node, i.e. some node must
+ * blake2-256-hash to `validationData.relayParentStorageRoot`.
+ *
+ * This is the consistency property that Chopsticks relies on when it rebuilds the
+ * inherent on the forked chain; a truncated or mismatched proof is exactly what
+ * triggers the runtime panic the fork-block selection is meant to avoid. It cannot
+ * be satisfied by an arbitrary block that merely carries a non-empty proof.
+ */
+const isProofAnchored = (inherentData: any): boolean => {
+  const storageRoot = inherentData?.validationData?.relayParentStorageRoot?.toHex?.();
+  const trieNodes = inherentData?.relayChainState?.trieNodes;
+
+  if (typeof storageRoot !== "string" || !trieNodes) {
+    return false;
+  }
+
+  for (const node of trieNodes) {
+    if (blake2AsHex(toU8a(node), 256) === storageRoot) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+const getSetValidationDataMetrics = (extrinsic: any): SetValidationDataMetrics | undefined => {
   if (
     extrinsic.method?.section !== "parachainSystem" ||
     extrinsic.method?.method !== "setValidationData"
@@ -52,8 +89,44 @@ const getRelayParentDescendantsLength = (extrinsic: any): number | undefined => 
 
   const inherentData = extrinsic.method.args[0] as any;
   const descendants = inherentData?.relayParentDescendants;
+  const descendantsLength =
+    typeof descendants?.length === "number" ? descendants.length : undefined;
 
-  return typeof descendants?.length === "number" ? descendants.length : undefined;
+  if (descendantsLength === undefined) {
+    return undefined;
+  }
+
+  const trieNodes = inherentData?.relayChainState?.trieNodes;
+  const relayChainTrieNodes =
+    typeof trieNodes?.size === "number"
+      ? trieNodes.size
+      : typeof trieNodes?.length === "number"
+        ? trieNodes.length
+        : 0;
+
+  return {
+    descendantsLength,
+    relayChainTrieNodes,
+    proofAnchored: isProofAnchored(inherentData),
+  };
+};
+
+const isStableForkBlock = (metrics: SetValidationDataMetrics, minDescendants: number): boolean => {
+  // The block must carry a valid, anchored relay-chain state proof regardless of
+  // the inherent format.
+  if (!metrics.proofAnchored) {
+    return false;
+  }
+
+  // Legacy inherents (moonbase) embed the relay parent descendants; require enough
+  // of them, matching the original selection behaviour.
+  if (metrics.descendantsLength >= minDescendants) {
+    return true;
+  }
+
+  // Production runtimes (moonbeam/moonriver) no longer populate relay parent
+  // descendants and rely solely on the anchored relay-chain state proof above.
+  return metrics.descendantsLength === 0;
 };
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -95,30 +168,35 @@ const main = async () => {
     for (let number = finalizedNumber; number >= oldestNumber; number--) {
       const hash = await retryRpc(() => api.rpc.chain.getBlockHash(number));
       const block = await retryRpc(() => api.rpc.chain.getBlock(hash));
-      const descendantsLength = block.block.extrinsics
-        .map(getRelayParentDescendantsLength)
-        .find((length) => length !== undefined);
+      const metrics = block.block.extrinsics
+        .map(getSetValidationDataMetrics)
+        .find((value) => value !== undefined);
 
-      if (descendantsLength === undefined) {
+      if (metrics === undefined) {
         continue;
       }
 
-      if (descendantsLength >= argv.minDescendants) {
-        console.log(
-          `Selected ${argv.chain} block #${number} with ${descendantsLength} relay parent descendants`
-        );
-        console.log(`CHOPSTICKS_BLOCK=${number}`);
-
-        if (argv.githubEnv) {
-          fs.appendFileSync(argv.githubEnv, `CHOPSTICKS_BLOCK=${number}\n`);
-        }
-
-        return;
+      if (!isStableForkBlock(metrics, argv.minDescendants)) {
+        continue;
       }
+
+      console.log(
+        `Selected ${argv.chain} block #${number} with ${metrics.descendantsLength} relay parent ` +
+          `descendants and an anchored relay-chain state proof (${metrics.relayChainTrieNodes} trie nodes)`
+      );
+      console.log(`CHOPSTICKS_BLOCK=${number}`);
+
+      if (argv.githubEnv) {
+        fs.appendFileSync(argv.githubEnv, `CHOPSTICKS_BLOCK=${number}\n`);
+      }
+
+      return;
     }
 
     throw new Error(
-      `No finalized ${argv.chain} block with at least ${argv.minDescendants} relay parent descendants found in the last ${argv.maxDepth} blocks`
+      `No finalized ${argv.chain} block with an anchored relay-chain state proof ` +
+        `(and at least ${argv.minDescendants} relay parent descendants for legacy inherents) ` +
+        `found in the last ${argv.maxDepth} blocks`
     );
   } finally {
     await api.disconnect();
