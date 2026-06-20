@@ -806,10 +806,6 @@ jobs:
       - name: "Install and run upgrade test"
         run: |
           pnpm install
-      - name: Select stable Chopsticks fork block
-        run: |
-          cd test
-          pnpm tsx scripts/select-chopsticks-fork-block.ts --chain ${{ matrix.chain }} --github-env "$GITHUB_ENV"
       - name: Run Upgrade Test (with retry)
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60
         with:
