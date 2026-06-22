@@ -9,7 +9,11 @@ import {
 } from "moonwall";
 import { hexToU8a } from "@polkadot/util";
 import { encodeDeployData, keccak256, numberToHex, toRlp } from "viem";
-import { deployedContractsInLatestBlock, verifyLatestBlockFees } from "../../../../helpers";
+import {
+  deployedContractsInLatestBlock,
+  expectEVMResult,
+  verifyLatestBlockFees,
+} from "../../../../helpers";
 
 describeSuite({
   id: "D010201",
@@ -121,13 +125,19 @@ describeSuite({
           3
         );
 
-        await context.writeContract!({
+        // Submit and seal in a single step so the CREATE tx is guaranteed to be
+        // included in the block before asserting the nonce. Submitting via
+        // `writeContract` and then sealing an empty block separately is racy: the
+        // tx may not be in the author's ready pool yet, leaving the nonce at 3.
+        const createRawTx = await context.writeContract!({
           contractName: "SimpleContractFactory",
           contractAddress: factory.contractAddress,
           functionName: "createSimpleContractWithCreate",
           value: 0n,
+          rawTxOnly: true,
         });
-        await context.createBlock();
+        const { result: createResult } = await context.createBlock(createRawTx);
+        expectEVMResult(createResult!.events, "Succeed");
 
         expect(await context.viem().getTransactionCount({ address: factory.contractAddress })).eq(
           4
@@ -141,14 +151,16 @@ describeSuite({
         })) as string[];
         expect(deployedWithCreate.length).eq(2);
 
-        await context.writeContract!({
+        const create2RawTx = await context.writeContract!({
           contractName: "SimpleContractFactory",
           contractAddress: factory.contractAddress,
           functionName: "createSimpleContractWithCreate2",
           args: [1],
           value: 0n,
+          rawTxOnly: true,
         });
-        await context.createBlock();
+        const { result: create2Result } = await context.createBlock(create2RawTx);
+        expectEVMResult(create2Result!.events, "Succeed");
 
         expect(await context.viem().getTransactionCount({ address: factory.contractAddress })).eq(
           5
