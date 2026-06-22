@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "moonwall";
+import { ALITH_ADDRESS, alith, beforeAll, describeSuite, expect } from "moonwall";
 
 import { sovereignAccountOfSibling } from "../../../../helpers/xcm.js";
 import { fundAccount } from "../../../../helpers/balances.js";
@@ -34,6 +34,14 @@ describeSuite({
         // Range from 0 to 255
         const range = Array.from({ length: maxForeignAssets }, (_, i) => i);
 
+        // Sign every sudo tx with an explicit, monotonically increasing nonce.
+        // Letting `createBlock` query the nonce implicitly on each of the 256
+        // tight iterations is racy: a query right after a block seals can read a
+        // stale nonce and the tx is rejected with "1010: Transaction is outdated".
+        let nonce = (
+          await context.polkadotJs().rpc.system.accountNextIndex(ALITH_ADDRESS)
+        ).toNumber();
+
         for (const i of range) {
           const string = i.toString().repeat(4);
           const assetLocation = {
@@ -46,7 +54,10 @@ describeSuite({
             .polkadotJs()
             .tx.evmForeignAssets.createForeignAsset(i, assetLocation, 18, string, string);
 
-          const sudoCall = context.polkadotJs().tx.sudo.sudo(assetCreationCall);
+          const sudoCall = await context
+            .polkadotJs()
+            .tx.sudo.sudo(assetCreationCall)
+            .signAsync(alith, { nonce: nonce++ });
 
           const block = await context.createBlock(sudoCall);
           await expectSubstrateEvent(block, "evmForeignAssets", "ForeignAssetCreated");
@@ -69,7 +80,10 @@ describeSuite({
           .tx.evmForeignAssets.createForeignAsset(256, extraAssetLocation, 18, "BREAKS", "BREAKS");
 
         // Creating a 257th foreign asset must not increase the total beyond MaxForeignAssets.
-        const sudoExtra = context.polkadotJs().tx.sudo.sudo(extraAssetCreationCall);
+        const sudoExtra = await context
+          .polkadotJs()
+          .tx.sudo.sudo(extraAssetCreationCall)
+          .signAsync(alith, { nonce: nonce++ });
         await context.createBlock(sudoExtra);
 
         const totalAfter = await context.polkadotJs().query.evmForeignAssets.counterForAssetsById();
