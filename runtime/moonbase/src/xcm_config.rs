@@ -866,44 +866,17 @@ mod testing {
 	}
 }
 
-/// `pallet_xcm::teleport_assets` / `limited_teleport_assets` benchmark hook (Moonbase only).
+/// `pallet_xcm` teleport benchmark hook.
+///
+/// `runtime/common/src/apis.rs` calls
+/// `<Runtime as XcmPalletTeleportBenchmark>::teleportable_asset_and_dest()` via UFCS, so the
+/// trait must be implemented for `Runtime` for benchmark builds to compile.
+///
+/// We deliberately keep the default `None`: the upstream `teleport_assets` benchmark would
+/// pre-credit the asset through `AssetTransactor::deposit_asset`, which routes into the ERC-20
+/// bridge's EVM transfer path and cannot run against a benchmark-synthesised contract (no code
+/// deployed, checking account unfunded). Instead, `teleport_assets()` is given a conservative
+/// gas-derived weight in `weights/pallet_xcm.rs` (`transfer_assets()` + worst-case ERC-20
+/// transfer), which safely upper-bounds the EVM-backed teleport without a runnable benchmark.
 #[cfg(feature = "runtime-benchmarks")]
-impl moonbeam_runtime_common::xcm_pallet_benchmark::XcmPalletTeleportBenchmark for Runtime {
-	fn teleportable_asset_and_dest() -> Option<(xcm::latest::Asset, xcm::latest::Location)> {
-		use cumulus_primitives_core::ParaId;
-		use sp_core::H160;
-		use xcm::latest::prelude::{AccountKey20, Asset, AssetId, Fungible, Parachain};
-
-		if let Some(Parachain(para_id)) = AssetHubLocation::get().interior().first() {
-			cumulus_pallet_parachain_system::Pallet::<Runtime>::open_outbound_hrmp_channel_for_benchmarks_or_tests(
-				ParaId::from(*para_id),
-			);
-		}
-
-		// Fixed address for `pallet_xcm` teleport benchmarks — not used on production networks.
-		// Insert as `Registered` so all gates (including the user-facing
-		// `XcmTeleportFilter`) admit it; the benchmark exercises the full outbound path
-		// (which would auto-promote to `Active` after the first leg in real flows).
-		let contract = H160([0x42; 20]);
-		pallet_erc20_xcm_bridge::TeleportableErc20s::<Runtime>::insert(
-			contract,
-			pallet_erc20_xcm_bridge::TeleportableErc20Status::Registered,
-		);
-		pallet_erc20_xcm_bridge::LockedSupply::<Runtime>::remove(contract);
-
-		let mut asset_location = Erc20XcmBridgePalletLocation::get();
-		let _ = asset_location.append_with(AccountKey20 {
-			key: contract.0,
-			network: None,
-		});
-
-		let amount = 1_000u128;
-		Some((
-			Asset {
-				id: AssetId(asset_location),
-				fun: Fungible(amount),
-			},
-			AssetHubLocation::get(),
-		))
-	}
-}
+impl moonbeam_runtime_common::xcm_pallet_benchmark::XcmPalletTeleportBenchmark for Runtime {}

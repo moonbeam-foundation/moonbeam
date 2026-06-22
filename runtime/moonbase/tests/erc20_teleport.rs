@@ -877,3 +877,83 @@ fn deregistered_withdraw_deposit_program_cannot_drain_checking_account() {
 			);
 		});
 }
+
+/// Weight-focused regression for the inbound ERC-20 deposit path.
+///
+/// The canonical teleport/transfer program that AssetHub sends back to Moonbase ends with
+/// `DepositAsset { assets: Wild(AllCounted(..)), beneficiary }` (see `pallet_xcm`'s
+/// `teleport_assets_program`). That `DepositAsset` drives a real EVM transfer in the bridge's
+/// `deposit_asset`, so the message weigher MUST account for the ERC-20 transfer cost on *both*
+/// the `Definite` and the wildcard filter forms. Otherwise the message is admitted through
+/// `AllowTopLevelPaidExecutionFrom` with too little bought execution and the block under-charges
+/// the EVM work — the exact under-weighing flagged in review.
+#[test]
+fn inbound_erc20_deposit_is_weighed_with_evm_transfer_cost() {
+	use moonbase_runtime::xcm_config::XcmWeigher;
+	use xcm::latest::{
+		prelude::{AllCounted, Definite, DepositAsset, Wild},
+		Assets as XcmAssets, Weight, Xcm,
+	};
+	use xcm_executor::traits::WeightBounds;
+
+	ExtBuilder::default().build().execute_with(|| {
+		let contract = H160([0x11; 20]);
+		let erc20: Asset = (erc20_location(contract), 1_000u128).into();
+		let native: Asset = (SelfReserve::get(), 1_000u128).into();
+		let beneficiary = Location::new(
+			0,
+			[AccountKey20 {
+				network: None,
+				key: CHARLIE,
+			}],
+		);
+
+		let worst_case =
+			pallet_erc20_xcm_bridge::Pallet::<Runtime>::worst_case_erc20_transfer_weight();
+
+		let weigh = |assets| {
+			let mut msg: Xcm<RuntimeCall> = Xcm(vec![DepositAsset {
+				assets,
+				beneficiary: beneficiary.clone(),
+			}]);
+			XcmWeigher::weight(&mut msg, Weight::MAX).expect("DepositAsset must be weighable")
+		};
+
+		// Baseline: a plain native deposit is weighed at the fungible rate.
+		let native_weight = weigh(Definite(XcmAssets::from(vec![native])));
+
+		// A `Definite` ERC-20 deposit is charged at least the worst-case EVM transfer weight.
+		let definite_erc20 = weigh(Definite(XcmAssets::from(vec![erc20])));
+		assert!(
+			definite_erc20.ref_time() >= worst_case.ref_time(),
+			"Definite ERC-20 deposit underpaid: {:?} < worst_case {:?}",
+			definite_erc20,
+			worst_case,
+		);
+
+		// The canonical inbound shape uses a wildcard filter; it must also be charged at least
+		// the worst-case EVM transfer weight (this is the regression the review asked for).
+		let wild_one = weigh(Wild(AllCounted(1)));
+		assert!(
+			wild_one.ref_time() >= worst_case.ref_time(),
+			"wildcard DepositAsset underpaid the EVM transfer: {:?} < worst_case {:?}",
+			wild_one,
+			worst_case,
+		);
+		assert!(
+			wild_one.ref_time() > native_weight.ref_time(),
+			"wildcard ERC-20-capable deposit must out-weigh a plain fungible deposit: \
+			 {:?} !> {:?}",
+			wild_one,
+			native_weight,
+		);
+
+		// Wildcard weight scales with the (capped) asset count.
+		let wild_two = weigh(Wild(AllCounted(2)));
+		assert_eq!(
+			wild_two.ref_time(),
+			wild_one.ref_time().saturating_mul(2),
+			"wildcard deposit weight must scale linearly with the asset count",
+		);
+	});
+}

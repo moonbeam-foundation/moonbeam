@@ -72,12 +72,17 @@ impl<T: frame_system::Config> pallet_xcm::WeightInfo for WeightInfo<T> {
 	}
 	/// `limited_teleport_assets` shares this weight in upstream `pallet-xcm`.
 	///
-	/// The stock `teleport_assets` benchmark records `Weight::MAX` when
-	/// `teleportable_asset_and_dest` is unset (see `runtime/common/src/apis.rs`).
-	/// ERC-20 teleports on Moonbase perform EVM withdraw + HRMP, same order of magnitude as
-	/// `transfer_assets` — use that measured weight so the pool does not reject the extrinsic.
+	/// Both `teleport_assets` and `limited_teleport_assets` are annotated with a *flat*
+	/// `#[pallet::weight(T::WeightInfo::teleport_assets())]` and `do_teleport_assets` returns a
+	/// plain `DispatchResult` (no post-dispatch correction). Yet the local XCM execution runs a
+	/// real ERC-20 EVM transfer (`withdraw_asset` → `erc20_transfer`, up to
+	/// `Erc20XcmBridgeTransferGasLimit` gas). The `transfer_assets()` benchmark only covers the
+	/// XCM scaffolding, so we add the worst-case ERC-20 transfer weight on top; otherwise the
+	/// EVM-backed teleport would be charged far less dispatch weight than it actually consumes.
 	fn teleport_assets() -> Weight {
-		Self::transfer_assets()
+		Self::transfer_assets().saturating_add(
+			pallet_erc20_xcm_bridge::Pallet::<crate::Runtime>::worst_case_erc20_transfer_weight(),
+		)
 	}
 	/// Storage: `PolkadotXcm::ShouldRecordXcm` (r:1 w:0)
 	/// Proof: `PolkadotXcm::ShouldRecordXcm` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)

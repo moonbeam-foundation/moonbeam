@@ -525,6 +525,15 @@ pub mod pallet {
 		pub fn weight_of_erc20_transfer(asset_id: &AssetId) -> Weight {
 			T::GasWeightMapping::gas_to_weight(Self::gas_limit_of_erc20_transfer(asset_id), true)
 		}
+		/// Worst-case weight of an ERC-20 transfer when the concrete asset (and thus any
+		/// per-asset `gas_limit:` override) is not known at weighing time — e.g. the flat
+		/// `pallet_xcm::teleport_assets` dispatch weight, which charges a fixed amount but can
+		/// drive a real EVM transfer during local XCM execution. Derived from the default
+		/// `Erc20TransferGasLimit`; per-asset overrides above that bound are a governance
+		/// concern (contracts are gated by `TeleportableErc20s` registration).
+		pub fn worst_case_erc20_transfer_weight() -> Weight {
+			T::GasWeightMapping::gas_to_weight(T::Erc20TransferGasLimit::get(), true)
+		}
 		pub(crate) fn erc20_transfer(
 			erc20_contract_address: H160,
 			from: H160,

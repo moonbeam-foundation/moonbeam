@@ -89,7 +89,21 @@ where
 {
 	match assets {
 		Definite(assets) => weigh_erc20_assets::<Runtime>(assets, benchmark_weight),
-		_ => assets.weigh_assets(benchmark_weight),
+		// Wildcard filters are resolved against the holding register at execution time, so we
+		// can't tell here whether they will match an ERC-20 (whose `deposit_asset` runs a real
+		// EVM transfer). The canonical inbound teleport/transfer program built by `pallet_xcm`
+		// uses `DepositAsset { Wild(AllCounted(..)) }`, so charge each (capped) asset at the
+		// worst-case ERC-20 transfer cost; otherwise EVM-backed wildcard deposits are
+		// under-weighed and could be admitted with too little bought execution.
+		_ => {
+			let worst_case =
+				pallet_erc20_xcm_bridge::Pallet::<Runtime>::worst_case_erc20_transfer_weight();
+			let per_asset = Weight::from_parts(
+				benchmark_weight.ref_time().max(worst_case.ref_time()),
+				benchmark_weight.proof_size().max(worst_case.proof_size()),
+			);
+			assets.weigh_assets(per_asset)
+		}
 	}
 }
 
