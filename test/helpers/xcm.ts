@@ -159,22 +159,23 @@ export async function injectHrmpMessage(
 async function sealUntilXcmProcessed(context: DevModeContext, maxBlocks: number) {
   const api = context.polkadotJs();
   let result: Awaited<ReturnType<typeof context.createBlock>> | undefined;
+  let processed = false;
 
   for (let i = 0; i < maxBlocks; i++) {
     result = await context.createBlock();
 
-    const processed = (await api.query.system.events()).some(
+    processed = (await api.query.system.events()).some(
       ({ event }) =>
         api.events.messageQueue.Processed.is(event) ||
         api.events.messageQueue.ProcessingFailed.is(event)
     );
 
     if (processed) {
-      break;
+      return result;
     }
   }
 
-  return result;
+  throw new Error(`Injected XCM was not processed within ${maxBlocks} blocks.`);
 }
 
 /**
