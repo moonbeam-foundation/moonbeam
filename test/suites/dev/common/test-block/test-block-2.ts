@@ -15,7 +15,19 @@ describeSuite({
       id: "T01",
       title: "should be at block 2",
       test: async function () {
-        expect(await context.viem().getBlockNumber()).toBe(2n);
+        // viem caches the block number for `cacheTime` (defaults to the 4s
+        // polling interval), so a plain `getBlockNumber()` can return a stale
+        // height right after the blocks were sealed. Force a fresh read and
+        // poll briefly to absorb any eth-layer import lag.
+        let blockNumber = 0n;
+        for (let i = 0; i < 20; i++) {
+          blockNumber = await context.viem().getBlockNumber({ cacheTime: 0 });
+          if (blockNumber === 2n) {
+            break;
+          }
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        }
+        expect(blockNumber).toBe(2n);
       },
     });
 
