@@ -206,13 +206,16 @@ export async function injectEncodedHrmpMessageAndSeal(
 ) {
   // Send RPC call to inject XCM message
   await customDevRpcRequest("xcm_injectHrmpMessage", [paraId, message]);
-  if (message == null) {
-    // Nothing to process: preserve the previous two-block behavior.
-    await context.createBlock();
-    return context.createBlock();
-  }
-  // Seal until the message queue processes the (encoded) message.
-  return sealUntilXcmProcessed(context, 10);
+  // NOTE: this path injects raw, hand-crafted bytes that may be intentionally
+  // malformed (e.g. a wrong-size GeneralKey). Such messages are dropped at the
+  // XCMP ingestion layer and never reach the message queue, so they never emit a
+  // `messageQueue.Processed`/`ProcessingFailed` event. We therefore can't seal
+  // until "processed"; keep the original fixed two-block behavior.
+  //
+  // Create a block in which the XCM will be enqueued.
+  await context.createBlock();
+  // The next block will process the hrmp message in the message queue.
+  return context.createBlock();
 }
 
 // Weight a particular message using the xcm utils precompile
