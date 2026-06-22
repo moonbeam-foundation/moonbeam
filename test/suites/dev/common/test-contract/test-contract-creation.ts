@@ -92,11 +92,22 @@ describeSuite({
             await context.viem("public").getCode({ address: contractAddress, blockTag: "pending" })
           ).to.deep.equal(compiled.deployedBytecode);
 
-          await context.createBlock();
+          // Seal until the pooled deploy tx is actually included. Sealing a
+          // single block is racy: the tx was only just submitted, so it may not
+          // be in the author's ready pool yet and the block can be produced
+          // without it, leaving no code at "latest".
+          let deployedCode: `0x${string}` | undefined;
+          for (let i = 0; i < 5; i++) {
+            await context.createBlock();
+            deployedCode = await context
+              .viem("public")
+              .getCode({ address: contractAddress, blockTag: "latest" });
+            if (deployedCode !== undefined) {
+              break;
+            }
+          }
 
-          expect(
-            await context.viem("public").getCode({ address: contractAddress, blockTag: "latest" })
-          ).to.deep.equal(compiled.deployedBytecode);
+          expect(deployedCode).to.deep.equal(compiled.deployedBytecode);
         },
       });
 
