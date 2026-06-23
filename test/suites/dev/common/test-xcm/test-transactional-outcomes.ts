@@ -202,6 +202,9 @@ describeSuite({
           })
           .as_v3();
 
+        // `injectHrmpMessageAndSeal` seals until the message queue actually
+        // processes the message, so the current block's events reliably contain
+        // the resulting mints (otherwise this test was racy/flaky).
         await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
@@ -211,10 +214,13 @@ describeSuite({
         const mints = events
           .filter((evt) => context.polkadotJs().events.balances.Minted.is(evt.event))
           .map((evt) => evt.event.toJSON().data);
+
+        // Assert the expected shape before indexing to avoid a cryptic TypeError.
+        expect(mints.length).toBe(2);
+
         const totalMinted = mints.reduce((prev, cur: any) => prev + BigInt(cur[1]), 0n);
         const executionCost = BigInt((mints[1] as any)[1]);
 
-        expect(mints.length).toBe(2);
         expect(totalMinted).toBe(DEPOSIT);
 
         const finalBaltatharBalance = await getFreeBalance(BALTATHAR_ADDRESS, context);
