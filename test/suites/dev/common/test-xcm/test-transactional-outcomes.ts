@@ -202,7 +202,9 @@ describeSuite({
           })
           .as_v3();
 
-        const startBlockNumber = (await context.polkadotJs().rpc.chain.getHeader()).number.toNumber();
+        const startBlockNumber = (
+          await context.polkadotJs().rpc.chain.getHeader()
+        ).number.toNumber();
 
         // `injectHrmpMessageAndSeal` seals until the message queue actually
         // processes the message, but the message can be processed in any of the
