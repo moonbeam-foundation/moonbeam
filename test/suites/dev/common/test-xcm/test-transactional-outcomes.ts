@@ -209,6 +209,9 @@ describeSuite({
           })
           .as_v3();
 
+        // `injectHrmpMessageAndSeal` seals until the message queue actually
+        // processes the message, so the current block's events reliably contain
+        // the resulting mints (otherwise this test was racy/flaky).
         await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
