@@ -156,7 +156,7 @@ export async function injectHrmpMessage(
  * single block) is unchanged and the returned block is always the one that
  * actually processed the message.
  */
-async function sealUntilXcmProcessed(context: DevModeContext, maxBlocks: number) {
+export async function sealUntilXcmProcessed(context: DevModeContext, maxBlocks = 10) {
   const api = context.polkadotJs();
   let result: Awaited<ReturnType<typeof context.createBlock>> | undefined;
   let processed = false;

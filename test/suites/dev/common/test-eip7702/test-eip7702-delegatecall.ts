@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, deployCreateCompiledContract, describeSuite, expect } from "moonwall";
 import { encodeFunctionData, type Abi } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { createFundedAccount, createViemTransaction, sendRawTransaction } from "./helpers";
+import { createFundedAccount, createViemTransaction } from "./helpers";
 import { getTransactionReceiptWithRetry } from "../../../../helpers/eth-transactions";
 
 describeSuite({
@@ -74,8 +74,8 @@ describeSuite({
         };
 
         const signedTx = await createViemTransaction(context, tx);
-        const hash = await sendRawTransaction(context, signedTx);
-        await context.createBlock();
+        const { result } = await context.createBlock(signedTx);
+        const hash = result!.hash as `0x${string}`;
 
         // Get transaction receipt to check for events and status
         const receipt = await getTransactionReceiptWithRetry(context, hash);
@@ -124,8 +124,8 @@ describeSuite({
         };
 
         const signedTx = await createViemTransaction(context, tx);
-        const hash = await sendRawTransaction(context, signedTx);
-        await context.createBlock();
+        const { result } = await context.createBlock(signedTx);
+        const hash = result!.hash as `0x${string}`;
 
         const receipt = await getTransactionReceiptWithRetry(context, hash);
         expect(receipt.status).toBe("success");
@@ -172,8 +172,8 @@ describeSuite({
         };
 
         const signedTx = await createViemTransaction(context, tx);
-        const hash = await sendRawTransaction(context, signedTx);
-        await context.createBlock();
+        const { result } = await context.createBlock(signedTx);
+        const hash = result!.hash as `0x${string}`;
 
         const receipt = await getTransactionReceiptWithRetry(context, hash);
         expect(receipt.status).toBe("success");
@@ -235,8 +235,8 @@ describeSuite({
         };
 
         const signedTx = await createViemTransaction(context, tx);
-        const hash = await sendRawTransaction(context, signedTx);
-        await context.createBlock();
+        const { result } = await context.createBlock(signedTx);
+        const hash = result!.hash as `0x${string}`;
 
         // Get transaction receipt to check for events and status
         const receipt = await getTransactionReceiptWithRetry(context, hash);
@@ -283,8 +283,8 @@ describeSuite({
         };
 
         const signedTx = await createViemTransaction(context, tx);
-        const hash = await sendRawTransaction(context, signedTx);
-        await context.createBlock();
+        const { result } = await context.createBlock(signedTx);
+        const hash = result!.hash as `0x${string}`;
 
         // Get transaction receipt to check for events and status
         const receipt = await getTransactionReceiptWithRetry(context, hash);
@@ -313,8 +313,8 @@ describeSuite({
 
         {
           const signedTx = await createViemTransaction(context, tx2);
-          const hash = await sendRawTransaction(context, signedTx);
-          await context.createBlock();
+          const { result } = await context.createBlock(signedTx);
+          const hash = result!.hash as `0x${string}`;
 
           // Get transaction receipt to check for events and status
           const receipt = await getTransactionReceiptWithRetry(context, hash);
@@ -356,8 +356,8 @@ describeSuite({
         };
 
         const signedTx = await createViemTransaction(context, tx);
-        const hash = await sendRawTransaction(context, signedTx);
-        await context.createBlock();
+        const { result } = await context.createBlock(signedTx);
+        const hash = result!.hash as `0x${string}`;
 
         // Get transaction receipt to check for events and status
         const receipt = await getTransactionReceiptWithRetry(context, hash);
@@ -436,8 +436,8 @@ describeSuite({
         };
 
         const signedTx = await createViemTransaction(context, tx);
-        const hash = await sendRawTransaction(context, signedTx);
-        await context.createBlock();
+        const { result } = await context.createBlock(signedTx);
+        const hash = result!.hash as `0x${string}`;
 
         // Get transaction receipt to check for events and status
         const receipt = await getTransactionReceiptWithRetry(context, hash);

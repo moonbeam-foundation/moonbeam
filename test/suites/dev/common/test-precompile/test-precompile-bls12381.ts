@@ -8,6 +8,7 @@ import {
   expect,
 } from "moonwall";
 import { encodeFunctionData } from "viem";
+import { getTransactionReceiptWithRetry } from "../../../../helpers";
 
 describeSuite({
   id: "D010413",
@@ -49,9 +50,12 @@ describeSuite({
         });
         const { result } = await context.createBlock(rawTx);
 
-        const receipt = await context
-          .viem("public")
-          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
+        // The eth RPC can lag behind the sealed substrate block when indexing the
+        // receipt, so a plain `getTransactionReceipt` may not find it yet. Retry.
+        const receipt = await getTransactionReceiptWithRetry(
+          context,
+          result!.hash as `0x${string}`
+        );
         expect(receipt.status).toBe("success");
 
         const rawTx2 = await createViemTransaction(context, {
@@ -60,9 +64,10 @@ describeSuite({
         });
         const { result: result2 } = await context.createBlock(rawTx2);
 
-        const receipt2 = await context
-          .viem("public")
-          .getTransactionReceipt({ hash: result2?.hash as `0x${string}` });
+        const receipt2 = await getTransactionReceiptWithRetry(
+          context,
+          result2!.hash as `0x${string}`
+        );
         expect(receipt2.status).toBe("success");
       },
     });
