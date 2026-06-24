@@ -59,7 +59,7 @@ describeSuite({
             },
           ],
           weight_limit: {
-            refTime: 8_000_000_000,
+            refTime: 40_000_000_000n,
             proofSize: 120_000n,
           },
           beneficiary: random.address,
