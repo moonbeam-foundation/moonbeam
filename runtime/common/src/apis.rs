@@ -1064,11 +1064,14 @@ macro_rules! impl_runtime_apis_plus_common {
 						pub TrustedTeleporter: Option<(Location, Asset)> = None;
 						pub CheckedAccount: Option<(AccountId, xcm_builder::MintLocation)> = None;
 						// Reserve location and asset used by the `reserve_asset_deposited` benchmark.
-						// We use DOT (asset id = `RelayLocation`) whose reserve is Asset Hub.
+						// stable2603: under the credit model the executor mints the deposited asset
+						// via the real `XcmConfig::AssetTransactor`, so use the native token
+						// (`SelfReserve`). Its reserve resolves to `Here` (AbsoluteAndRelativeReserve),
+						// which `MultiNativeAsset` trusts, so the reserve origin must be `Here`.
 						pub TrustedReserve: Option<(Location, Asset)> = Some((
-							AssetHubLocation::get(),
+							Here.into_location(),
 							Asset {
-								id: AssetId(RelayLocation::get()),
+								id: AssetId(xcm_config::SelfReserve::get()),
 								fun: Fungible(100 * ExistentialDeposit::get()),
 							}
 						));
@@ -1145,17 +1148,18 @@ macro_rules! impl_runtime_apis_plus_common {
 						fn claimable_asset()
 							-> Result<(Location, Location, XcmAssets), BenchmarkError> {
 							let origin = Location::parent();
-							let assets: XcmAssets = (AssetId(Location::parent()), 1_000u128)
+							// stable2603: `assets_to_holding` mints via the real `XcmConfig::AssetTransactor`,
+							// which matches the native token at `SelfReserve` (not bare `Here`).
+							let assets: XcmAssets = (AssetId(xcm_config::SelfReserve::get()), 1_000u128)
 								.into();
 							let ticket = Location { parents: 0, interior: [].into() /* Here */ };
 							Ok((origin, ticket, assets))
 						}
 
 						fn worst_case_for_trader() -> Result<(Asset, WeightLimit), BenchmarkError> {
-							let location: Location = GeneralIndex(1).into();
 							Ok((
 								Asset {
-									id: AssetId(Location::parent()),
+									id: AssetId(Here.into_location()),
 									fun: Fungible(1_000_000_000_000_000 as u128)
 								},
 								WeightLimit::Limited(Weight::from_parts(5000, 5000)),
