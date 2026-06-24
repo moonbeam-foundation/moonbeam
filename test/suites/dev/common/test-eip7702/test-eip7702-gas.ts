@@ -384,9 +384,12 @@ describeSuite({
           privateKey: sender.privateKey,
         };
 
+        // Submit and seal in one step so the delegation tx is guaranteed to be
+        // included before reading the code. Submitting via `sendRawTransaction`
+        // and then sealing an empty block separately is racy: the tx may not be
+        // in the author's ready pool yet, so the delegation is never applied.
         const setSignature = await createViemTransaction(context, setTx);
-        await sendRawTransaction(context, setSignature);
-        await context.createBlock();
+        await context.createBlock(setSignature);
 
         // Verify delegation is set
         const codeAfterSet = await context.viem().getCode({
@@ -410,8 +413,8 @@ describeSuite({
         };
 
         const clearSignature = await createViemTransaction(context, clearTx);
-        const clearHash = await sendRawTransaction(context, clearSignature);
-        await context.createBlock();
+        const { result } = await context.createBlock(clearSignature);
+        const clearHash = (result as { hash: string }).hash;
 
         const receipt = await getTransactionReceiptWithRetry(context, clearHash);
 

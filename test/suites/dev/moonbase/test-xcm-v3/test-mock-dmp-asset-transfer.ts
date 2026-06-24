@@ -1,11 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { alith, beforeAll, customDevRpcRequest, describeSuite, expect } from "moonwall";
+import { alith, beforeAll, describeSuite, expect } from "moonwall";
 import {
   RELAY_SOURCE_LOCATION,
   registerForeignAsset,
   foreignAssetBalance,
   addAssetToWeightTrader,
   relayAssetMetadata,
+  injectDownwardMessageAndSeal,
 } from "../../../../helpers";
 
 // Twelve decimal places in the moonbase relay chain's token
@@ -28,14 +29,14 @@ describeSuite({
       id: "T01",
       title: "Should receive a downward transfer of 10 DOTs to Alith",
       test: async function () {
-        // Send RPC call to inject XCM message
-        // You can provide a message, but if you don't a downward transfer is the default
-        await customDevRpcRequest("xcm_injectDownwardMessage", [[]]);
-
-        // Process the next block
-        await context.createBlock();
-        // Create a block in which the XCM will be executed
-        await context.createBlock();
+        // Inject the XCM message and seal until the message queue actually
+        // processes it. You can provide a message, but if you don't a downward
+        // transfer is the default.
+        //
+        // Sealing a fixed number of blocks here was racy: the downward message
+        // is processed in the message queue's on_idle hook only if enough block
+        // weight remains, otherwise it is deferred to a later block.
+        await injectDownwardMessageAndSeal(context);
 
         // Make sure the state has ALITH's to DOT tokens
         const alith_dot_balance = await foreignAssetBalance(
