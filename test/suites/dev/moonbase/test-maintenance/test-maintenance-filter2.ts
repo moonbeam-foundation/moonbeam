@@ -16,6 +16,7 @@ import {
   mockAssetBalance,
   relayAssetMetadata,
   foreignAssetBalance,
+  waitForForeignAssetBalance,
 } from "../../../../helpers";
 
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
@@ -78,18 +79,19 @@ describeSuite({
           context.polkadotJs().tx.maintenanceMode.resumeNormalOperation()
         );
 
-        // Create a block in which the XCM will be executed
-        await context.createBlock();
-
-        // Make sure the state has ALITH's to DOT tokens
-        const newAlithBalance = await foreignAssetBalance(
+        // The resume proposal may already process the queued DMP. If not, keep
+        // sealing until the transfer balance is visible instead of waiting for
+        // another messageQueue.Processed event (which may never come).
+        const expectedBalance = 10000000000000n;
+        const newAlithBalance = await waitForForeignAssetBalance(
           context,
           ARBITRARY_ASSET_ID,
-          ALITH_ADDRESS
+          ALITH_ADDRESS,
+          expectedBalance
         );
 
         // Alith balance is 10 DOT
-        expect(newAlithBalance).to.eq(10000000000000n);
+        expect(newAlithBalance).to.eq(expectedBalance);
       },
     });
   },

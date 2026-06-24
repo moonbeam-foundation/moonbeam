@@ -202,18 +202,34 @@ describeSuite({
           })
           .as_v3();
 
+        const startBlockNumber = (
+          await context.polkadotJs().rpc.chain.getHeader()
+        ).number.toNumber();
+
         // `injectHrmpMessageAndSeal` seals until the message queue actually
-        // processes the message, so the current block's events reliably contain
-        // the resulting mints (otherwise this test was racy/flaky).
+        // processes the message, but the message can be processed in any of the
+        // blocks it seals (depending on the available on_idle weight), not
+        // necessarily the last one.
         await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         });
 
-        const events = await context.polkadotJs().query.system.events();
-        const mints = events
-          .filter((evt) => context.polkadotJs().events.balances.Minted.is(evt.event))
-          .map((evt) => evt.event.toJSON().data);
+        const endBlockNumber = (await context.polkadotJs().rpc.chain.getHeader()).number.toNumber();
+
+        // Scan every block sealed during injection for the resulting mints
+        // instead of assuming they all landed in the latest block.
+        const mints: any[] = [];
+        for (let n = startBlockNumber + 1; n <= endBlockNumber; n++) {
+          const blockHash = await context.polkadotJs().rpc.chain.getBlockHash(n);
+          const apiAt = await context.polkadotJs().at(blockHash);
+          const blockEvents = await apiAt.query.system.events();
+          for (const evt of blockEvents) {
+            if (context.polkadotJs().events.balances.Minted.is(evt.event)) {
+              mints.push(evt.event.toJSON().data);
+            }
+          }
+        }
 
         // Assert the expected shape before indexing to avoid a cryptic TypeError.
         expect(mints.length).toBe(2);
