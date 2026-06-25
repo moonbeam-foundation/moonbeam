@@ -1063,18 +1063,37 @@ macro_rules! impl_runtime_apis_plus_common {
 						pub const TokenLocation: Location = Here.into_location();
 						pub TrustedTeleporter: Option<(Location, Asset)> = None;
 						pub CheckedAccount: Option<(AccountId, xcm_builder::MintLocation)> = None;
-						// Reserve location and asset used by the `reserve_asset_deposited` benchmark.
+						// Reserve location and asset for the `reserve_asset_deposited` benchmark.
 						// stable2603: under the credit model the executor mints the deposited asset
-						// via the real `XcmConfig::AssetTransactor`, so use the native token
-						// (`SelfReserve`). Its reserve resolves to `Here` (AbsoluteAndRelativeReserve),
-						// which `MultiNativeAsset` trusts, so the reserve origin must be `Here`.
-						pub TrustedReserve: Option<(Location, Asset)> = Some((
-							Here.into_location(),
-							Asset {
-								id: AssetId(xcm_config::SelfReserve::get()),
-								fun: Fungible(100 * ExistentialDeposit::get()),
-							}
-						));
+						// via the real `XcmConfig::AssetTransactor`. Register DOT (`RelayLocation`) as
+						// a foreign asset so it is minted through the `EvmForeignAssets` path -- the
+						// realistic worst case for a reserve deposit -- and trust it from Asset Hub
+						// via the `RelayChainNativeAssetFromAssetHub` reserve filter.
+						pub TrustedReserve: Option<(Location, Asset)> = {
+							let location = RelayLocation::get();
+							let asset_id =
+								pallet_moonbeam_foreign_assets::default_asset_id::<Runtime>() + 1;
+							let decimals = 10u8;
+							EvmForeignAssets::set_asset(location.clone(), asset_id);
+							XcmWeightTrader::set_asset_price(
+								location.clone(),
+								10u128.pow(decimals as u32),
+							);
+							EvmForeignAssets::create_asset_contract(
+								asset_id,
+								decimals,
+								"DOT",
+								"Polkadot",
+							)
+							.unwrap();
+							Some((
+								AssetHubLocation::get(),
+								Asset {
+									id: AssetId(location),
+									fun: Fungible(100 * ExistentialDeposit::get()),
+								},
+							))
+						};
 					}
 
 					impl pallet_xcm_benchmarks::fungible::Config for Runtime {
