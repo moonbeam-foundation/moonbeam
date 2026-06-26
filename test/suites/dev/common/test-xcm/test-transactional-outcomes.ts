@@ -209,23 +209,41 @@ describeSuite({
           })
           .as_v3();
 
+        const startBlockNumber = (
+          await context.polkadotJs().rpc.chain.getHeader()
+        ).number.toNumber();
+
         // `injectHrmpMessageAndSeal` seals until the message queue actually
-        // processes the message, so the current block's events reliably contain
-        // the resulting mints (otherwise this test was racy/flaky).
+        // processes the message, but the message can be processed in any of the
+        // blocks it seals (depending on the available on_idle weight), not
+        // necessarily the last one.
         await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         });
 
-        const events = await context.polkadotJs().query.system.events();
+        const endBlockNumber = (await context.polkadotJs().rpc.chain.getHeader()).number.toNumber();
+
         // stable2603 credit model (polkadot-sdk #10384) moves native value via Withdraw/Deposit
         // imbalances instead of minting, so the execution fee surfaces as a treasury
         // `balances.Deposit`, not `balances.Minted`. The multi-asset DepositAsset fails atomically
         // (erc20 revert rolls back the native leg via FrameTransactionalProcessor); Baltathar is
         // funded by the SetErrorHandler's native-only deposit afterwards.
-        const deposits = events
-          .filter((evt) => context.polkadotJs().events.balances.Deposit.is(evt.event))
-          .map((evt) => evt.event.toJSON().data as [string, any]);
+        //
+        // Scan every block sealed during injection for the deposits instead of assuming they all
+        // landed in the latest block (the message can be processed in any of the sealed blocks).
+        const deposits: [string, any][] = [];
+        for (let n = startBlockNumber + 1; n <= endBlockNumber; n++) {
+          const blockHash = await context.polkadotJs().rpc.chain.getBlockHash(n);
+          const apiAt = await context.polkadotJs().at(blockHash);
+          const blockEvents = await apiAt.query.system.events();
+          for (const evt of blockEvents) {
+            if (context.polkadotJs().events.balances.Deposit.is(evt.event)) {
+              deposits.push(evt.event.toJSON().data as [string, any]);
+            }
+          }
+        }
+
         const feeDeposit = deposits.find(
           ([who]) => who.toLowerCase() !== BALTATHAR_ADDRESS.toLowerCase()
         );

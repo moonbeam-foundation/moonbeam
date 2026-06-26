@@ -414,7 +414,8 @@ describeSuite({
 
         const clearSignature = await createViemTransaction(context, clearTx);
         const { result } = await context.createBlock(clearSignature);
-        const clearHash = (result as { hash: string }).hash;
+        expect(result?.successful).toBe(true);
+        const clearHash = result!.hash as `0x${string}`;
 
         const receipt = await getTransactionReceiptWithRetry(context, clearHash);
 
