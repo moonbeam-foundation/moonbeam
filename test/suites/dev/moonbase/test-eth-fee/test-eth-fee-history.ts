@@ -47,12 +47,8 @@ describeSuite({
       }
 
       const [latest, pending] = await Promise.all([
-        context
-          .viem("public")
-          .getTransactionCount({ address: ALITH_ADDRESS, blockTag: "latest" }),
-        context
-          .viem("public")
-          .getTransactionCount({ address: ALITH_ADDRESS, blockTag: "pending" }),
+        context.viem("public").getTransactionCount({ address: ALITH_ADDRESS, blockTag: "latest" }),
+        context.viem("public").getTransactionCount({ address: ALITH_ADDRESS, blockTag: "pending" }),
       ]);
       expect(
         latest,
