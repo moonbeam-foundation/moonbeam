@@ -8,6 +8,7 @@ import {
 } from "moonwall";
 import { hexToNumber, numberToHex } from "@polkadot/util";
 import { parseGwei } from "viem";
+import { sealUntilTxPoolEmpty } from "../../../../helpers";
 
 // We use ethers library in this test as apparently web3js's types are not fully EIP-1559
 // compliant yet.
@@ -31,29 +32,7 @@ describeSuite({
       // Flush any transactions left in the pool by previous test cases into
       // their own block(s) first. Otherwise they leak into the first block we
       // are about to produce and inflate its gasUsedRatio non-deterministically.
-      for (let i = 0; i < 20; i++) {
-        const [latest, pending] = await Promise.all([
-          context
-            .viem("public")
-            .getTransactionCount({ address: ALITH_ADDRESS, blockTag: "latest" }),
-          context
-            .viem("public")
-            .getTransactionCount({ address: ALITH_ADDRESS, blockTag: "pending" }),
-        ]);
-        if (latest === pending) {
-          break;
-        }
-        await context.createBlock();
-      }
-
-      const [latest, pending] = await Promise.all([
-        context.viem("public").getTransactionCount({ address: ALITH_ADDRESS, blockTag: "latest" }),
-        context.viem("public").getTransactionCount({ address: ALITH_ADDRESS, blockTag: "pending" }),
-      ]);
-      expect(
-        latest,
-        "previous tests must not leave pending transactions before fee-history blocks are produced"
-      ).toBe(pending);
+      await sealUntilTxPoolEmpty(context);
 
       let nonce = await context
         .viem("public")
