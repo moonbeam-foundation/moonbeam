@@ -46,6 +46,19 @@ describeSuite({
         await context.createBlock();
       }
 
+      const [latest, pending] = await Promise.all([
+        context
+          .viem("public")
+          .getTransactionCount({ address: ALITH_ADDRESS, blockTag: "latest" }),
+        context
+          .viem("public")
+          .getTransactionCount({ address: ALITH_ADDRESS, blockTag: "pending" }),
+      ]);
+      expect(
+        latest,
+        "previous tests must not leave pending transactions before fee-history blocks are produced"
+      ).toBe(pending);
+
       let nonce = await context
         .viem("public")
         .getTransactionCount({ address: ALITH_ADDRESS, blockTag: "pending" });
