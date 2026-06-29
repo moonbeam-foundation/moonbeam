@@ -70,14 +70,19 @@ impl<T: frame_system::Config> pallet_xcm::WeightInfo for WeightInfo<T> {
 			.saturating_add(T::DbWeight::get().reads(5_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}
-	/// Storage: `Benchmark::Override` (r:0 w:0)
-	/// Proof: `Benchmark::Override` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// `limited_teleport_assets` shares this weight in upstream `pallet-xcm`.
+	///
+	/// Both `teleport_assets` and `limited_teleport_assets` are annotated with a *flat*
+	/// `#[pallet::weight(T::WeightInfo::teleport_assets())]` and `do_teleport_assets` returns a
+	/// plain `DispatchResult` (no post-dispatch correction). Yet the local XCM execution runs a
+	/// real ERC-20 EVM transfer (`withdraw_asset` → `erc20_transfer`, up to
+	/// `Erc20XcmBridgeTransferGasLimit` gas). The `transfer_assets()` benchmark only covers the
+	/// XCM scaffolding, so we add the worst-case ERC-20 transfer weight on top; otherwise the
+	/// EVM-backed teleport would be charged far less dispatch weight than it actually consumes.
 	fn teleport_assets() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `0`
-		//  Estimated: `0`
-		// Minimum execution time: 18_446_744_073_709_551_000 picoseconds.
-		Weight::from_parts(18_446_744_073_709_551_000, 0)
+		Self::transfer_assets().saturating_add(
+			pallet_erc20_xcm_bridge::Pallet::<crate::Runtime>::worst_case_erc20_transfer_weight(),
+		)
 	}
 	/// Storage: `PolkadotXcm::ShouldRecordXcm` (r:1 w:0)
 	/// Proof: `PolkadotXcm::ShouldRecordXcm` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)

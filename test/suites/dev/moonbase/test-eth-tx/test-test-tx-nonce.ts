@@ -87,7 +87,23 @@ describeSuite({
             .getTransactionCount({ address: ALITH_ADDRESS, blockTag: "pending" }),
           "should increase transaction count in pending block"
         ).toBe(nonce + 1);
-        await context.createBlock();
+
+        // The transaction submitted via `eth_sendRawTransaction` can still be in
+        // the pool (not yet "ready") when a single block is sealed, which would
+        // leak it into the next test's block and corrupt its nonce expectations.
+        // Seal until the sender nonce actually advances so the pending
+        // transaction is guaranteed to be included before the next test runs.
+        for (
+          let i = 0;
+          i < 5 && (await context.viem().getTransactionCount({ address: ALITH_ADDRESS })) === nonce;
+          i++
+        ) {
+          await context.createBlock();
+        }
+        expect(
+          await context.viem().getTransactionCount({ address: ALITH_ADDRESS }),
+          "pending transaction should be included before continuing"
+        ).toBe(nonce + 1);
       },
     });
 

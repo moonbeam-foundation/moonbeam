@@ -59,13 +59,8 @@ describeSuite({
             },
           ],
           weight_limit: {
-            refTime: 10_000_000_000,
-            // The deposit targets a fresh random account each run, so the
-            // measured proofSize varies with the new account's trie path. Use a
-            // generous static ceiling so BuyExecution is never weight-capped
-            // (the fee asserted below is derived from the measured weight, so a
-            // larger limit does not change the expected balances).
-            proofSize: 1_000_000n,
+            refTime: 40_000_000_000n,
+            proofSize: 120_000n,
           },
           beneficiary: random.address,
         })

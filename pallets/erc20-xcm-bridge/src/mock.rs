@@ -19,6 +19,7 @@ use crate as erc20_xcm_bridge;
 
 use frame_support::traits::Everything;
 use frame_support::{construct_runtime, pallet_prelude::*, parameter_types};
+use frame_system::EnsureRoot;
 use pallet_evm::{
 	AddressMapping, EnsureAddressTruncated, FrameSystemAccountProvider, SubstrateBlockHashMapping,
 };
@@ -37,7 +38,7 @@ construct_runtime!(
 		Balances: pallet_balances,
 		Timestamp: pallet_timestamp,
 		EVM: pallet_evm,
-		Erc20XcmBridge: erc20_xcm_bridge,
+		Erc20XcmBridge: erc20_xcm_bridge::{Pallet, Call, Storage, Event<T>},
 	}
 );
 
@@ -115,7 +116,10 @@ const BLOCK_STORAGE_LIMIT: u64 = 40 * 1024;
 
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::from(u64::MAX);
-	pub const WeightPerGas: Weight = Weight::from_parts(1, 0);
+	// Non-zero proof_size component so `pallet_evm`'s runner has a budget large enough
+	// to record `ACCOUNT_CODES_METADATA_PROOF_SIZE` (~76 bytes) at the start of a call.
+	// Without this the runner returns `GasLimitTooLow` for any contract call.
+	pub const WeightPerGas: Weight = Weight::from_parts(1, 1);
 	pub GasLimitPovSizeRatio: u64 = {
 		let block_gas_limit = BlockGasLimit::get().min(u64::MAX.into()).low_u64();
 		block_gas_limit.saturating_div(MAX_POV_SIZE)
@@ -154,8 +158,12 @@ impl pallet_evm::Config for Test {
 	type FindAuthor = ();
 	type BlockHashMapping = SubstrateBlockHashMapping<Self>;
 	type OnCreate = ();
-	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
-	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
+	// `()` resolves to `0` for these `Get<u64>` ratios — that disables the PoV / storage
+	// growth checks in the EVM runner, which would otherwise reject our small-gas
+	// `erc20_transfer` test calls because the mock's `BlockGasLimit = u64::MAX`
+	// makes the computed ratios astronomical.
+	type GasLimitPovSizeRatio = ();
+	type GasLimitStorageGrowthRatio = ();
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Test>;
 	type AccountProvider = FrameSystemAccountProvider<Test>;
@@ -165,10 +173,39 @@ impl pallet_evm::Config for Test {
 
 parameter_types! {
 	pub Erc20XcmBridgeTransferGasLimit: u64 = 200_000;
+	pub Erc20MultilocationPrefix: xcm::latest::Location = xcm::latest::Location {
+		parents: 0,
+		interior: [xcm::latest::Junction::PalletInstance(42u8)].into(),
+	};
+	pub TeleportCheckingAccount: H160 = H160(*b"erc20-teleport-check");
+	/// Mock counterparty: stand-in for AssetHub at para 1001. Tests use this to verify
+	/// `IsTeleportableErc20` admits this exact location and rejects everything else.
+	pub TeleportTrustedLocation: xcm::latest::Location = xcm::latest::Location::new(
+		1,
+		[xcm::latest::Junction::Parachain(1001)],
+	);
 }
+/// Minimal `Location → H160` converter for the unit-test ext: matches the leaf
+/// `AccountKey20 { key, .. }` and returns `H160(key)`. Pattern matches any number of
+/// preceding junctions so both `(0, [AccountKey20])` and richer locations work.
+pub struct H160FromAccountKey20Junction;
+
+impl xcm_executor::traits::ConvertLocation<H160> for H160FromAccountKey20Junction {
+	fn convert_location(loc: &xcm::latest::Location) -> Option<H160> {
+		use xcm::latest::Junction;
+		match loc.interior().last() {
+			Some(Junction::AccountKey20 { key, .. }) => Some(H160::from(*key)),
+			_ => None,
+		}
+	}
+}
+
 impl crate::Config for Test {
-	type AccountIdConverter = ();
-	type Erc20MultilocationPrefix = ();
+	type AccountIdConverter = H160FromAccountKey20Junction;
+	type Erc20MultilocationPrefix = Erc20MultilocationPrefix;
 	type Erc20TransferGasLimit = Erc20XcmBridgeTransferGasLimit;
 	type EvmRunner = pallet_evm::runner::stack::Runner<Self>;
+	type TeleportAdminOrigin = EnsureRoot<AccountId32>;
+	type TeleportCheckingAccount = TeleportCheckingAccount;
+	type TeleportTrustedLocation = TeleportTrustedLocation;
 }

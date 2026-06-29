@@ -83,6 +83,30 @@ where
 		})
 }
 
+fn weigh_erc20_asset_filter<Runtime>(assets: &AssetFilter, benchmark_weight: Weight) -> XCMWeight
+where
+	Runtime: pallet_erc20_xcm_bridge::Config,
+{
+	match assets {
+		Definite(assets) => weigh_erc20_assets::<Runtime>(assets, benchmark_weight),
+		// Wildcard filters are resolved against the holding register at execution time, so we
+		// can't tell here whether they will match an ERC-20 (whose `deposit_asset` runs a real
+		// EVM transfer). The canonical inbound teleport/transfer program built by `pallet_xcm`
+		// uses `DepositAsset { Wild(AllCounted(..)) }`, so charge each (capped) asset at the
+		// worst-case ERC-20 transfer cost; otherwise EVM-backed wildcard deposits are
+		// under-weighed and could be admitted with too little bought execution.
+		_ => {
+			let worst_case =
+				pallet_erc20_xcm_bridge::Pallet::<Runtime>::worst_case_erc20_transfer_weight();
+			let per_asset = Weight::from_parts(
+				benchmark_weight.ref_time().max(worst_case.ref_time()),
+				benchmark_weight.proof_size().max(worst_case.proof_size()),
+			);
+			assets.weigh_assets(per_asset)
+		}
+	}
+}
+
 pub struct XcmWeight<Runtime, Call>(core::marker::PhantomData<(Runtime, Call)>);
 impl<Runtime, Call> XcmWeightInfo<Call> for XcmWeight<Runtime, Call>
 where
@@ -97,9 +121,10 @@ where
 	fn reserve_asset_deposited(assets: &Assets) -> XCMWeight {
 		assets.weigh_assets(XcmFungibleWeight::<Runtime>::reserve_asset_deposited())
 	}
-	fn receive_teleported_asset(_assets: &Assets) -> XCMWeight {
-		// Instruction disabled
-		Weight::MAX
+	fn receive_teleported_asset(assets: &Assets) -> XCMWeight {
+		// Inbound ERC-20 teleports (AH → Moonbase) use this instruction; must not be Weight::MAX
+		// or WeightInfoBounds::prepare overflows and messageQueue reports Unsupported.
+		assets.weigh_assets(XcmFungibleWeight::<Runtime>::reserve_asset_deposited())
 	}
 	fn query_response(
 		_query_id: &u64,
@@ -151,7 +176,7 @@ where
 		XcmGeneric::<Runtime>::report_error()
 	}
 	fn deposit_asset(assets: &AssetFilter, _dest: &Location) -> XCMWeight {
-		assets.weigh_assets(XcmFungibleWeight::<Runtime>::deposit_asset())
+		weigh_erc20_asset_filter::<Runtime>(assets, XcmFungibleWeight::<Runtime>::deposit_asset())
 	}
 	fn deposit_reserve_asset(assets: &AssetFilter, _dest: &Location, _xcm: &Xcm<()>) -> XCMWeight {
 		assets.weigh_assets(XcmFungibleWeight::<Runtime>::deposit_reserve_asset())

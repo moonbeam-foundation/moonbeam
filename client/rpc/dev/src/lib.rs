@@ -76,7 +76,7 @@ impl DevApiServer for DevRpc {
 				BuyExecution {
 					fees: (Parent, 10000000000000u128).into(),
 					weight_limit: Limited(Weight::from_parts(
-						10_000_000_000u64,
+						40_000_000_000u64,
 						DEFAULT_PROOF_SIZE,
 					)),
 				},
@@ -122,7 +122,7 @@ impl DevApiServer for DevRpc {
 					BuyExecution {
 						fees: ((Parent, Parachain(sender.into())), 10000000000000u128).into(),
 						weight_limit: Limited(Weight::from_parts(
-							10_000_000_000u64,
+							40_000_000_000u64,
 							DEFAULT_PROOF_SIZE,
 						)),
 					},

@@ -32,6 +32,8 @@ pub mod migrations;
 pub mod tests;
 pub mod types;
 pub mod xcm_origins;
+#[cfg(feature = "runtime-benchmarks")]
+pub mod xcm_pallet_benchmark;
 
 // The default transaction gas limit from EIP-7825 is 16,777,216, which is too low
 // for Moonbeam. Without this cap, Substrate enforces a maximum of 65% of the block

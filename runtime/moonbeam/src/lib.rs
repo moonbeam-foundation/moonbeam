@@ -1493,7 +1493,7 @@ construct_runtime! {
 		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event<T>} = 107,
 		// Previously 108: pallet_assets::<Instance1>
 		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Storage, Origin, Event<T>} = 109,
-		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = 110,
+		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet, Event<T>} = 110,
 		MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 111,
 		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event<T>, Config<T>} = 114,
 		XcmWeightTrader: pallet_xcm_weight_trader::{Pallet, Call, Storage, Event<T>, Config<T>} = 115,

@@ -1470,7 +1470,7 @@ construct_runtime! {
 		OpenTechCommitteeCollective:
 			pallet_collective::<Instance4>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 46,
 		RootTesting: pallet_root_testing::{Pallet, Call, Storage, Event<T>} = 47,
-		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = 48,
+		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet, Call, Storage, Event<T>} = 48,
 		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 49,
 		AsyncBacking: pallet_async_backing::{Pallet, Storage} = 50,
 		MoonbeamLazyMigrations: pallet_moonbeam_lazy_migrations::{Pallet, Call, Storage} = 51,
