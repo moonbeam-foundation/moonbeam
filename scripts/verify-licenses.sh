@@ -29,6 +29,7 @@ LICENSES=(
     "CC0-1.0"
     "GPL-3.0-only"
     "GPL-3.0-or-later WITH Classpath-exception-2.0"
+    "LGPL-3.0-or-later"
     "ISC"
     "MIT OR Unlicense"
     "MIT"
