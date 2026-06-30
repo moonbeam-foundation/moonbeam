@@ -72,7 +72,14 @@ export async function createViemTransaction(
   const value = options?.value ? options.value : 0n;
   const to = options?.to ? options.to : "0x0000000000000000000000000000000000000000";
   const chainId = await context.viem().getChainId();
-  const txnCount = await context.viem().getTransactionCount({ address: account.address });
+  // Use the pending nonce so multiple transactions submitted from the same
+  // account before they are sealed get distinct, incrementing nonces. Reading
+  // the latest nonce would reuse the same nonce and, with identical priority,
+  // fail with "Priority is too low ... replace another transaction already in
+  // the pool".
+  const txnCount = await context
+    .viem()
+    .getTransactionCount({ address: account.address, blockTag: "pending" });
   const gasPrice = await context.viem().getGasPrice();
   const data = options?.data ? options.data : "0x";
 
