@@ -161,6 +161,10 @@ impl pallet_precompile_benchmarks::WeightInfo for MockWeightInfo {
 	fn p256_verify() -> Weight {
 		Weight::from_parts(1_580_914_000, 0).saturating_mul(1u64)
 	}
+	fn gmp(x: u32) -> Weight {
+		Weight::from_parts(1_862_179, 0)
+			.saturating_add(Weight::from_parts(522, 0).saturating_mul(x.into()))
+	}
 }
 
 pub type Precompiles<R> = PrecompileSetBuilder<

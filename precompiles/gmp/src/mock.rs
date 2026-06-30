@@ -206,10 +206,23 @@ impl xcm_executor::Config for XcmConfig {
 	type XcmEventEmitter = ();
 }
 
+/// Mock weights required to instantiate the GMP precompile in tests: a simple `base + per_byte`
+/// schedule (the exact numbers are irrelevant to the mock).
+pub struct MockGmpWeightInfo;
+impl GmpWeightInfo for MockGmpWeightInfo {
+	fn gmp(input_len: u32) -> Weight {
+		Weight::from_parts(2500 + 3 * input_len as u64, 0)
+	}
+}
+
 pub type Precompiles<R> = PrecompileSetBuilder<
 	R,
 	(
-		PrecompileAt<AddressU64<1>, GmpPrecompile<R>, (SubcallWithMaxNesting<1>,)>,
+		PrecompileAt<
+			AddressU64<1>,
+			GmpPrecompile<R, MockGmpWeightInfo>,
+			(SubcallWithMaxNesting<1>,),
+		>,
 		RevertPrecompile<AddressU64<2>>,
 	),
 >;
@@ -247,7 +260,7 @@ impl WeightTrader for DummyWeightTrader {
 	}
 }
 
-pub type PCall = GmpPrecompileCall<Runtime>;
+pub type PCall = GmpPrecompileCall<Runtime, MockGmpWeightInfo>;
 
 mock_account!(Batch, |_| MockAccount::from_u64(1));
 mock_account!(Revert, |_| MockAccount::from_u64(2));
