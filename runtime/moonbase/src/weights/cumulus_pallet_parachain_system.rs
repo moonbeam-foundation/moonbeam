@@ -76,4 +76,49 @@ impl<T: frame_system::Config> cumulus_pallet_parachain_system::WeightInfo for We
 			.saturating_add(T::DbWeight::get().writes(5_u64))
 			.saturating_add(T::DbWeight::get().writes((1_u64).saturating_mul(n.into())))
 	}
+	/// Storage: `System::InherentsApplied` (r:1 w:0)
+	/// Proof: `System::InherentsApplied` (`max_values`: Some(1), `max_size`: Some(1), added: 496, mode: `MaxEncodedLen`)
+	/// Storage: `ParachainSystem::BlockWeightMode` (r:1 w:1)
+	/// Proof: `ParachainSystem::BlockWeightMode` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `System::Digest` (r:1 w:1)
+	/// Proof: `System::Digest` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `System::BlockSize` (r:1 w:1)
+	/// Proof: `System::BlockSize` (`max_values`: Some(1), `max_size`: Some(4), added: 499, mode: `MaxEncodedLen`)
+	fn block_weight_tx_extension_max_weight() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `79`
+		//  Estimated: `1564`
+		// Minimum execution time: 9_000_000 picoseconds.
+		Weight::from_parts(10_000_000, 1564)
+			.saturating_add(T::DbWeight::get().reads(4_u64))
+			.saturating_add(T::DbWeight::get().writes(3_u64))
+	}
+	/// Storage: `System::InherentsApplied` (r:1 w:0)
+	/// Proof: `System::InherentsApplied` (`max_values`: Some(1), `max_size`: Some(1), added: 496, mode: `MaxEncodedLen`)
+	/// Storage: `ParachainSystem::BlockWeightMode` (r:1 w:1)
+	/// Proof: `ParachainSystem::BlockWeightMode` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `System::Digest` (r:1 w:0)
+	/// Proof: `System::Digest` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	fn block_weight_tx_extension_stays_fraction_of_core() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `79`
+		//  Estimated: `1564`
+		// Minimum execution time: 8_000_000 picoseconds.
+		Weight::from_parts(10_000_000, 1564)
+			.saturating_add(T::DbWeight::get().reads(3_u64))
+			.saturating_add(T::DbWeight::get().writes(1_u64))
+	}
+	/// Storage: `System::InherentsApplied` (r:1 w:0)
+	/// Proof: `System::InherentsApplied` (`max_values`: Some(1), `max_size`: Some(1), added: 496, mode: `MaxEncodedLen`)
+	/// Storage: `ParachainSystem::BlockWeightMode` (r:1 w:1)
+	/// Proof: `ParachainSystem::BlockWeightMode` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	fn block_weight_tx_extension_full_core() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `70`
+		//  Estimated: `1555`
+		// Minimum execution time: 4_000_000 picoseconds.
+		Weight::from_parts(5_000_000, 1555)
+			.saturating_add(T::DbWeight::get().reads(2_u64))
+			.saturating_add(T::DbWeight::get().writes(1_u64))
+	}
 }

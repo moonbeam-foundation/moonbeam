@@ -144,8 +144,8 @@ macro_rules! impl_runtime_apis_plus_common {
 					opaque::SessionKeys::decode_into_raw_public_keys(&encoded)
 				}
 
-				fn generate_session_keys(seed: Option<Vec<u8>>) -> Vec<u8> {
-					opaque::SessionKeys::generate(seed)
+				fn generate_session_keys(owner: Vec<u8>, seed: Option<Vec<u8>>) -> sp_session::OpaqueGeneratedSessionKeys {
+					opaque::SessionKeys::generate(&owner, seed).into()
 				}
 			}
 
@@ -406,6 +406,7 @@ macro_rules! impl_runtime_apis_plus_common {
 								validate,
 								weight_limit,
 								proof_size_base_cost,
+								Default::default(),
 								<Runtime as pallet_evm::Config>::config(),
 							);
 						});
@@ -482,6 +483,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					estimate: bool,
 					access_list: Option<Vec<(H160, Vec<H256>)>>,
 					authorization_list: Option<AuthorizationList>,
+				    state_override: fp_evm::StateOverride,
 				) -> Result<pallet_evm::CallInfo, sp_runtime::DispatchError> {
 					let config = if estimate {
 						let mut config = <Runtime as pallet_evm::Config>::config().clone();
@@ -526,6 +528,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						validate,
 						weight_limit,
 						proof_size_base_cost,
+						state_override,
 						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
 					).map_err(|err| err.error.into())
 				}
@@ -850,7 +853,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					use frame_support::traits::StorageInfoTrait;
 
 					use pallet_xcm::benchmarking::Pallet as PalletXcmExtrinsicsBenchmark;
-					use pallet_transaction_payment::benchmarking::Pallet as TransactionPaymentBenchmark;
+					use pallet_transaction_payment::Pallet as TransactionPaymentBenchmark;
 
 					let mut list = Vec::<BenchmarkList>::new();
 					list_benchmarks!(list, extra);
@@ -893,8 +896,8 @@ macro_rules! impl_runtime_apis_plus_common {
 
 					// Needed to run `charge_transaction_payment` benchmark which distributes
 					// fees to block author. Moonbeam requires an author to be set for fee distribution.
-					use pallet_transaction_payment::benchmarking::Pallet as TransactionPaymentBenchmark;
-					impl pallet_transaction_payment::benchmarking::Config for Runtime {
+					use pallet_transaction_payment::Pallet as TransactionPaymentBenchmark;
+					impl pallet_transaction_payment::BenchmarkConfig for Runtime {
 						fn setup_benchmark_environment() {
 							// Set a dummy author for the block so fee distribution doesn't panic
 							let author: AccountId = frame_benchmarking::whitelisted_caller();
@@ -1027,29 +1030,16 @@ macro_rules! impl_runtime_apis_plus_common {
 						fn valid_destination() -> Result<Location, BenchmarkError> {
 							Ok(Location::parent())
 						}
-						fn worst_case_holding(_depositable_count: u32) -> XcmAssets {
-							const HOLDING_FUNGIBLES: u32 = MaxAssetsIntoHolding::get();
-							let fungibles_amount: u128 = 1_000 * ExistentialDeposit::get();
-							let assets = (1..=HOLDING_FUNGIBLES).map(|i| {
-								let location: Location = GeneralIndex(i as u128).into();
-								Asset {
-									id: AssetId(location),
-									fun: Fungible(fungibles_amount * i as u128),
-								}
-								.into()
-							})
-							.chain(
-								core::iter::once(
-									Asset {
-										id: AssetId(Location::parent()),
-										fun: Fungible(u128::MAX)
-									}
-								)
-							)
-							.collect::<Vec<_>>();
+						fn worst_case_holding(depositable_count: u32) -> xcm_executor::AssetsInHolding {
+							// stable2603: `AssetsInHolding` now carries real credits; build the
+							// worst-case holding via the canonical helper (uses notional credits).
+							let holding = pallet_xcm_benchmarks::generate_holding_assets(
+								MaxAssetsIntoHolding::get().saturating_sub(depositable_count),
+							);
 
-
-							for (i, asset) in assets.iter().enumerate() {
+							// Register the held fungible assets so the weight trader can price them
+							// during XCM benchmarks.
+							for (i, asset) in holding.fungible_assets_iter().enumerate() {
 								if let Asset {
 									id: AssetId(location),
 									fun: Fungible(_)
@@ -1064,7 +1054,7 @@ macro_rules! impl_runtime_apis_plus_common {
 									);
 								}
 							}
-							assets.into()
+							holding
 						}
 					}
 
@@ -1073,15 +1063,37 @@ macro_rules! impl_runtime_apis_plus_common {
 						pub const TokenLocation: Location = Here.into_location();
 						pub TrustedTeleporter: Option<(Location, Asset)> = None;
 						pub CheckedAccount: Option<(AccountId, xcm_builder::MintLocation)> = None;
-						// Reserve location and asset used by the `reserve_asset_deposited` benchmark.
-						// We use DOT (asset id = `RelayLocation`) whose reserve is Asset Hub.
-						pub TrustedReserve: Option<(Location, Asset)> = Some((
-							AssetHubLocation::get(),
-							Asset {
-								id: AssetId(RelayLocation::get()),
-								fun: Fungible(100 * ExistentialDeposit::get()),
-							}
-						));
+						// Reserve location and asset for the `reserve_asset_deposited` benchmark.
+						// stable2603: under the credit model the executor mints the deposited asset
+						// via the real `XcmConfig::AssetTransactor`. Register DOT (`RelayLocation`) as
+						// a foreign asset so it is minted through the `EvmForeignAssets` path -- the
+						// realistic worst case for a reserve deposit -- and trust it from Asset Hub
+						// via the `RelayChainNativeAssetFromAssetHub` reserve filter.
+						pub TrustedReserve: Option<(Location, Asset)> = {
+							let location = RelayLocation::get();
+							let asset_id =
+								pallet_moonbeam_foreign_assets::default_asset_id::<Runtime>() + 1;
+							let decimals = 10u8;
+							EvmForeignAssets::set_asset(location.clone(), asset_id);
+							XcmWeightTrader::set_asset_price(
+								location.clone(),
+								10u128.pow(decimals as u32),
+							);
+							EvmForeignAssets::create_asset_contract(
+								asset_id,
+								decimals,
+								"DOT",
+								"Polkadot",
+							)
+							.unwrap();
+							Some((
+								AssetHubLocation::get(),
+								Asset {
+									id: AssetId(location),
+									fun: Fungible(100 * ExistentialDeposit::get()),
+								},
+							))
+						};
 					}
 
 					impl pallet_xcm_benchmarks::fungible::Config for Runtime {
@@ -1155,17 +1167,18 @@ macro_rules! impl_runtime_apis_plus_common {
 						fn claimable_asset()
 							-> Result<(Location, Location, XcmAssets), BenchmarkError> {
 							let origin = Location::parent();
-							let assets: XcmAssets = (AssetId(Location::parent()), 1_000u128)
+							// stable2603: `assets_to_holding` mints via the real `XcmConfig::AssetTransactor`,
+							// which matches the native token at `SelfReserve` (not bare `Here`).
+							let assets: XcmAssets = (AssetId(xcm_config::SelfReserve::get()), 1_000u128)
 								.into();
 							let ticket = Location { parents: 0, interior: [].into() /* Here */ };
 							Ok((origin, ticket, assets))
 						}
 
 						fn worst_case_for_trader() -> Result<(Asset, WeightLimit), BenchmarkError> {
-							let location: Location = GeneralIndex(1).into();
 							Ok((
 								Asset {
-									id: AssetId(Location::parent()),
+									id: AssetId(Here.into_location()),
 									fun: Fungible(1_000_000_000_000_000 as u128)
 								},
 								WeightLimit::Limited(Weight::from_parts(5000, 5000)),

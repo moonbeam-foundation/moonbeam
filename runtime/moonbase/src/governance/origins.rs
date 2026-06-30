@@ -33,7 +33,7 @@ pub mod custom_origins {
 		Encode,
 		Decode,
 		TypeInfo,
-		RuntimeDebug,
+		Debug,
 		EnumString,
 		DecodeWithMemTracking,
 	)]

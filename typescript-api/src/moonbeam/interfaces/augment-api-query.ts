@@ -11,6 +11,7 @@ import type {
   BTreeMap,
   BTreeSet,
   Bytes,
+  Compact,
   Null,
   Option,
   U256,
@@ -20,7 +21,8 @@ import type {
   u128,
   u16,
   u32,
-  u64
+  u64,
+  u8
 } from "@polkadot/types-codec";
 import type { AnyNumber, ITuple } from "@polkadot/types-codec/types";
 import type {
@@ -40,7 +42,9 @@ import type {
   BpParachainsParaInfo,
   BpRuntimeBasicOperatingMode,
   BpXcmBridgeHubBridge,
+  CumulusPalletParachainSystemBlockWeightBlockWeightMode,
   CumulusPalletParachainSystemParachainInherentInboundMessageId,
+  CumulusPalletParachainSystemPoVMessages,
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
   CumulusPalletParachainSystemUnincludedSegmentAncestor,
   CumulusPalletParachainSystemUnincludedSegmentSegmentTracker,
@@ -1393,6 +1397,20 @@ declare module "@polkadot/api-base/types/storage" {
       announcedHrmpMessagesPerCandidate: AugmentedQuery<ApiType, () => Observable<u32>, []> &
         QueryableStorageEntry<ApiType, []>;
       /**
+       * The current block weight mode.
+       *
+       * This is used to determine what is the maximum allowed block weight, for more information see
+       * [`block_weight`].
+       *
+       * Killed in [`Self::on_initialize`] and set by the [`block_weight`] logic.
+       **/
+      blockWeightMode: AugmentedQuery<
+        ApiType,
+        () => Observable<Option<CumulusPalletParachainSystemBlockWeightBlockWeightMode>>,
+        []
+      > &
+        QueryableStorageEntry<ApiType, []>;
+      /**
        * A custom head data that should be returned as result of `validate_block`.
        *
        * See `Pallet::set_custom_validation_head_data` for more information.
@@ -1505,10 +1523,28 @@ declare module "@polkadot/api-base/types/storage" {
        * applied.
        *
        * As soon as the relay chain gives us the go-ahead signal, we will overwrite the
-       * [`:code`][sp_core::storage::well_known_keys::CODE] which will result the next block process
-       * with the new validation code. This concludes the upgrade process.
+       * [`:pending_code`][sp_core::storage::well_known_keys::PENDING_CODE] which will result the
+       * next block to be processed with the new validation code. This concludes the upgrade process.
        **/
       pendingValidationCode: AugmentedQuery<ApiType, () => Observable<Bytes>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Tracks cumulative `UMP` and `HRMP` messages sent across blocks in the current `PoV`.
+       *
+       * Across different candidates/PoVs the budgets are tracked by [`AggregatedUnincludedSegment`].
+       **/
+      poVMessagesTracker: AugmentedQuery<
+        ApiType,
+        () => Observable<Option<CumulusPalletParachainSystemPoVMessages>>,
+        []
+      > &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * The core count available to the parachain in the previous block.
+       *
+       * This is mainly used for offchain functionality to calculate the correct target block weight.
+       **/
+      previousCoreCount: AugmentedQuery<ApiType, () => Observable<Option<Compact<u16>>>, []> &
         QueryableStorageEntry<ApiType, []>;
       /**
        * Number of downward messages processed in a block.
@@ -2080,11 +2116,6 @@ declare module "@polkadot/api-base/types/storage" {
       > &
         QueryableStorageEntry<ApiType, [AccountId20]>;
       /**
-       * Total length (in bytes) for all extrinsics put together, for the current block.
-       **/
-      allExtrinsicsLen: AugmentedQuery<ApiType, () => Observable<Option<u32>>, []> &
-        QueryableStorageEntry<ApiType, []>;
-      /**
        * `Some` if a code upgrade has been authorized.
        **/
       authorizedUpgrade: AugmentedQuery<
@@ -2102,6 +2133,18 @@ declare module "@polkadot/api-base/types/storage" {
         [u32]
       > &
         QueryableStorageEntry<ApiType, [u32]>;
+      /**
+       * Total size (in bytes) of the current block.
+       *
+       * Tracks the size of the header and all extrinsics.
+       **/
+      blockSize: AugmentedQuery<ApiType, () => Observable<Option<u32>>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Number of blocks till the pending code upgrade is applied.
+       **/
+      blocksTillUpgrade: AugmentedQuery<ApiType, () => Observable<Option<u8>>, []> &
+        QueryableStorageEntry<ApiType, []>;
       /**
        * The current weight for the block.
        **/

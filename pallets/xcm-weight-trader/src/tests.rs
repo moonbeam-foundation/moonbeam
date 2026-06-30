@@ -28,6 +28,27 @@ use {
 	xcm_executor::traits::WeightTrader,
 };
 
+use xcm_executor::AssetsInHolding;
+use xcm_primitives::NotionalImbalance;
+
+/// Build an `AssetsInHolding` payment from a single fungible asset.
+fn holding(asset: Asset) -> AssetsInHolding {
+	let amount = match asset.fun {
+		Fungibility::Fungible(amount) => amount,
+		_ => 0,
+	};
+	AssetsInHolding::new_from_fungible_credit(asset.id.clone(), Box::new(NotionalImbalance(amount)))
+}
+
+/// Build an `AssetsInHolding` payment from multiple fungible assets.
+fn holding_vec(assets: Vec<Asset>) -> AssetsInHolding {
+	let mut result = AssetsInHolding::new();
+	for asset in assets {
+		result.subsume_assets(holding(asset));
+	}
+	result
+}
+
 fn xcm_fees_account() -> <Test as frame_system::Config>::AccountId {
 	<Test as crate::Config>::XcmFeesAccount::get()
 }
@@ -375,35 +396,39 @@ fn test_trader_native_asset() {
 
 		// Should not be able to buy weight with too low asset balance
 		assert_eq!(
-			Trader::<Test>::new().buy_weight(
-				weight_to_buy,
-				Asset {
-					fun: Fungibility::Fungible(9_999),
-					id: XcmAssetId(Location::here()),
-				}
-				.into(),
-				&dummy_xcm_context
-			),
+			Trader::<Test>::new()
+				.buy_weight(
+					weight_to_buy,
+					holding(Asset {
+						fun: Fungibility::Fungible(9_999),
+						id: XcmAssetId(Location::here()),
+					}),
+					&dummy_xcm_context
+				)
+				.map_err(|(_, e)| e),
 			Err(XcmError::TooExpensive)
 		);
 
 		// Should not be able to buy weight with unsupported asset
 		assert_eq!(
-			Trader::<Test>::new().buy_weight(
-				weight_to_buy,
-				Asset {
-					fun: Fungibility::Fungible(10_000),
-					id: XcmAssetId(Location::parent()),
-				}
-				.into(),
-				&dummy_xcm_context
-			),
+			Trader::<Test>::new()
+				.buy_weight(
+					weight_to_buy,
+					holding(Asset {
+						fun: Fungibility::Fungible(10_000),
+						id: XcmAssetId(Location::parent()),
+					}),
+					&dummy_xcm_context
+				)
+				.map_err(|(_, e)| e),
 			Err(XcmError::AssetNotFound)
 		);
 
 		// Should not be able to buy weight without asset
 		assert_eq!(
-			Trader::<Test>::new().buy_weight(weight_to_buy, Default::default(), &dummy_xcm_context),
+			Trader::<Test>::new()
+				.buy_weight(weight_to_buy, AssetsInHolding::new(), &dummy_xcm_context)
+				.map_err(|(_, e)| e),
 			Err(XcmError::AssetNotFound)
 		);
 
@@ -412,14 +437,13 @@ fn test_trader_native_asset() {
 		assert_eq!(
 			trader.buy_weight(
 				weight_to_buy,
-				Asset {
+				holding(Asset {
 					fun: Fungibility::Fungible(10_000),
 					id: XcmAssetId(Location::here()),
-				}
-				.into(),
+				}),
 				&dummy_xcm_context
 			),
-			Ok(Default::default())
+			Ok(AssetsInHolding::new())
 		);
 
 		// Should not refund any funds
@@ -433,15 +457,16 @@ fn test_trader_native_asset() {
 
 		// Should not be able to buy weight again with the same trader
 		assert_eq!(
-			trader.buy_weight(
-				weight_to_buy,
-				Asset {
-					fun: Fungibility::Fungible(10_000),
-					id: XcmAssetId(Location::here()),
-				}
-				.into(),
-				&dummy_xcm_context
-			),
+			trader
+				.buy_weight(
+					weight_to_buy,
+					holding(Asset {
+						fun: Fungibility::Fungible(10_000),
+						id: XcmAssetId(Location::here()),
+					}),
+					&dummy_xcm_context
+				)
+				.map_err(|(_, e)| e),
 			Err(XcmError::NotWithdrawable)
 		);
 
@@ -454,28 +479,26 @@ fn test_trader_native_asset() {
 		assert_eq!(
 			trader.buy_weight(
 				weight_to_buy,
-				Asset {
+				holding(Asset {
 					fun: Fungibility::Fungible(11_000),
 					id: XcmAssetId(Location::here()),
-				}
-				.into(),
+				}),
 				&dummy_xcm_context
 			),
-			Ok(Asset {
+			Ok(holding(Asset {
 				fun: Fungibility::Fungible(1_000),
 				id: XcmAssetId(Location::here()),
-			}
-			.into())
+			}))
 		);
 
 		// Should be able to refund unused weights
 		let weight_to_refund = Weight::from_parts(2_000, 0);
 		assert_eq!(
 			trader.refund_weight(weight_to_refund, &dummy_xcm_context),
-			Some(Asset {
+			Some(holding(Asset {
 				fun: Fungibility::Fungible(2_000),
 				id: XcmAssetId(Location::here()),
-			})
+			}))
 		);
 
 		// Fees asset should be deposited again into XcmFeesAccount (2 times cost minus one refund)
@@ -509,28 +532,26 @@ fn test_trader_parent_asset() {
 		assert_eq!(
 			trader.buy_weight(
 				weight_to_buy,
-				Asset {
+				holding(Asset {
 					fun: Fungibility::Fungible(22_000_000_000_000),
 					id: XcmAssetId(Location::parent()),
-				}
-				.into(),
+				}),
 				&dummy_xcm_context
 			),
-			Ok(Asset {
+			Ok(holding(Asset {
 				fun: Fungibility::Fungible(2_000_000_000_000),
 				id: XcmAssetId(Location::parent()),
-			}
-			.into())
+			}))
 		);
 
 		// Should be able to refund unused weights
 		let weight_to_refund = Weight::from_parts(2_000, 0);
 		assert_eq!(
 			trader.refund_weight(weight_to_refund, &dummy_xcm_context),
-			Some(Asset {
+			Some(holding(Asset {
 				fun: Fungibility::Fungible(4_000_000_000_000),
 				id: XcmAssetId(Location::parent()),
-			})
+			}))
 		);
 
 		// Fees asset should be deposited into XcmFeesAccount
@@ -542,21 +563,22 @@ fn test_trader_parent_asset() {
 
 		// Should not be able to buy weight if the asset is not a first position
 		assert_eq!(
-			Trader::<Test>::new().buy_weight(
-				weight_to_buy,
-				vec![
-					Asset {
-						fun: Fungibility::Fungible(10),
-						id: XcmAssetId(Location::here()),
-					},
-					Asset {
-						fun: Fungibility::Fungible(30_000),
-						id: XcmAssetId(Location::parent()),
-					}
-				]
-				.into(),
-				&dummy_xcm_context
-			),
+			Trader::<Test>::new()
+				.buy_weight(
+					weight_to_buy,
+					holding_vec(vec![
+						Asset {
+							fun: Fungibility::Fungible(10),
+							id: XcmAssetId(Location::here()),
+						},
+						Asset {
+							fun: Fungibility::Fungible(30_000),
+							id: XcmAssetId(Location::parent()),
+						}
+					]),
+					&dummy_xcm_context
+				)
+				.map_err(|(_, e)| e),
 			Err(XcmError::TooExpensive)
 		);
 	})

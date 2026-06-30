@@ -75,8 +75,13 @@ describeSuite({
 
     it({
       id: "T01",
-      title: "Assert balances after XCM message",
+      title: "Native deposit is recovered when a multi-asset erc20 leg fails",
       test: async function () {
+        // Multi-asset XCM (native + erc20) whose erc20 leg is doomed to fail: the paraId
+        // sovereign holds 0 of the erc20, so its deferred EVM transfer reverts at DepositAsset.
+        // Asserts the partial failure is contained transactionally -- atomic rollback, native
+        // recovered via the SetErrorHandler, value conserved. Happy-path mirror (funded
+        // sovereign, erc20 succeeds): test-xcm-v5/test-xcm-erc20-transfer.ts (T02).
         const xcmMessage = new XcmFragment({} as any)
           .push_any({
             WithdrawAsset: [
@@ -113,7 +118,8 @@ describeSuite({
                   },
                 },
                 fun: {
-                  // The sovereign account balance should be zero, this will fail
+                  // erc20 withdraw is notional: records the sovereign as drain origin, no balance
+                  // check. It does NOT fail here -- the failure is the EVM transfer in DepositAsset.
                   Fungible: 1,
                 },
               },
@@ -189,7 +195,8 @@ describeSuite({
                         },
                       },
                     },
-                    // The sovereign account balance should be zero, this will fail
+                    // Deferred EVM transfer drains from the sovereign (0 balance) and reverts:
+                    // the leg that fails and rolls back the whole DepositAsset instruction.
                     fun: { Fungible: 1 },
                   },
                 ],
@@ -217,37 +224,41 @@ describeSuite({
 
         const endBlockNumber = (await context.polkadotJs().rpc.chain.getHeader()).number.toNumber();
 
-        // Scan every block sealed during injection for the resulting mints
-        // instead of assuming they all landed in the latest block.
-        const mints: any[] = [];
+        // stable2603 credit model (polkadot-sdk #10384) moves native value via Withdraw/Deposit
+        // imbalances instead of minting, so the execution fee surfaces as a treasury
+        // `balances.Deposit`, not `balances.Minted`. The multi-asset DepositAsset fails atomically
+        // (erc20 revert rolls back the native leg via FrameTransactionalProcessor); Baltathar is
+        // funded by the SetErrorHandler's native-only deposit afterwards.
+        //
+        // Scan every block sealed during injection for the deposits instead of assuming they all
+        // landed in the latest block (the message can be processed in any of the sealed blocks).
+        const deposits: [string, any][] = [];
         for (let n = startBlockNumber + 1; n <= endBlockNumber; n++) {
           const blockHash = await context.polkadotJs().rpc.chain.getBlockHash(n);
           const apiAt = await context.polkadotJs().at(blockHash);
           const blockEvents = await apiAt.query.system.events();
           for (const evt of blockEvents) {
-            if (context.polkadotJs().events.balances.Minted.is(evt.event)) {
-              mints.push(evt.event.toJSON().data);
+            if (context.polkadotJs().events.balances.Deposit.is(evt.event)) {
+              deposits.push(evt.event.toJSON().data as [string, any]);
             }
           }
         }
 
-        // Assert the expected shape before indexing to avoid a cryptic TypeError.
-        expect(mints.length).toBe(2);
+        const feeDeposit = deposits.find(
+          ([who]) => who.toLowerCase() !== BALTATHAR_ADDRESS.toLowerCase()
+        );
+        expect(feeDeposit, "execution fee should be deposited to the treasury").toBeDefined();
+        const executionCost = BigInt(feeDeposit![1]);
+        expect(executionCost > 0n).toBe(true);
+        expect(executionCost <= MAX_EXECUTION_COST).toBe(true);
 
-        const totalMinted = mints.reduce((prev, cur: any) => prev + BigInt(cur[1]), 0n);
-        const executionCost = BigInt((mints[1] as any)[1]);
-
-        expect(totalMinted).toBe(DEPOSIT);
-
+        // Baltathar received the full deposit minus the execution fee.
         const finalBaltatharBalance = await getFreeBalance(BALTATHAR_ADDRESS, context);
-        console.log("final_baltathar_balance:", finalBaltatharBalance);
         expect(finalBaltatharBalance).toBe(DEPOSIT - executionCost);
 
+        // The full DEPOSIT was withdrawn from the sovereign account.
         const finalParaSovereignBalance = await getFreeBalance(paraSovereign as any, context);
         const paraSovereignBalanceDiff = initialParaSovereignBalance - finalParaSovereignBalance;
-        console.log("initial_paraSovereign_balance:", initialParaSovereignBalance);
-        console.log("final_paraSovereign_balance:", finalParaSovereignBalance);
-        console.log("diff:", paraSovereignBalanceDiff);
         expect(paraSovereignBalanceDiff).toBe(DEPOSIT);
       },
     });

@@ -167,6 +167,7 @@ fn ethereum_runtime_rpc_api_call() {
 				false,                 // estimate
 				None,                  // access_list
 				None,                  // authorization_list
+				None,                  // state_override
 			);
 			assert!(execution_result.is_ok());
 		});
