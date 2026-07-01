@@ -93,7 +93,7 @@ jobs:
           echo blacksmith_allowed: ${{ steps.check-git-ref.outputs.blacksmith_allowed }}
       - name: Get all changed file(s), excluding the docs
         id: changed-files
-        uses: tj-actions/changed-files@24d32ffd492484c1d75e0c0b894501ddb9d30d62
+        uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96
         with:
           files_ignore: |
             **/**.md
@@ -102,7 +102,7 @@ jobs:
             **.txt
       - name: Get Rust-relevant changed file(s)
         id: rust-changed
-        uses: tj-actions/changed-files@24d32ffd492484c1d75e0c0b894501ddb9d30d62
+        uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96
         with:
           files_ignore: |
             **/**.md
@@ -121,7 +121,7 @@ jobs:
             typescript-api/**
       - name: Get benchmark-relevant changed file(s)
         id: benchmarks-changed
-        uses: tj-actions/changed-files@24d32ffd492484c1d75e0c0b894501ddb9d30d62
+        uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96
         with:
           files: |
             Cargo.lock
@@ -131,7 +131,7 @@ jobs:
             **/weights/**
       - name: Get test and TypeScript API changed file(s)
         id: test-typescript-changed
-        uses: tj-actions/changed-files@24d32ffd492484c1d75e0c0b894501ddb9d30d62
+        uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96
         with:
           files: |
             package.json
