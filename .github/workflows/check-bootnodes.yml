@@ -39,7 +39,7 @@ jobs:
             type: relay
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Get latest moonbeam release
         if: matrix.network.type == 'parachain'
