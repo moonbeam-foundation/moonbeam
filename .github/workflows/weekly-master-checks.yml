@@ -41,7 +41,7 @@ jobs:
         id: rust-toolchain-cache-key
         uses: ./.github/workflow-templates/rust-toolchain-cache-key
       - name: Mount Blacksmith sccache disk
-        uses: useblacksmith/stickydisk@13af8883542ca949a717e70fef89d15edbb29d88
+        uses: useblacksmith/stickydisk@4c034ba57b706cf0e3b4b0ce098c2a3b1071580c
         with:
           key: ${{ github.repository }}-sccache-bench-${{ matrix.runtime }}-${{ runner.os }}-${{ steps.rust-toolchain-cache-key.outputs.cache-key }}
           path: .sccache
