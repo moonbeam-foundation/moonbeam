@@ -1,5 +1,6 @@
 import type { DevModeContext } from "moonwall";
 import { ALITH_ADDRESS, GLMR, alith, customDevRpcRequest, expect } from "moonwall";
+import type { ApiPromise } from "@polkadot/api";
 import type { DispatchError, XcmpMessageFormat } from "@polkadot/types/interfaces";
 import type {
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
@@ -143,34 +144,47 @@ export async function injectHrmpMessage(
 }
 
 /**
- * Seal blocks until the message queue reports the injected XCM message as
- * processed (successfully or not), bounded by `maxBlocks`.
+ * Returns true once the message queue has no remaining work to service.
  *
- * An injected HRMP message is processed by the message queue's `on_idle` hook of
- * the enqueueing block ONLY IF enough block weight remains; otherwise processing
- * is deferred to a later block (see
- * https://github.com/paritytech/polkadot-sdk/pull/3844). Sealing a single block
- * and immediately inspecting the effects is therefore racy.
+ * `messageQueue.serviceHead` is `None` exactly when every enqueued page has been
+ * fully processed, so it is the authoritative "queue drained" signal.
+ */
+async function isMessageQueueDrained(api: ApiPromise): Promise<boolean> {
+  return (await api.query.messageQueue.serviceHead()).isNone;
+}
+
+/**
+ * Seal blocks until the injected XCM message has been processed (successfully or
+ * not) AND the message queue is fully drained, bounded by `maxBlocks`.
  *
- * The loop exits as soon as the message is processed, so the common case (a
- * single block) is unchanged and the returned block is always the one that
- * actually processed the message.
+ * An injected HRMP/DMP message is processed by the message queue's `on_idle` hook
+ * of the enqueueing block ONLY IF enough block weight remains; otherwise it is
+ * deferred to a later block (see
+ * https://github.com/paritytech/polkadot-sdk/pull/3844). Inspecting the effects
+ * after a single block is therefore racy.
+ *
+ * Waiting for the queue to drain (rather than for the first `Processed` event) is
+ * what makes this deterministic under load: a deferred message is given as many
+ * blocks as needed, and an unrelated/residual message emitting `Processed` first
+ * cannot make us return while ours is still queued.
  */
 export async function sealUntilXcmProcessed(context: DevModeContext, maxBlocks = 10) {
   const api = context.polkadotJs();
   let result: Awaited<ReturnType<typeof context.createBlock>> | undefined;
-  let processed = false;
+  let processedSeen = false;
 
   for (let i = 0; i < maxBlocks; i++) {
     result = await context.createBlock();
 
-    processed = (await api.query.system.events()).some(
-      ({ event }) =>
-        api.events.messageQueue.Processed.is(event) ||
-        api.events.messageQueue.ProcessingFailed.is(event)
-    );
+    if (!processedSeen) {
+      processedSeen = (await api.query.system.events()).some(
+        ({ event }) =>
+          api.events.messageQueue.Processed.is(event) ||
+          api.events.messageQueue.ProcessingFailed.is(event)
+      );
+    }
 
-    if (processed) {
+    if (processedSeen && (await isMessageQueueDrained(api))) {
       return result;
     }
   }

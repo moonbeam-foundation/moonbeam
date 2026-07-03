@@ -671,7 +671,8 @@
             "name": "mb",
             "type": "parachain",
             "allowUnresolvedImports": true,
-            "configPath": "./configs/moonbeam.yml"
+            "configPath": "./configs/moonbeam.yml",
+            "newBlockTimeout": 300000
           }
         ]
       },
@@ -694,7 +695,8 @@
             "name": "mb",
             "type": "parachain",
             "allowUnresolvedImports": true,
-            "configPath": "./configs/moonriver.yml"
+            "configPath": "./configs/moonriver.yml",
+            "newBlockTimeout": 300000
           }
         ]
       },
@@ -717,7 +719,8 @@
             "name": "mb",
             "type": "parachain",
             "allowUnresolvedImports": true,
-            "configPath": "./configs/alphanet.yml"
+            "configPath": "./configs/alphanet.yml",
+            "newBlockTimeout": 300000
           }
         ]
       },
