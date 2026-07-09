@@ -16,7 +16,7 @@
 
 use sp_std::vec::Vec;
 use xcm::latest::prelude::*;
-use xcm_executor::traits::DropAssets;
+use xcm_executor::traits::{ClaimAssets, DropAssets};
 
 /// Morph a given `DropAssets` implementation into one which filter out erc20 assets.
 pub struct AssetTrapWrapper<AssetTrap, T>(core::marker::PhantomData<(AssetTrap, T)>);
@@ -44,5 +44,19 @@ impl<AssetTrap: DropAssets, T: crate::Config> DropAssets for AssetTrapWrapper<As
 			));
 		}
 		AssetTrap::drop_assets(origin, assets, context)
+	}
+}
+
+// stable2603 merged asset claiming into the trap config (`AssetClaims` was removed from
+// `xcm_executor::Config`). erc20 assets are filtered out on drop (they are never actually
+// trapped), so claiming simply delegates to the inner claimer for the real (non-erc20) assets.
+impl<AssetTrap: ClaimAssets, T: crate::Config> ClaimAssets for AssetTrapWrapper<AssetTrap, T> {
+	fn claim_assets(
+		origin: &Location,
+		ticket: &Location,
+		what: &Assets,
+		context: &XcmContext,
+	) -> Option<xcm_executor::AssetsInHolding> {
+		AssetTrap::claim_assets(origin, ticket, what, context)
 	}
 }

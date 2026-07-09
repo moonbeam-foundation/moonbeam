@@ -151,7 +151,7 @@ where
 		InnerXcmExecutor::is_waived(origin, r)
 	}
 
-	fn handle_fee(fee: Assets, context: Option<&XcmContext>, r: FeeReason) {
+	fn handle_fee(fee: xcm_executor::AssetsInHolding, context: Option<&XcmContext>, r: FeeReason) {
 		InnerXcmExecutor::handle_fee(fee, context, r)
 	}
 }

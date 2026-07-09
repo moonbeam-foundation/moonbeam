@@ -37,6 +37,7 @@ import type {
   BpXcmBridgeHubBridge,
   BpXcmBridgeHubBridgeLocationsError,
   BpXcmBridgeHubBridgeState,
+  CumulusPalletParachainSystemBlockWeightBlockWeightMode,
   CumulusPalletParachainSystemCall,
   CumulusPalletParachainSystemError,
   CumulusPalletParachainSystemEvent,
@@ -44,6 +45,7 @@ import type {
   CumulusPalletParachainSystemParachainInherentBasicParachainInherentData,
   CumulusPalletParachainSystemParachainInherentInboundMessageId,
   CumulusPalletParachainSystemParachainInherentInboundMessagesData,
+  CumulusPalletParachainSystemPoVMessages,
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
   CumulusPalletParachainSystemRelayStateSnapshotRelayDispatchQueueRemainingCapacity,
   CumulusPalletParachainSystemUnincludedSegmentAncestor,
@@ -56,6 +58,7 @@ import type {
   CumulusPalletXcmpQueueError,
   CumulusPalletXcmpQueueEvent,
   CumulusPalletXcmpQueueOutboundChannelDetails,
+  CumulusPalletXcmpQueueOutboundChannelFlags,
   CumulusPalletXcmpQueueOutboundState,
   CumulusPalletXcmpQueueQueueConfigData,
   CumulusPrimitivesCoreAggregateMessageOrigin,
@@ -507,6 +510,7 @@ declare module "@polkadot/types/types/registry" {
     BpXcmBridgeHubBridge: BpXcmBridgeHubBridge;
     BpXcmBridgeHubBridgeLocationsError: BpXcmBridgeHubBridgeLocationsError;
     BpXcmBridgeHubBridgeState: BpXcmBridgeHubBridgeState;
+    CumulusPalletParachainSystemBlockWeightBlockWeightMode: CumulusPalletParachainSystemBlockWeightBlockWeightMode;
     CumulusPalletParachainSystemCall: CumulusPalletParachainSystemCall;
     CumulusPalletParachainSystemError: CumulusPalletParachainSystemError;
     CumulusPalletParachainSystemEvent: CumulusPalletParachainSystemEvent;
@@ -514,6 +518,7 @@ declare module "@polkadot/types/types/registry" {
     CumulusPalletParachainSystemParachainInherentBasicParachainInherentData: CumulusPalletParachainSystemParachainInherentBasicParachainInherentData;
     CumulusPalletParachainSystemParachainInherentInboundMessageId: CumulusPalletParachainSystemParachainInherentInboundMessageId;
     CumulusPalletParachainSystemParachainInherentInboundMessagesData: CumulusPalletParachainSystemParachainInherentInboundMessagesData;
+    CumulusPalletParachainSystemPoVMessages: CumulusPalletParachainSystemPoVMessages;
     CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot: CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot;
     CumulusPalletParachainSystemRelayStateSnapshotRelayDispatchQueueRemainingCapacity: CumulusPalletParachainSystemRelayStateSnapshotRelayDispatchQueueRemainingCapacity;
     CumulusPalletParachainSystemUnincludedSegmentAncestor: CumulusPalletParachainSystemUnincludedSegmentAncestor;
@@ -526,6 +531,7 @@ declare module "@polkadot/types/types/registry" {
     CumulusPalletXcmpQueueError: CumulusPalletXcmpQueueError;
     CumulusPalletXcmpQueueEvent: CumulusPalletXcmpQueueEvent;
     CumulusPalletXcmpQueueOutboundChannelDetails: CumulusPalletXcmpQueueOutboundChannelDetails;
+    CumulusPalletXcmpQueueOutboundChannelFlags: CumulusPalletXcmpQueueOutboundChannelFlags;
     CumulusPalletXcmpQueueOutboundState: CumulusPalletXcmpQueueOutboundState;
     CumulusPalletXcmpQueueQueueConfigData: CumulusPalletXcmpQueueQueueConfigData;
     CumulusPrimitivesCoreAggregateMessageOrigin: CumulusPrimitivesCoreAggregateMessageOrigin;

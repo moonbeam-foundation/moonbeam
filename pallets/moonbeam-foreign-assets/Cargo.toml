@@ -28,6 +28,7 @@ pallet-ethereum = { workspace = true, features = ["forbid-evm-reentrancy"] }
 # Polkadot
 xcm = { workspace = true }
 xcm-executor = { workspace = true }
+xcm-primitives = { workspace = true }
 
 # Benchmarks
 frame-benchmarking = { workspace = true, optional = true }
@@ -58,6 +59,7 @@ std = [
 	"sp-std/std",
 	"xcm/std",
 	"xcm-executor/std",
+	"xcm-primitives/std",
 	"fp-evm/std",
 	"pallet-ethereum/std",
 	"pallet-balances/std",
@@ -79,6 +81,7 @@ runtime-benchmarks = [
 	"pallet-timestamp/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 	"xcm-executor/runtime-benchmarks",
+	"xcm-primitives/runtime-benchmarks",
 	"xcm/runtime-benchmarks"
 ]
 try-runtime = [

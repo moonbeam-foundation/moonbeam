@@ -609,6 +609,7 @@ impl<Block: BlockT + DeserializeOwned> backend::BlockImportOperation<Block>
 		_indexed_body: Option<Vec<Vec<u8>>>,
 		justifications: Option<Justifications>,
 		state: NewBlockState,
+		_register_as_leaf: bool,
 	) -> sp_blockchain::Result<()> {
 		assert!(
 			self.pending_block.is_none(),

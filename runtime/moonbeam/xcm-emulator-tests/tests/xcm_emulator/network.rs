@@ -72,7 +72,7 @@ pub const ONE_DOT: u128 = 10_000_000_000; // 10 decimals
 // Relay chain declaration (Westend runtime)
 // ---------------------------------------------------------------------------
 decl_test_relay_chains! {
-	#[api_version(15)]
+	#[api_version(16)]
 	pub struct WestendRelay {
 		genesis = relay::relay_genesis(),
 		on_init = (),

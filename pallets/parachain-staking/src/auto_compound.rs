@@ -27,18 +27,18 @@ use frame_support::traits::Get;
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 use sp_runtime::traits::Saturating;
-use sp_runtime::{BoundedVec, Percent, RuntimeDebug};
+use sp_runtime::{BoundedVec, Percent};
 use sp_std::prelude::*;
 
 /// Represents the auto-compounding amount for a delegation.
-#[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo, PartialOrd, Ord)]
+#[derive(Clone, Eq, PartialEq, Encode, Decode, Debug, TypeInfo, PartialOrd, Ord)]
 pub struct AutoCompoundConfig<AccountId> {
 	pub delegator: AccountId,
 	pub value: Percent,
 }
 
 /// Represents the auto-compounding [Delegations] for `T: Config`
-#[derive(Clone, Eq, PartialEq, RuntimeDebug)]
+#[derive(Clone, Eq, PartialEq, Debug)]
 pub struct AutoCompoundDelegations<T: Config>(
 	BoundedVec<
 		AutoCompoundConfig<T::AccountId>,

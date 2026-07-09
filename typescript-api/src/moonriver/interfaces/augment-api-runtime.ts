@@ -29,7 +29,6 @@ import type {
   Hash,
   Header,
   Index,
-  KeyTypeId,
   OriginCaller,
   RuntimeCall,
   Weight
@@ -329,29 +328,6 @@ declare module "@polkadot/api-base/types/calls" {
        * Returns number and hash of the best finalized header known to the bridge module.
        **/
       bestFinalized: AugmentedCall<ApiType, () => Observable<ITuple<[BlockNumber, Hash]>>>;
-      /**
-       * Generic call
-       **/
-      [key: string]: DecoratedCallBase<ApiType>;
-    };
-    /** 0xab3c0572291feb8b/1 */
-    sessionKeys: {
-      /**
-       * Decode the given public session keys.
-       **/
-      decodeSessionKeys: AugmentedCall<
-        ApiType,
-        (
-          encoded: Bytes | string | Uint8Array
-        ) => Observable<Option<Vec<ITuple<[Bytes, KeyTypeId]>>>>
-      >;
-      /**
-       * Generate a set of session keys with optionally using the given seed.
-       **/
-      generateSessionKeys: AugmentedCall<
-        ApiType,
-        (seed: Option<Bytes> | null | Uint8Array | Bytes | string) => Observable<Bytes>
-      >;
       /**
        * Generic call
        **/

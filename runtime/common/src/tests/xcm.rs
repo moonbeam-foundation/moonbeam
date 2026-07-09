@@ -40,7 +40,7 @@ macro_rules! generate_common_xcm_tests {
 			};
 			use $runtime::{
 				xcm_config::SelfReserve, Balances, PolkadotXcm, Runtime, RuntimeEvent,
-				RuntimeOrigin, System, XcmTransactor, XcmWeightTrader,
+				RuntimeOrigin, System, XcmTransactor, XcmWeightTrader, XcmpQueue,
 			};
 
 			pub(crate) fn last_events(n: usize) -> Vec<RuntimeEvent> {
@@ -106,7 +106,38 @@ macro_rules! generate_common_xcm_tests {
 			}
 
 			#[test]
-			fn claim_assets_works() {
+			fn xcmp_queue_v5_to_v6_migration_is_wired_and_runs() {
+					// stable2603 bumps cumulus-pallet-xcmp-queue STORAGE_VERSION 5 -> 6 and ships
+					// `MigrateV5ToV6` as a standalone `VersionedMigration` the pallet does NOT
+					// auto-run. Guard that moonbeam actually wires it into the runtime's
+					// single-block migration set (see `UnreleasedSingleBlockMigrations`).
+					use frame_support::traits::{
+						GetStorageVersion, OnRuntimeUpgrade, StorageVersion,
+					};
+
+					ExtBuilder::default().build().execute_with(|| {
+						// Simulate the on-chain pre-upgrade state: XcmpQueue at v5 (its value
+						// across stable2407..=stable2512; the new runtime ships v6).
+						StorageVersion::new(5).put::<XcmpQueue>();
+						assert_eq!(
+							XcmpQueue::on_chain_storage_version(),
+							StorageVersion::new(5)
+						);
+
+						// Run exactly what the runtime runs on upgrade.
+						let _ = <$crate::migrations::SingleBlockMigrations<Runtime> as OnRuntimeUpgrade>::on_runtime_upgrade();
+
+						// MigrateV5ToV6 must have run, bumping the on-chain version to 6.
+						assert_eq!(
+							XcmpQueue::on_chain_storage_version(),
+							StorageVersion::new(6),
+							"XcmpQueue must be migrated v5 -> v6 by the wired runtime migrations",
+						);
+					});
+				}
+
+				#[test]
+				fn claim_assets_works() {
 				const INITIAL_BALANCE: Balance = 10_000_000_000_000_000_000;
 				const SEND_AMOUNT: Balance = 1_000_000_000_000_000_000;
 

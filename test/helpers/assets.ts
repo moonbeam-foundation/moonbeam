@@ -248,6 +248,23 @@ export async function foreignAssetBalance(
   })) as bigint;
 }
 
+export async function waitForForeignAssetBalance(
+  context: DevModeContext,
+  assetId: bigint,
+  account: `0x${string}`,
+  expectedBalance: bigint,
+  maxBlocks = 10
+): Promise<bigint> {
+  let balance = await foreignAssetBalance(context, assetId, account);
+
+  for (let attempt = 0; attempt < maxBlocks && balance !== expectedBalance; attempt++) {
+    await context.createBlock();
+    balance = await foreignAssetBalance(context, assetId, account);
+  }
+
+  return balance;
+}
+
 export async function mockAssetBalance(
   context: DevModeContext,
   assetBalance: bigint,

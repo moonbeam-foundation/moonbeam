@@ -55,6 +55,7 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 				_validate: bool,
 				_weight_limit: Option<Weight>,
 				_transaction_len: Option<u64>,
+				_state_override: fp_evm::StateOverride,
 				_config: &fp_evm::Config,
 			) -> Result<CallInfo, RunnerError<Self::Error>> {
 				// The `with_precompile_handle` function will execute the closure (and return the

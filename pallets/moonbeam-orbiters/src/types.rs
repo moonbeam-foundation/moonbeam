@@ -15,13 +15,10 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>
 
 use scale_info::TypeInfo;
-use sp_runtime::{
-	codec::{Decode, Encode},
-	RuntimeDebug,
-};
+use sp_runtime::codec::{Decode, Encode};
 use sp_std::vec::Vec;
 
-#[derive(Decode, Encode, RuntimeDebug, TypeInfo)]
+#[derive(Decode, Encode, Debug, TypeInfo)]
 pub struct CurrentOrbiter<AccountId> {
 	pub account_id: AccountId,
 	pub removed: bool,
@@ -41,13 +38,13 @@ pub(super) enum RemoveOrbiterResult {
 	OrbiterRemoveScheduled,
 }
 
-#[derive(Decode, Encode, RuntimeDebug, TypeInfo)]
+#[derive(Decode, Encode, Debug, TypeInfo)]
 pub(super) struct RotateOrbiterResult<AccountId> {
 	pub maybe_old_orbiter: Option<CurrentOrbiter<AccountId>>,
 	pub maybe_next_orbiter: Option<AccountId>,
 }
 
-#[derive(Decode, Encode, RuntimeDebug, TypeInfo)]
+#[derive(Decode, Encode, Debug, TypeInfo)]
 pub struct CollatorPoolInfo<AccountId> {
 	orbiters: Vec<AccountId>,
 	maybe_current_orbiter: Option<CurrentOrbiter<AccountId>>,
@@ -138,7 +135,7 @@ impl<AccountId: Clone + PartialEq> CollatorPoolInfo<AccountId> {
 	}
 }
 
-#[derive(Decode, Encode, RuntimeDebug, TypeInfo)]
+#[derive(Decode, Encode, Debug, TypeInfo)]
 pub struct RoundAuthors<AccountId> {
 	data: Vec<(AccountId, u32)>,
 	blocks_count: u32,

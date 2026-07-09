@@ -12,6 +12,7 @@ import {
   fetchCompiledContract,
 } from "moonwall";
 import { encodeFunctionData } from "viem";
+import { sealUntilTxPoolEmpty } from "../../../../helpers";
 
 describeSuite({
   id: "D021205",
@@ -87,7 +88,17 @@ describeSuite({
             .getTransactionCount({ address: ALITH_ADDRESS, blockTag: "pending" }),
           "should increase transaction count in pending block"
         ).toBe(nonce + 1);
-        await context.createBlock();
+
+        // The transaction submitted via `eth_sendRawTransaction` can still be in
+        // the pool (not yet "ready") when a single block is sealed, which would
+        // leak it into the next test's block and corrupt its nonce expectations.
+        // Seal until the pool is drained so the pending transaction is
+        // guaranteed to be included before the next test runs.
+        await sealUntilTxPoolEmpty(context);
+        expect(
+          await context.viem().getTransactionCount({ address: ALITH_ADDRESS }),
+          "pending transaction should be included before continuing"
+        ).toBe(nonce + 1);
       },
     });
 

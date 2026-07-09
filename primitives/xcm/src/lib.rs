@@ -33,6 +33,9 @@ pub use filter_asset_max_fee::*;
 mod origin_conversion;
 pub use origin_conversion::*;
 
+mod notional;
+pub use notional::*;
+
 mod transactor_traits;
 pub use transactor_traits::*;
 

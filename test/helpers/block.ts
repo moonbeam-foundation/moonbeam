@@ -1,6 +1,12 @@
 import "@moonbeam-network/api-augment/moonbase";
 import type { DevModeContext, BlockRangeOption } from "moonwall";
-import { EXTRINSIC_BASE_WEIGHT, WEIGHT_PER_GAS, expect, mapExtrinsics } from "moonwall";
+import {
+  ALITH_ADDRESS,
+  EXTRINSIC_BASE_WEIGHT,
+  WEIGHT_PER_GAS,
+  expect,
+  mapExtrinsics,
+} from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 import type { TxWithEvent } from "@polkadot/api-derive/types";
 import type { Option, u128, u32 } from "@polkadot/types";
@@ -344,6 +350,40 @@ export async function jumpBlocks(context: DevModeContext, blockCount: number) {
     (await context.createBlock()).block.hash.toString();
     blocksToCreate--;
   }
+}
+
+/**
+ * Seal blocks until `address`'s on-chain (latest) nonce has caught up with its
+ * pending nonce — i.e. the transaction pool holds no more *ready* transactions
+ * for that account. Returns the number of blocks sealed; throws if the pool is
+ * not drained within `maxBlocks`.
+ *
+ * Useful to stop transactions submitted by one test case from leaking into a
+ * later block and corrupting nonce or gas-usage expectations.
+ */
+export async function sealUntilTxPoolEmpty(
+  context: DevModeContext,
+  address: `0x${string}` = ALITH_ADDRESS,
+  maxBlocks = 20
+): Promise<number> {
+  const pub = context.viem("public");
+  const nonces = () =>
+    Promise.all([
+      pub.getTransactionCount({ address, blockTag: "latest" }),
+      pub.getTransactionCount({ address, blockTag: "pending" }),
+    ]);
+
+  let sealed = 0;
+  let [latest, pending] = await nonces();
+  while (latest !== pending) {
+    expect(sealed, `tx pool for ${address} not drained after ${maxBlocks} blocks`).toBeLessThan(
+      maxBlocks
+    );
+    await context.createBlock();
+    sealed++;
+    [latest, pending] = await nonces();
+  }
+  return sealed;
 }
 
 export async function jumpRounds(context: DevModeContext, count: number): Promise<string | null> {

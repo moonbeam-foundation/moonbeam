@@ -25,6 +25,7 @@ pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
 #Polkadot / XCM
 xcm = { workspace = true }
 xcm-executor = { workspace = true }
+xcm-primitives = { workspace = true }
 
 [dev-dependencies]
 pallet-balances = { workspace = true, features = ["insecure_zero_ed", "std"] }
@@ -46,6 +47,7 @@ std = [
 	"sp-runtime/std",
 	"sp-std/std",
 	"xcm-executor/std",
+	"xcm-primitives/std",
 	"xcm/std",
 	"pallet-balances/std",
 	"pallet-timestamp/std",
