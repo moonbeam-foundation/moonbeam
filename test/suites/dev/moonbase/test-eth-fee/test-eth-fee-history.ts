@@ -57,6 +57,31 @@ describeSuite({
       }
     }
 
+    // The frontier fee-history cache is populated by a background maintenance
+    // task on block-import notifications, so it can briefly lag the freshly
+    // sealed blocks and return a short `baseFeePerGas` range. Poll the RPC until
+    // the cache has caught up with the full requested range before asserting.
+    async function requestFeeHistory(
+      blockCount: string | number,
+      reward_percentiles: number[],
+      expectedBaseFeeLength: number
+    ): Promise<FeeHistory> {
+      let result = (await customDevRpcRequest("eth_feeHistory", [
+        blockCount,
+        "latest",
+        reward_percentiles,
+      ])) as FeeHistory;
+      for (let i = 0; i < 50 && result.baseFeePerGas.length < expectedBaseFeeLength; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        result = (await customDevRpcRequest("eth_feeHistory", [
+          blockCount,
+          "latest",
+          reward_percentiles,
+        ])) as FeeHistory;
+      }
+      return result;
+    }
+
     function getPercentile(percentile: number, array: number[]) {
       array.sort(function (a, b) {
         return a - b;
@@ -103,11 +128,7 @@ describeSuite({
 
         await createBlocks(block_count, priority_fees, parseGwei("10").toString());
 
-        const result = (await customDevRpcRequest("eth_feeHistory", [
-          "0x2",
-          "latest",
-          reward_percentiles,
-        ])) as FeeHistory;
+        const result = await requestFeeHistory("0x2", reward_percentiles, block_count + 1);
         matchExpectations(result, block_count, reward_percentiles);
       },
     });
@@ -124,11 +145,7 @@ describeSuite({
 
         await createBlocks(block_count, priority_fees, max_fee_per_gas);
 
-        const feeResults = (await customDevRpcRequest("eth_feeHistory", [
-          "0xA",
-          "latest",
-          reward_percentiles,
-        ])) as FeeHistory;
+        const feeResults = await requestFeeHistory("0xA", reward_percentiles, block_count + 1);
         const localRewards = reward_percentiles
           .map((percentile) => getPercentile(percentile, priority_fees))
           .map((reward) => numberToHex(reward));
@@ -164,11 +181,7 @@ describeSuite({
 
         await createBlocks(block_count, priority_fees, parseGwei("10").toString());
 
-        const result = (await customDevRpcRequest("eth_feeHistory", [
-          block_count,
-          "latest",
-          reward_percentiles,
-        ])) as FeeHistory;
+        const result = await requestFeeHistory(block_count, reward_percentiles, block_count + 1);
         matchExpectations(result, block_count, reward_percentiles);
       },
     });
