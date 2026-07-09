@@ -29,9 +29,11 @@ describeSuite({
     let balancesPalletIndex: number;
     let erc20XcmPalletIndex: number;
 
-    const DEPOSIT = 50_000_000_000_000_000n;
+    // Sized so BuyExecution can cover DepositAsset after ERC-20 wildcard weighing
+    // (weigh_erc20_asset_filter charges worst-case EVM transfer weight).
+    const DEPOSIT = 100_000_000_000_000_000n;
     // On moonriver and moonbeam the cost should be 100 times lower (caused by the SUPPLY_FACTOR)
-    const MAX_EXECUTION_COST = 32_000_000_000_000_000n;
+    const MAX_EXECUTION_COST = 64_000_000_000_000_000n;
 
     beforeAll(async () => {
       paraSovereign = sovereignAccountOfSibling(context, paraId);

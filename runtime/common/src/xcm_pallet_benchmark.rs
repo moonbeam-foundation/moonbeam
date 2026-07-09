@@ -9,8 +9,12 @@ use xcm::latest::{Asset, Location};
 /// Per-runtime configuration for `pallet_xcm::benchmarking::Config::teleportable_asset_and_dest`.
 ///
 /// When this returns `None`, the upstream benchmark records `Weight::MAX` for
-/// `teleport_assets` / `limited_teleport_assets`. Moonbase overrides this to enable
-/// re-benchmarking; production weights alias `teleport_assets` to `transfer_assets`.
+/// `teleport_assets` / `limited_teleport_assets`. Runtimes may override this to
+/// return a concrete asset/dest and enable re-benchmarking; Moonbase currently
+/// keeps the default `None` and instead assigns a conservative
+/// `teleport_assets` weight (`transfer_assets` + worst-case ERC-20 transfer).
+/// Production runtimes (Moonbeam / Moonriver) also keep `None` while teleport
+/// remains gated off.
 #[cfg(feature = "runtime-benchmarks")]
 pub trait XcmPalletTeleportBenchmark {
 	fn teleportable_asset_and_dest() -> Option<(Asset, Location)> {

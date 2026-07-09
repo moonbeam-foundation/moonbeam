@@ -59,7 +59,8 @@ describeSuite({
             },
           ],
           weight_limit: {
-            refTime: 10_000_000_000,
+            // DepositAsset wildcards charge worst-case ERC-20 EVM transfer weight.
+            refTime: 40_000_000_000n,
             // The deposit targets a fresh random account each run, so the
             // measured proofSize varies with the new account's trie path. Use a
             // generous static ceiling so BuyExecution is never weight-capped
