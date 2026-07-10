@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { ALITH_ADDRESS, beforeAll, describeSuite, expect } from "moonwall";
-import { ConstantStore } from "../../../../helpers";
+import { ConstantStore, waitFor } from "../../../../helpers";
 
 describeSuite({
   id: "D010101",
@@ -10,6 +10,9 @@ describeSuite({
     let specVersion: number;
     beforeAll(async () => {
       await context.createBlock();
+      // The eth RPC layer can lag slightly behind the sealed block on a freshly
+      // started node, so wait until it reflects block 1 before asserting on it.
+      await waitFor(async () => (await context.viem().getBlockNumber()) >= 1n);
       specVersion = (await context.polkadotJs().runtimeVersion.specVersion).toNumber();
     });
 
