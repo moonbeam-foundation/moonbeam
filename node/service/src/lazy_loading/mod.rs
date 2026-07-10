@@ -66,6 +66,7 @@ mod helpers;
 mod lock;
 mod manual_sealing;
 mod rpc_client;
+mod state_cache;
 mod state_overrides;
 pub mod substrate_backend;
 

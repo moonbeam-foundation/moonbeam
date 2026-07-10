@@ -758,6 +758,7 @@ pub fn run() -> Result<()> {
 						runtime_override: cli.run.lazy_loading_runtime_override,
 						delay_between_requests: cli.run.lazy_loading_delay_between_requests,
 						max_retries_per_request: cli.run.lazy_loading_max_retries_per_request,
+						cache_path: cli.run.lazy_loading_cache_path,
 					};
 
 					let spec_builder = lazy_loading::spec_builder();
