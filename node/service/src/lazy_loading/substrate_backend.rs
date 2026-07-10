@@ -1514,8 +1514,11 @@ where
 
 	// Identifier of the remote endpoint used to scope the pinned fork block. This
 	// prevents reusing a block hash pinned against a different network when the
-	// same cache directory is pointed at another `--lazy-loading-remote-rpc`.
-	let cache_fingerprint = lazy_loading_config.state_rpc.as_str();
+	// same cache directory is pointed at another `--lazy-loading-remote-rpc`. A
+	// hash (rather than the raw URL) is persisted so credentials/API keys carried
+	// in the endpoint URL never land on disk.
+	let cache_fingerprint =
+		lazy_loading::state_cache::endpoint_fingerprint(lazy_loading_config.state_rpc.as_str());
 
 	// Resolve the fork block. Priority:
 	//   1. an explicit `--lazy-loading-block`,
@@ -1529,7 +1532,7 @@ where
 	let pinned_block_hash = if explicit_block_hash.is_none() {
 		cache
 			.as_ref()
-			.and_then(|cache| cache.pinned_fork_block(cache_fingerprint))
+			.and_then(|cache| cache.pinned_fork_block(&cache_fingerprint))
 			.and_then(|bytes| {
 				(bytes.len() == 32).then(|| Into::<Block::Hash>::into(H256::from_slice(&bytes)))
 			})
@@ -1554,7 +1557,7 @@ where
 			target: lazy_loading::LAZY_LOADING_LOG_TARGET,
 			"Pinned fork block {:?} is unavailable on {}; falling back to the latest block",
 			pinned_block_hash,
-			cache_fingerprint
+			lazy_loading::state_cache::redact_url(lazy_loading_config.state_rpc.as_str())
 		);
 		checkpoint_block = rpc.block::<Block, Block::Hash>(None).ok().flatten();
 	}
@@ -1565,7 +1568,7 @@ where
 	// and hit the cache instead of the network.
 	if explicit_block_hash.is_none() {
 		if let Some(cache) = cache.as_ref() {
-			cache.set_pinned_fork_block(cache_fingerprint, checkpoint.header().hash().as_ref());
+			cache.set_pinned_fork_block(&cache_fingerprint, checkpoint.header().hash().as_ref());
 		}
 	}
 

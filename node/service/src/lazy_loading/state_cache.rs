@@ -127,3 +127,36 @@ impl StateCache {
 		self.root.join(PINNED_FORK_BLOCK_FILE)
 	}
 }
+
+/// Derive a stable, non-sensitive fingerprint for a remote endpoint.
+///
+/// The fingerprint is used to scope the pinned fork block to the endpoint that
+/// produced it. It is a blake2 hash of the URL rather than the URL itself, so a
+/// credential- or API-key-carrying endpoint is never written to disk in clear
+/// text.
+pub fn endpoint_fingerprint(url: &str) -> String {
+	hex::encode(blake2_256(url.as_bytes()))
+}
+
+/// Redact a remote endpoint URL for logging, keeping only `scheme://host[:port]`.
+///
+/// Userinfo (`user:pass@`), the path, and the query string are dropped, since
+/// any of them may embed credentials or API keys.
+pub fn redact_url(url: &str) -> String {
+	let (scheme, rest) = match url.split_once("://") {
+		Some(parts) => parts,
+		None => return "<redacted>".to_string(),
+	};
+	// Drop userinfo ("user:pass@") if present.
+	let authority = rest.rsplit_once('@').map(|(_, a)| a).unwrap_or(rest);
+	// The authority (host[:port]) ends at the first '/', '?' or '#'.
+	let host = authority
+		.split(|c| c == '/' || c == '?' || c == '#')
+		.next()
+		.unwrap_or(authority);
+	if host.is_empty() {
+		"<redacted>".to_string()
+	} else {
+		format!("{scheme}://{host}")
+	}
+}

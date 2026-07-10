@@ -415,7 +415,7 @@ where
 		The service will start in {start_delay} seconds...
 
 		"#,
-		rpc = lazy_loading_config.state_rpc,
+		rpc = state_cache::redact_url(lazy_loading_config.state_rpc.as_str()),
 		fork_block = backend.fork_checkpoint.number
 	);
 
