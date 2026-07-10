@@ -1468,7 +1468,11 @@ where
 	let http_client = jsonrpsee::http_client::HttpClientBuilder::default()
 		.max_request_size(u32::MAX)
 		.max_response_size(u32::MAX)
-		.request_timeout(Duration::from_secs(10))
+		// The fork endpoint is a public, potentially rate-limited RPC that can be
+		// slow to answer large state reads under CI load. A short timeout would
+		// abort otherwise-healthy requests; give responses more headroom (the
+		// RPC client retries with exponential back-off on top of this).
+		.request_timeout(Duration::from_secs(30))
 		.build(lazy_loading_config.state_rpc.clone())
 		.map_err(|e| {
 			sp_blockchain::Error::Backend(

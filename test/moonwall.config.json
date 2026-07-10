@@ -407,7 +407,7 @@
             "legacy": false,
             "options": [
               "--lazy-loading-delay-between-requests=10",
-              "--lazy-loading-max-retries-per-request=5",
+              "--lazy-loading-max-retries-per-request=10",
               "--ethapi=txpool",
               "--no-hardware-benchmarks",
               "--no-telemetry",

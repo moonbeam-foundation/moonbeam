@@ -28,8 +28,15 @@ use std::future::Future;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
-use tokio_retry::strategy::FixedInterval;
+use tokio_retry::strategy::{jitter, ExponentialBackoff};
 use tokio_retry::Retry;
+
+/// Upper bound for a single retry back-off delay. Keeps retries from stalling
+/// indefinitely while still giving a rate-limited endpoint time to recover.
+const MAX_RETRY_BACKOFF: Duration = Duration::from_secs(30);
+/// Floor for the exponential back-off base so that even a tiny configured
+/// `delay_between_requests` still produces a meaningful back-off between retries.
+const MIN_RETRY_BACKOFF_BASE_MS: u64 = 100;
 
 #[derive(Debug, Clone)]
 pub struct RPC {
@@ -262,9 +269,21 @@ impl RPC {
 				// Explicit request delay, to avoid getting 429 errors
 				let _ = tokio::time::sleep(delay_between_requests).await;
 
-				// Retry request in case of failure
-				// The maximum number of retries is specified by `self.max_retries_per_request`
-				let retry_strategy = FixedInterval::new(delay_between_requests)
+				// Retry request in case of failure. The public fork endpoint
+				// (e.g. trace.api.moonbeam.network) can intermittently rate-limit
+				// (HTTP 429), time out, or drop connections under CI load. A fixed
+				// tiny interval would burn every retry within a few milliseconds
+				// without giving the endpoint time to recover, and retrying in
+				// lockstep across concurrent requests causes a thundering herd.
+				// Use exponential back-off with jitter instead, capped so a single
+				// request never stalls for too long. The maximum number of retries
+				// is specified by `self.max_retries_per_request`.
+				let backoff_base_ms =
+					(self.delay_between_requests_ms as u64).max(MIN_RETRY_BACKOFF_BASE_MS);
+				let retry_strategy = ExponentialBackoff::from_millis(2)
+					.factor(backoff_base_ms)
+					.max_delay(MAX_RETRY_BACKOFF)
+					.map(jitter)
 					.take(self.max_retries_per_request as usize);
 				let result = Retry::spawn(retry_strategy, f).await;
 
