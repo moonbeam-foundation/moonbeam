@@ -1557,7 +1557,7 @@ where
 			pinned_block_hash,
 			cache_fingerprint
 		);
-		checkpoint_block = rpc.block::<Block, _>(None).ok().flatten();
+		checkpoint_block = rpc.block::<Block, Block::Hash>(None).ok().flatten();
 	}
 	let checkpoint: Block = checkpoint_block.expect("Fetching fork checkpoint").block;
 
