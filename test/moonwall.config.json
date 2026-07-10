@@ -409,6 +409,7 @@
               "--lazy-loading-delay-between-requests=10",
               "--lazy-loading-max-retries-per-request=10",
               "--lazy-loading-cache-path=tmp/lazy-loading-cache-moonbeam",
+              "--lazy-loading-startup-delay=0",
               "--ethapi=txpool",
               "--no-hardware-benchmarks",
               "--no-telemetry",

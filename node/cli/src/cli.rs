@@ -207,6 +207,16 @@ pub struct RunCmd {
 	#[clap(long, default_value = "10")]
 	pub lazy_loading_max_retries_per_request: u32,
 
+	/// Seconds to wait after printing the lazy-loading startup disclaimer before
+	/// starting the service.
+	///
+	/// Defaults to 10 seconds so an interactive operator can read the warning. Set
+	/// to `0` in automated environments (e.g. CI) where this delay would eat into
+	/// the test runner's node-startup timeout budget.
+	#[cfg(feature = "lazy-loading")]
+	#[clap(long, default_value = "10")]
+	pub lazy_loading_startup_delay: u64,
+
 	/// Optional directory used to persist fetched fork state between runs.
 	///
 	/// State at a given block hash is immutable, so caching it on disk lets

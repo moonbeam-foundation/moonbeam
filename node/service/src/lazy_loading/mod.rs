@@ -393,7 +393,7 @@ where
 		&lazy_loading_config,
 	)?;
 
-	let start_delay = 10;
+	let start_delay = lazy_loading_config.startup_delay_seconds;
 	let lazy_loading_startup_disclaimer = format!(
 		r#"
 
