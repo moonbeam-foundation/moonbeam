@@ -30,7 +30,7 @@
 
 use sp_core::blake2_256;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 /// Name of the marker file used to pin the auto-resolved fork block so that
@@ -125,10 +125,5 @@ impl StateCache {
 
 	fn pinned_fork_block_path(&self) -> PathBuf {
 		self.root.join(PINNED_FORK_BLOCK_FILE)
-	}
-
-	/// The cache root directory.
-	pub fn root(&self) -> &Path {
-		&self.root
 	}
 }
