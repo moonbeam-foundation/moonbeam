@@ -1531,8 +1531,7 @@ where
 			.as_ref()
 			.and_then(|cache| cache.pinned_fork_block(cache_fingerprint))
 			.and_then(|bytes| {
-				(bytes.len() == 32)
-					.then(|| Into::<Block::Hash>::into(H256::from_slice(&bytes)))
+				(bytes.len() == 32).then(|| Into::<Block::Hash>::into(H256::from_slice(&bytes)))
 			})
 	} else {
 		None

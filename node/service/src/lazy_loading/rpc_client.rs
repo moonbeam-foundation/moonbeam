@@ -193,7 +193,9 @@ impl RPC {
 			)
 		};
 
-		let cache_key = at.as_ref().and_then(|at| make_cache_key(at, &[key.0.as_slice()]));
+		let cache_key = at
+			.as_ref()
+			.and_then(|at| make_cache_key(at, &[key.0.as_slice()]));
 		self.cached_request("state_storage_hash", cache_key, request)
 	}
 
@@ -212,7 +214,9 @@ impl RPC {
 			)
 		};
 
-		let cache_key = at.as_ref().and_then(|at| make_cache_key(at, &[key.0.as_slice()]));
+		let cache_key = at
+			.as_ref()
+			.and_then(|at| make_cache_key(at, &[key.0.as_slice()]));
 		self.cached_request("state_storage", cache_key, request)
 	}
 
