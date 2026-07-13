@@ -53,7 +53,13 @@ describeSuite({
       title: "should stay at previous before block is created",
       test: async function () {
         const blockNumber = await context.viem().getBlockNumber();
-        const nonce = await context.viem().getTransactionCount({ address: ALITH_ADDRESS });
+        // Read the "before" nonce at the same explicit block as the assertion.
+        // Reading it at "latest" instead races with the eth RPC: getBlockNumber
+        // can lag the freshly sealed block while the latest nonce is already
+        // updated, making the two reads target different blocks.
+        const nonce = await context
+          .viem()
+          .getTransactionCount({ address: ALITH_ADDRESS, blockNumber });
         await context.createBlock(await createRawTransfer(context, ALITH_ADDRESS, 512));
 
         expect(

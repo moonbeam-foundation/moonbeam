@@ -10,7 +10,7 @@ import {
 } from "moonwall";
 import { nToHex } from "@polkadot/util";
 import { encodeFunctionData } from "viem";
-import { sealExtrinsic } from "../../../../helpers";
+import { getBlockWithRetry, sealExtrinsic } from "../../../../helpers";
 
 // Note on the values from 'transactionPayment.nextFeeMultiplier': this storage item is actually a
 // FixedU128, which is basically a u128 with an implicit denominator of 10^18. However, this
@@ -135,8 +135,9 @@ describeSuite({
       title: "fibonacci[370] should be spendable",
       test: async function () {
         let blockNumber = (await context.polkadotJs().rpc.chain.getHeader()).number.toBigInt();
-        let baseFeePerGas = (await context.viem().getBlock({ blockNumber: blockNumber }))
-          .baseFeePerGas!;
+        // The eth RPC can lag the substrate header, so getBlock at that height
+        // may momentarily return null; retry until the eth block is available.
+        let baseFeePerGas = (await getBlockWithRetry(context, { blockNumber })).baseFeePerGas!;
         expect(baseFeePerGas).to.equal(31_250_000_000_000n);
 
         const {
@@ -150,8 +151,7 @@ describeSuite({
 
         // the multiplier (and thereby base_fee) will have decreased very slightly...
         blockNumber = (await context.polkadotJs().rpc.chain.getHeader()).number.toBigInt();
-        baseFeePerGas = (await context.viem().getBlock({ blockNumber: blockNumber }))
-          .baseFeePerGas!;
+        baseFeePerGas = (await getBlockWithRetry(context, { blockNumber })).baseFeePerGas!;
         expect(baseFeePerGas).to.equal(31_206_751_955_281n);
 
         const rawSigned = await createEthersTransaction(context, {

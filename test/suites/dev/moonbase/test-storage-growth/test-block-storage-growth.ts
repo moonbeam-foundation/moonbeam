@@ -7,6 +7,7 @@ import {
   sendRawTransaction,
 } from "moonwall";
 import { encodeDeployData } from "viem";
+import { getBlockWithRetry } from "../../../../helpers/eth-transactions";
 
 describeSuite({
   id: "D023401",
@@ -34,7 +35,9 @@ describeSuite({
 
         const blockNumber = (await context.viem().getBlockNumber()) + 1n;
         await context.createBlock();
-        expect((await context.viem().getBlock({ blockNumber })).transactions.length).toBe(264);
+        // The eth RPC can lag the freshly sealed block; retry until it is
+        // available instead of reading it once immediately after sealing.
+        expect((await getBlockWithRetry(context, { blockNumber })).transactions.length).toBe(264);
       },
     });
   },

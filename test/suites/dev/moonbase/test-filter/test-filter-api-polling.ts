@@ -1,5 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { customDevRpcRequest, deployCreateCompiledContract, describeSuite, expect } from "moonwall";
+import { getBlockWithRetry } from "../../../../helpers";
 
 describeSuite({
   id: "D021603",
@@ -33,8 +34,9 @@ describeSuite({
 
         const poll = await customDevRpcRequest("eth_getFilterChanges", [filterId]);
 
-        const block2 = await context.viem().getBlock({ blockNumber: 2n });
-        const block3 = await context.viem().getBlock({ blockNumber: 3n });
+        // block 3 was just sealed above; the eth RPC can lag briefly, so retry.
+        const block2 = await getBlockWithRetry(context, { blockNumber: 2n });
+        const block3 = await getBlockWithRetry(context, { blockNumber: 3n });
         expect(poll.length).to.be.eq(2);
         expect(poll[0]).to.be.eq(block2.hash);
         expect(poll[1]).to.be.eq(block3.hash);

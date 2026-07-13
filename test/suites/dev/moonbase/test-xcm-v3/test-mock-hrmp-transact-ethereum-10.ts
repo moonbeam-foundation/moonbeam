@@ -8,7 +8,7 @@ import {
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
 } from "../../../../helpers/xcm.js";
-import { ConstantStore } from "../../../../helpers";
+import { ConstantStore, getBlockWithRetry } from "../../../../helpers";
 
 describeSuite({
   id: "D024007",
@@ -155,7 +155,8 @@ describeSuite({
             type: "XcmVersionedXcm",
             payload: xcmMessage,
           } as RawXcmMessage);
-          const ethBlock = await context.viem().getBlock({ blockNumber });
+          // The eth RPC can lag the freshly sealed block; retry until available.
+          const ethBlock = await getBlockWithRetry(context, { blockNumber });
           // Input size is valid - on the limit -, expect block to include a transaction.
           // That means the pallet-ethereum-xcm decoded the provided input to a BoundedVec.
           expect(ethBlock.transactions.length).to.be.eq(1);
