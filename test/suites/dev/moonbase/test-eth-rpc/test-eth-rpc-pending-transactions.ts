@@ -194,9 +194,16 @@ describeSuite({
         // Create another block which should process the ready transaction
         await context.createBlock();
 
-        // Verify the ready transaction was included in the block
-        const latestBlock = await context.viem().getBlock({ blockTag: "latest" });
-        expect(latestBlock.transactions).toContain(nextReadyTxHash);
+        // Verify the ready transaction was included in the block. The eth RPC
+        // "latest" tag can briefly lag behind the freshly sealed block, so poll
+        // until it reflects the block that included the ready transaction.
+        await waitForCondition({
+          checkFn: async () => {
+            const latestBlock = await context.viem().getBlock({ blockTag: "latest" });
+            return latestBlock.transactions.includes(nextReadyTxHash);
+          },
+          errorMsg: "Ready transaction was not included in the latest block",
+        });
 
         // Verify only future transactions remain in the pool
         const finalFutureTxs = await getFutureTransactions(BALTATHAR_ADDRESS);
