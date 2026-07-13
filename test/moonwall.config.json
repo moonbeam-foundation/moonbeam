@@ -391,7 +391,7 @@
         "compile-wasm.ts compile -b ../target/debug/moonbeam -o wasm -c moonbeam-dev",
         "prepare-lazy-loading-overrides.ts process configs/lazyLoadingStateOverrides.json tmp/lazyLoadingStateOverrides.json ../target/debug/wbuild/moonbeam-runtime/moonbeam_runtime.compact.compressed.wasm"
       ],
-      "multiThreads": 4,
+      "multiThreads": false,
       "envVars": ["DEBUG_COLORS=1"],
       "reporters": ["basic", "html", "json"],
       "reportFile": {
@@ -407,7 +407,9 @@
             "legacy": false,
             "options": [
               "--lazy-loading-delay-between-requests=10",
-              "--lazy-loading-max-retries-per-request=5",
+              "--lazy-loading-max-retries-per-request=10",
+              "--lazy-loading-cache-path=tmp/lazy-loading-cache-moonbeam",
+              "--lazy-loading-startup-delay=0",
               "--ethapi=txpool",
               "--no-hardware-benchmarks",
               "--no-telemetry",

@@ -1468,7 +1468,11 @@ where
 	let http_client = jsonrpsee::http_client::HttpClientBuilder::default()
 		.max_request_size(u32::MAX)
 		.max_response_size(u32::MAX)
-		.request_timeout(Duration::from_secs(10))
+		// The fork endpoint is a public, potentially rate-limited RPC that can be
+		// slow to answer large state reads under CI load. A short timeout would
+		// abort otherwise-healthy requests; give responses more headroom (the
+		// RPC client retries with exponential back-off on top of this).
+		.request_timeout(Duration::from_secs(30))
 		.build(lazy_loading_config.state_rpc.clone())
 		.map_err(|e| {
 			sp_blockchain::Error::Backend(
@@ -1476,20 +1480,97 @@ where
 			)
 		})?;
 
+	// Optional persistent cache for fetched fork state. State at a given block
+	// hash is immutable, so caching it on disk lets restarts (e.g. CI retries)
+	// reuse previously fetched state instead of re-querying the fork endpoint.
+	let cache = lazy_loading_config.cache_path.clone().and_then(|path| {
+		match lazy_loading::state_cache::StateCache::new(path.clone()) {
+			Ok(cache) => {
+				log::info!(
+					target: lazy_loading::LAZY_LOADING_LOG_TARGET,
+					"Using lazy-loading state cache at {:?}",
+					path
+				);
+				Some(Arc::new(cache))
+			}
+			Err(err) => {
+				log::warn!(
+					target: lazy_loading::LAZY_LOADING_LOG_TARGET,
+					"Failed to open lazy-loading state cache at {:?}: {:?}. Continuing without it.",
+					path,
+					err
+				);
+				None
+			}
+		}
+	});
+
 	let rpc = super::rpc_client::RPC::new(
 		http_client,
 		lazy_loading_config.delay_between_requests,
 		lazy_loading_config.max_retries_per_request,
+		cache.clone(),
 	);
-	let block_hash = lazy_loading_config
+
+	// Identifier of the remote endpoint used to scope the pinned fork block. This
+	// prevents reusing a block hash pinned against a different network when the
+	// same cache directory is pointed at another `--lazy-loading-remote-rpc`. A
+	// hash (rather than the raw URL) is persisted so credentials/API keys carried
+	// in the endpoint URL never land on disk.
+	let cache_fingerprint =
+		lazy_loading::state_cache::endpoint_fingerprint(lazy_loading_config.state_rpc.as_str());
+
+	// Resolve the fork block. Priority:
+	//   1. an explicit `--lazy-loading-block`,
+	//   2. a fork block previously pinned in the cache for this same endpoint (so
+	//      retries reuse the same fork and its cached state instead of a moved
+	//      `latest`),
+	//   3. the live `latest` block, which we then pin for subsequent runs.
+	let explicit_block_hash = lazy_loading_config
 		.from_block
 		.map(|block| Into::<Block::Hash>::into(block));
-	let checkpoint: Block = rpc
-		.block::<Block, _>(block_hash)
-		.ok()
-		.flatten()
-		.expect("Fetching fork checkpoint")
-		.block;
+	let pinned_block_hash = if explicit_block_hash.is_none() {
+		cache
+			.as_ref()
+			.and_then(|cache| cache.pinned_fork_block(&cache_fingerprint))
+			.and_then(|bytes| {
+				(bytes.len() == 32).then(|| Into::<Block::Hash>::into(H256::from_slice(&bytes)))
+			})
+	} else {
+		None
+	};
+	if pinned_block_hash.is_some() {
+		log::info!(
+			target: lazy_loading::LAZY_LOADING_LOG_TARGET,
+			"Reusing pinned fork block from cache: {:?}",
+			pinned_block_hash
+		);
+	}
+
+	// Fetch the checkpoint block. A pinned hash can become stale (e.g. pruned by
+	// the endpoint) or otherwise unresolvable; in that case fall back to `latest`
+	// with a warning rather than panicking on a missing checkpoint.
+	let block_hash = explicit_block_hash.or(pinned_block_hash);
+	let mut checkpoint_block = rpc.block::<Block, _>(block_hash).ok().flatten();
+	if checkpoint_block.is_none() && pinned_block_hash.is_some() && explicit_block_hash.is_none() {
+		log::warn!(
+			target: lazy_loading::LAZY_LOADING_LOG_TARGET,
+			"Pinned fork block {:?} is unavailable on {}; falling back to the latest block",
+			pinned_block_hash,
+			lazy_loading::state_cache::redact_url(lazy_loading_config.state_rpc.as_str())
+		);
+		checkpoint_block = rpc.block::<Block, Block::Hash>(None).ok().flatten();
+	}
+	let checkpoint: Block = checkpoint_block.expect("Fetching fork checkpoint").block;
+
+	// When the fork block was auto-resolved (not pinned by the operator), persist
+	// the resolved checkpoint so later runs/retries fork from the exact same block
+	// and hit the cache instead of the network.
+	if explicit_block_hash.is_none() {
+		if let Some(cache) = cache.as_ref() {
+			cache.set_pinned_fork_block(&cache_fingerprint, checkpoint.header().hash().as_ref());
+		}
+	}
 
 	let backend = Arc::new(Backend::new(Arc::new(rpc), checkpoint.header().clone()));
 
