@@ -916,9 +916,14 @@ describeSuite({
 
           log(`\n--- Creating ${BLOCK_COUNT} blocks ---`);
 
-          // Create many blocks sequentially
+          // Create blocks sequentially, pacing production to the subscription.
+          // The newHeads stream is driven by Substrate's import-notification
+          // channel, which can coalesce/drop a notification when blocks are
+          // imported faster than the consumer drains them. Waiting for each head
+          // to arrive before sealing the next block prevents that race.
           for (let i = 0; i < BLOCK_COUNT; i++) {
             await context.createBlock([], {});
+            await sub.collector.waitForBlockCount(i + 1, 10000);
           }
 
           // Wait for all blocks to be received
