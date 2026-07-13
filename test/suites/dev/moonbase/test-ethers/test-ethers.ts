@@ -1,6 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect, fetchCompiledContract } from "moonwall";
 import { ethers } from "ethers";
+import { waitFor } from "../../../../helpers";
 
 describeSuite({
   id: "D021301",
@@ -55,6 +56,14 @@ describeSuite({
           nonce: await context.ethers().getNonce(),
         });
         await context.createBlock();
+
+        // The eth RPC "latest" view can briefly lag the freshly sealed block, so
+        // the deployed bytecode may not be visible yet. Wait for it before making
+        // the eth_call below, otherwise the call returns "0x" (BAD_DATA).
+        const deployedAddress = await deployed.getAddress();
+        await waitFor(
+          async () => (await context.ethers().provider!.getCode(deployedAddress)) !== "0x"
+        );
 
         // @ts-expect-error It doesn't know what functions are available
         const contractCallResult = await deployed.multiply(3, {
