@@ -81,6 +81,12 @@ export async function createViemTransaction(
     .viem()
     .getTransactionCount({ address: account.address, blockTag: "pending" });
   const gasPrice = await context.viem().getGasPrice();
+  // `eth_gasPrice` reflects the current base fee with no headroom. Because the
+  // base fee can tick up between signing and inclusion (rejecting the tx with
+  // "gas price less than block base fee"), default `maxFeePerGas` to 2x so a
+  // one-block base-fee increase is tolerated. This only raises the fee cap; the
+  // effective fee paid is still bounded by the tip and actual base fee.
+  const maxFeePerGasWithHeadroom = gasPrice * 2n;
   const data = options?.data ? options.data : "0x";
 
   let estimatedGas = 1_500_000n;
@@ -101,7 +107,8 @@ export async function createViemTransaction(
       ? ({
           to,
           value,
-          maxFeePerGas: options.maxFeePerGas !== undefined ? options.maxFeePerGas : gasPrice,
+          maxFeePerGas:
+            options.maxFeePerGas !== undefined ? options.maxFeePerGas : maxFeePerGasWithHeadroom,
           maxPriorityFeePerGas:
             options.maxPriorityFeePerGas !== undefined ? options.maxPriorityFeePerGas : gasPrice,
           gas: options.gas !== undefined ? options.gas : estimatedGas,
@@ -134,7 +141,10 @@ export async function createViemTransaction(
             ? ({
                 to,
                 value,
-                maxFeePerGas: options.maxFeePerGas !== undefined ? options.maxFeePerGas : gasPrice,
+                maxFeePerGas:
+                  options.maxFeePerGas !== undefined
+                    ? options.maxFeePerGas
+                    : maxFeePerGasWithHeadroom,
                 maxPriorityFeePerGas:
                   options.maxPriorityFeePerGas !== undefined
                     ? options.maxPriorityFeePerGas
