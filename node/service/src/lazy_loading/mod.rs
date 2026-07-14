@@ -66,6 +66,7 @@ mod helpers;
 mod lock;
 mod manual_sealing;
 mod rpc_client;
+mod state_cache;
 mod state_overrides;
 pub mod substrate_backend;
 
@@ -392,7 +393,7 @@ where
 		&lazy_loading_config,
 	)?;
 
-	let start_delay = 10;
+	let start_delay = lazy_loading_config.startup_delay_seconds;
 	let lazy_loading_startup_disclaimer = format!(
 		r#"
 
@@ -414,7 +415,7 @@ where
 		The service will start in {start_delay} seconds...
 
 		"#,
-		rpc = lazy_loading_config.state_rpc,
+		rpc = state_cache::redact_url(lazy_loading_config.state_rpc.as_str()),
 		fork_block = backend.fork_checkpoint.number
 	);
 

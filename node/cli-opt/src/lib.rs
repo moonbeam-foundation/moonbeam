@@ -124,6 +124,19 @@ pub struct LazyLoadingConfig {
 	pub runtime_override: Option<PathBuf>,
 	pub delay_between_requests: u32,
 	pub max_retries_per_request: u32,
+	/// Seconds to pause after printing the lazy-loading startup disclaimer before
+	/// the service actually starts. Gives an interactive operator time to read the
+	/// warning; set to `0` in automated environments (e.g. CI) where the extra
+	/// delay eats into the test runner's node-startup timeout budget.
+	pub startup_delay_seconds: u64,
+	/// Optional directory used to persist fetched fork state between runs.
+	///
+	/// State at a given block hash is immutable, so caching it on disk lets
+	/// restarts (e.g. CI retries) reuse previously fetched state instead of
+	/// re-querying the (potentially rate-limited) fork endpoint. When set and no
+	/// explicit `from_block` is given, the resolved fork block is pinned in this
+	/// directory so retries fork from the exact same block.
+	pub cache_path: Option<PathBuf>,
 }
 /// Extra args that are passed when creating a new node spec.
 #[derive(Clone)]

@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use super::state_cache::StateCache;
 use cumulus_primitives_core::BlockT;
 use fc_rpc_v2_api::types::H256;
 use jsonrpsee::http_client::HttpClient;
 use moonbeam_core_primitives::BlockNumber;
 use serde::de::DeserializeOwned;
+use serde::Serialize;
 use sp_api::__private::HeaderT;
 use sp_rpc::list::ListOrValue;
 use sp_rpc::number::NumberOrHex;
@@ -28,8 +30,15 @@ use std::future::Future;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
-use tokio_retry::strategy::FixedInterval;
+use tokio_retry::strategy::{jitter, ExponentialBackoff};
 use tokio_retry::Retry;
+
+/// Upper bound for a single retry back-off delay. Keeps retries from stalling
+/// indefinitely while still giving a rate-limited endpoint time to recover.
+const MAX_RETRY_BACKOFF: Duration = Duration::from_secs(30);
+/// Floor for the exponential back-off base so that even a tiny configured
+/// `delay_between_requests` still produces a meaningful back-off between retries.
+const MIN_RETRY_BACKOFF_BASE_MS: u64 = 100;
 
 #[derive(Debug, Clone)]
 pub struct RPC {
@@ -37,6 +46,7 @@ pub struct RPC {
 	delay_between_requests_ms: u32,
 	max_retries_per_request: u32,
 	counter: Arc<AtomicU64>,
+	cache: Option<Arc<StateCache>>,
 }
 
 impl RPC {
@@ -44,13 +54,51 @@ impl RPC {
 		http_client: HttpClient,
 		delay_between_requests_ms: u32,
 		max_retries_per_request: u32,
+		cache: Option<Arc<StateCache>>,
 	) -> Self {
 		Self {
 			http_client,
 			delay_between_requests_ms,
 			max_retries_per_request,
 			counter: Default::default(),
+			cache,
 		}
+	}
+
+	/// Serve `request` from the on-disk cache when possible, otherwise perform it
+	/// over the network and persist a successful response.
+	///
+	/// Only call this for requests whose result is immutable for the given
+	/// `cache_key` (i.e. reads pinned to a concrete block hash/number). When no
+	/// cache is configured, or `cache_key` is `None`, this simply forwards to the
+	/// network with the usual retry behaviour.
+	fn cached_request<F, T>(
+		&self,
+		namespace: &str,
+		cache_key: Option<Vec<u8>>,
+		request: &dyn Fn() -> F,
+	) -> Result<T, jsonrpsee::core::ClientError>
+	where
+		F: Future<Output = Result<T, jsonrpsee::core::ClientError>>,
+		T: Serialize + DeserializeOwned,
+	{
+		if let (Some(cache), Some(key)) = (self.cache.as_ref(), cache_key.as_ref()) {
+			if let Some(bytes) = cache.get(namespace, key) {
+				if let Ok(value) = serde_json::from_slice::<T>(&bytes) {
+					return Ok(value);
+				}
+			}
+		}
+
+		let result = self.block_on(request)?;
+
+		if let (Some(cache), Some(key)) = (self.cache.as_ref(), cache_key.as_ref()) {
+			if let Ok(bytes) = serde_json::to_vec(&result) {
+				cache.put(namespace, key, &bytes);
+			}
+		}
+
+		Ok(result)
 	}
 	pub fn system_chain(&self) -> Result<String, jsonrpsee::core::ClientError> {
 		let request = &|| {
@@ -145,7 +193,10 @@ impl RPC {
 			)
 		};
 
-		self.block_on(request)
+		let cache_key = at
+			.as_ref()
+			.and_then(|at| make_cache_key(at, &[key.0.as_slice()]));
+		self.cached_request("state_storage_hash", cache_key, request)
 	}
 
 	pub fn storage<
@@ -163,7 +214,10 @@ impl RPC {
 			)
 		};
 
-		self.block_on(request)
+		let cache_key = at
+			.as_ref()
+			.and_then(|at| make_cache_key(at, &[key.0.as_slice()]));
+		self.cached_request("state_storage", cache_key, request)
 	}
 
 	pub fn storage_keys_paged<
@@ -184,12 +238,21 @@ impl RPC {
 				at.clone(),
 			)
 		};
-		let result = self.block_on(request);
 
-		match result {
-			Ok(result) => Ok(result.iter().map(|item| item.0.clone()).collect()),
-			Err(err) => Err(err),
-		}
+		let cache_key = at.as_ref().and_then(|at| {
+			make_cache_key(
+				at,
+				&[
+					key.as_ref().map(|k| k.0.as_slice()).unwrap_or(&[]),
+					&count.to_le_bytes(),
+					start_key.as_ref().map(|k| k.0.as_slice()).unwrap_or(&[]),
+				],
+			)
+		});
+		let result: Vec<StorageKey> =
+			self.cached_request("state_storage_keys_paged", cache_key, request)?;
+
+		Ok(result.iter().map(|item| item.0.clone()).collect())
 	}
 
 	pub fn transaction_by_hash(
@@ -262,9 +325,21 @@ impl RPC {
 				// Explicit request delay, to avoid getting 429 errors
 				let _ = tokio::time::sleep(delay_between_requests).await;
 
-				// Retry request in case of failure
-				// The maximum number of retries is specified by `self.max_retries_per_request`
-				let retry_strategy = FixedInterval::new(delay_between_requests)
+				// Retry request in case of failure. The public fork endpoint
+				// (e.g. trace.api.moonbeam.network) can intermittently rate-limit
+				// (HTTP 429), time out, or drop connections under CI load. A fixed
+				// tiny interval would burn every retry within a few milliseconds
+				// without giving the endpoint time to recover, and retrying in
+				// lockstep across concurrent requests causes a thundering herd.
+				// Use exponential back-off with jitter instead, capped so a single
+				// request never stalls for too long. The maximum number of retries
+				// is specified by `self.max_retries_per_request`.
+				let backoff_base_ms =
+					(self.delay_between_requests_ms as u64).max(MIN_RETRY_BACKOFF_BASE_MS);
+				let retry_strategy = ExponentialBackoff::from_millis(2)
+					.factor(backoff_base_ms)
+					.max_delay(MAX_RETRY_BACKOFF)
+					.map(jitter)
 					.take(self.max_retries_per_request as usize);
 				let result = Retry::spawn(retry_strategy, f).await;
 
@@ -281,4 +356,21 @@ impl RPC {
 			})
 		})
 	}
+}
+
+/// Build a collision-resistant cache key from the block selector `at` and a set
+/// of additional parts (e.g. the storage key and paging parameters). Each part
+/// is length-prefixed so different argument combinations can never alias. Returns
+/// `None` if the selector cannot be serialized, in which case the caller should
+/// skip caching and go straight to the network.
+fn make_cache_key<Hash: Serialize>(at: &Hash, parts: &[&[u8]]) -> Option<Vec<u8>> {
+	let at_bytes = serde_json::to_vec(at).ok()?;
+	let mut key = Vec::new();
+	key.extend_from_slice(&(at_bytes.len() as u32).to_le_bytes());
+	key.extend_from_slice(&at_bytes);
+	for part in parts {
+		key.extend_from_slice(&(part.len() as u32).to_le_bytes());
+		key.extend_from_slice(part);
+	}
+	Some(key)
 }

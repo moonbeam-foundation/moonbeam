@@ -137,6 +137,31 @@ export async function sleep(durationMs: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, durationMs));
 }
 
+/**
+ * Polls `predicate` until it resolves truthy or the timeout elapses.
+ *
+ * Useful for smoothing over small races on a freshly started node, e.g. the eth
+ * RPC layer lagging a block or two behind the sealed substrate block.
+ *
+ * @param predicate - Condition to wait for; polled until truthy.
+ * @param options.timeoutMs - Maximum time to wait before giving up (default 5000).
+ * @param options.intervalMs - Delay between polls (default 100).
+ * @returns `true` if the predicate became truthy, `false` if it timed out.
+ */
+export async function waitFor(
+  predicate: () => boolean | Promise<boolean>,
+  { timeoutMs = 5000, intervalMs = 100 }: { timeoutMs?: number; intervalMs?: number } = {}
+): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs;
+  do {
+    if (await predicate()) {
+      return true;
+    }
+    await sleep(intervalMs);
+  } while (Date.now() < deadline);
+  return await predicate();
+}
+
 export function stripNulls(s: string) {
   return s.replaceAll("\x00", ""); // removes trailing nulls
 }
