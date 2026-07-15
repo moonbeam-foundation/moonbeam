@@ -698,7 +698,8 @@ jobs:
       needs.set-tags.outputs.blacksmith_allowed == 'true' &&
       needs.dev-test.result == 'success'
     runs-on: blacksmith-4vcpu-ubuntu-2404
-    timeout-minutes: 30
+    # Allow headroom for up to 3 retry attempts (15 min each) of the run step.
+    timeout-minutes: 50
     permissions:
       contents: read
     needs: ["set-tags", "build", "dev-test"]
@@ -732,11 +733,22 @@ jobs:
         with:
           mode: restore
           sticky-disk-key: ${{ env.MOONBEAM_STICKY_DISK_KEY }}
-      - name: "Run lazy loading tests"
+      - name: "Install test dependencies"
         run: |
           cd test
           pnpm install
-          pnpm moonwall test lazy_loading_${{ matrix.chain }}
+      - name: "Run lazy loading tests (with retry)"
+        # Lazy-loading nodes fork live state at startup; a slow/rate-limited
+        # endpoint can exceed moonwall's hardcoded 30s node-startup timeout and
+        # abort with "Operation timed out". Retry the whole run a few times.
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60
+        with:
+          max_attempts: 3
+          timeout_minutes: 15
+          retry_on: error
+          command: |
+            cd test
+            pnpm moonwall test lazy_loading_${{ matrix.chain }}
       - name: Zip and Upload Node Logs on Failure
         if: failure()
         run: |
@@ -806,10 +818,6 @@ jobs:
       - name: "Install and run upgrade test"
         run: |
           pnpm install
-      - name: Select stable Chopsticks fork block
-        run: |
-          cd test
-          pnpm tsx scripts/select-chopsticks-fork-block.ts --chain ${{ matrix.chain }} --github-env "$GITHUB_ENV"
       - name: Run Upgrade Test (with retry)
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60
         with:

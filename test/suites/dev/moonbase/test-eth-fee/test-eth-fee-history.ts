@@ -8,6 +8,7 @@ import {
 } from "moonwall";
 import { hexToNumber, numberToHex } from "@polkadot/util";
 import { parseGwei } from "viem";
+import { sealUntilTxPoolEmpty } from "../../../../helpers";
 
 // We use ethers library in this test as apparently web3js's types are not fully EIP-1559
 // compliant yet.
@@ -28,6 +29,11 @@ describeSuite({
       priority_fees: number[],
       max_fee_per_gas: string
     ) {
+      // Flush any transactions left in the pool by previous test cases into
+      // their own block(s) first. Otherwise they leak into the first block we
+      // are about to produce and inflate its gasUsedRatio non-deterministically.
+      await sealUntilTxPoolEmpty(context);
+
       let nonce = await context
         .viem("public")
         .getTransactionCount({ address: ALITH_ADDRESS, blockTag: "pending" });
@@ -49,6 +55,31 @@ describeSuite({
         }
         await context.createBlock();
       }
+    }
+
+    // The frontier fee-history cache is populated by a background maintenance
+    // task on block-import notifications, so it can briefly lag the freshly
+    // sealed blocks and return a short `baseFeePerGas` range. Poll the RPC until
+    // the cache has caught up with the full requested range before asserting.
+    async function requestFeeHistory(
+      blockCount: string | number,
+      reward_percentiles: number[],
+      expectedBaseFeeLength: number
+    ): Promise<FeeHistory> {
+      let result = (await customDevRpcRequest("eth_feeHistory", [
+        blockCount,
+        "latest",
+        reward_percentiles,
+      ])) as FeeHistory;
+      for (let i = 0; i < 50 && result.baseFeePerGas.length < expectedBaseFeeLength; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        result = (await customDevRpcRequest("eth_feeHistory", [
+          blockCount,
+          "latest",
+          reward_percentiles,
+        ])) as FeeHistory;
+      }
+      return result;
     }
 
     function getPercentile(percentile: number, array: number[]) {
@@ -97,11 +128,7 @@ describeSuite({
 
         await createBlocks(block_count, priority_fees, parseGwei("10").toString());
 
-        const result = (await customDevRpcRequest("eth_feeHistory", [
-          "0x2",
-          "latest",
-          reward_percentiles,
-        ])) as FeeHistory;
+        const result = await requestFeeHistory("0x2", reward_percentiles, block_count + 1);
         matchExpectations(result, block_count, reward_percentiles);
       },
     });
@@ -118,11 +145,7 @@ describeSuite({
 
         await createBlocks(block_count, priority_fees, max_fee_per_gas);
 
-        const feeResults = (await customDevRpcRequest("eth_feeHistory", [
-          "0xA",
-          "latest",
-          reward_percentiles,
-        ])) as FeeHistory;
+        const feeResults = await requestFeeHistory("0xA", reward_percentiles, block_count + 1);
         const localRewards = reward_percentiles
           .map((percentile) => getPercentile(percentile, priority_fees))
           .map((reward) => numberToHex(reward));
@@ -158,11 +181,7 @@ describeSuite({
 
         await createBlocks(block_count, priority_fees, parseGwei("10").toString());
 
-        const result = (await customDevRpcRequest("eth_feeHistory", [
-          block_count,
-          "latest",
-          reward_percentiles,
-        ])) as FeeHistory;
+        const result = await requestFeeHistory(block_count, reward_percentiles, block_count + 1);
         matchExpectations(result, block_count, reward_percentiles);
       },
     });

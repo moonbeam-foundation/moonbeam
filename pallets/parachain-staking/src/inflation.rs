@@ -21,7 +21,7 @@ use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
 use sp_runtime::PerThing;
-use sp_runtime::{Perbill, RuntimeDebug};
+use sp_runtime::Perbill;
 use substrate_fixed::transcendental::pow as floatpow;
 use substrate_fixed::types::I64F64;
 
@@ -44,7 +44,7 @@ fn rounds_per_year<T: Config>() -> u32 {
 	DecodeWithMemTracking,
 	Default,
 	Deserialize,
-	RuntimeDebug,
+	Debug,
 	MaxEncodedLen,
 	Serialize,
 	TypeInfo,
@@ -114,7 +114,7 @@ pub fn round_issuance_range<T: Config>(round: Range<Perbill>) -> Range<BalanceOf
 }
 
 #[derive(
-	Eq, PartialEq, Clone, Encode, Decode, Default, Deserialize, RuntimeDebug, Serialize, TypeInfo,
+	Eq, PartialEq, Clone, Encode, Decode, Default, Deserialize, Debug, Serialize, TypeInfo,
 )]
 pub struct InflationInfo<Balance> {
 	/// Staking expectations

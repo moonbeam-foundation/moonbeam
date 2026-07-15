@@ -10,7 +10,6 @@ import {
   describeSuite,
   expect,
   fetchCompiledContract,
-  sendRawTransaction,
 } from "moonwall";
 import { encodeFunctionData, fromHex } from "viem";
 import { ConstantStore, expectEVMResult, getSignatureParameters } from "../../../../helpers";
@@ -74,14 +73,19 @@ describeSuite({
           }),
         });
 
-        const batchAllResult = await sendRawTransaction(context, batchAllTx);
-        const batchSomeResult = await sendRawTransaction(context, batchSomeTx);
-        const batchSomeUntilFailureResult = await sendRawTransaction(
-          context,
-          batchSomeUntilFailureTx
-        );
-
-        await context.createBlock();
+        // Submit all three txs and seal them in a single block in one step.
+        // Submitting via `sendRawTransaction` and then sealing an empty block
+        // separately is racy: the txs may not be in the author's ready pool yet,
+        // so the block can be sealed without them and the receipts are never
+        // found.
+        const { result } = await context.createBlock([
+          batchAllTx,
+          batchSomeTx,
+          batchSomeUntilFailureTx,
+        ]);
+        const [batchAllResult, batchSomeResult, batchSomeUntilFailureResult] = (
+          result as { hash: string }[]
+        ).map((r) => r.hash);
 
         const batchAllReceipt = await context
           .viem("public")

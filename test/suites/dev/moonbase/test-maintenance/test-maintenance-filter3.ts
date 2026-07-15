@@ -13,6 +13,7 @@ import {
   addAssetToWeightTrader,
   PARA_2000_SOURCE_LOCATION,
   foreignAssetBalance,
+  waitForForeignAssetBalance,
 } from "../../../../helpers";
 
 describeSuite({
@@ -76,13 +77,17 @@ describeSuite({
           context.polkadotJs().tx.maintenanceMode.resumeNormalOperation()
         );
 
-        // Create a block in which the XCM will be executed
-        await context.createBlock();
+        // The resume proposal may already process the queued HRMP message. If
+        // not, keep sealing until the transfer balance is visible.
+        const expectedBalance = 10000000000000n;
+        alithBalance = await waitForForeignAssetBalance(
+          context,
+          BigInt(assetId),
+          ALITH_ADDRESS,
+          expectedBalance
+        );
 
-        // Make sure the state has ALITH's to foreign assets tokens
-        alithBalance = await foreignAssetBalance(context, BigInt(assetId), ALITH_ADDRESS);
-
-        expect(alithBalance).to.eq(10000000000000n);
+        expect(alithBalance).to.eq(expectedBalance);
       },
     });
   },

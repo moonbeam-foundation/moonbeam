@@ -66,6 +66,7 @@ mod helpers;
 mod lock;
 mod manual_sealing;
 mod rpc_client;
+mod state_cache;
 mod state_overrides;
 pub mod substrate_backend;
 
@@ -392,7 +393,7 @@ where
 		&lazy_loading_config,
 	)?;
 
-	let start_delay = 10;
+	let start_delay = lazy_loading_config.startup_delay_seconds;
 	let lazy_loading_startup_disclaimer = format!(
 		r#"
 
@@ -414,7 +415,7 @@ where
 		The service will start in {start_delay} seconds...
 
 		"#,
-		rpc = lazy_loading_config.state_rpc,
+		rpc = state_cache::redact_url(lazy_loading_config.state_rpc.as_str()),
 		fork_block = backend.fork_checkpoint.number
 	);
 
@@ -446,6 +447,7 @@ where
 			client: client.clone(),
 			transaction_pool: transaction_pool.clone(),
 			spawn_handle: task_manager.spawn_handle(),
+			spawn_essential_handle: task_manager.spawn_essential_handle(),
 			import_queue,
 			block_announce_validator_builder: None,
 			warp_sync_config: None,
@@ -487,7 +489,7 @@ where
 		.into();
 
 	if collator {
-		let mut env = sc_basic_authorship::ProposerFactory::with_proof_recording(
+		let mut env = sc_basic_authorship::ProposerFactory::new(
 			task_manager.spawn_handle(),
 			client.clone(),
 			transaction_pool.clone(),
@@ -577,7 +579,6 @@ where
 					keystore: keystore_container.keystore(),
 					client: client.clone(),
 					additional_digests_provider: maybe_provide_vrf_digest,
-					_phantom: Default::default(),
 				})),
 				create_inherent_data_providers: move |block: H256, ()| {
 					let maybe_current_para_block = client_for_cidp.number(block);
@@ -670,8 +671,8 @@ where
 								UpgradeGoAhead::GoAhead
 							}),
 							current_para_block_head,
-							relay_offset: relay_parent_offset
-								.saturating_add(additional_relay_offset.load(Ordering::SeqCst)),
+							relay_offset: additional_relay_offset.load(Ordering::SeqCst),
+							relay_parent_offset,
 							relay_blocks_per_para_block: 1,
 							para_blocks_per_relay_epoch: 10,
 							relay_randomness_config: (),

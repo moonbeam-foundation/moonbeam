@@ -199,7 +199,6 @@ impl Config for XcmConfig {
 	type Trader = FixedRateOfFungible<KsmPerSecond, ()>;
 	type ResponseHandler = XcmPallet;
 	type AssetTrap = XcmPallet;
-	type AssetClaims = XcmPallet;
 	type SubscriptionService = XcmPallet;
 	type CallDispatcher = RuntimeCall;
 	type AssetLocker = ();

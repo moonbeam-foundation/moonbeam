@@ -90,8 +90,12 @@ where
 		)
 	}
 
-	fn runtime_version(&self, at_hash: Block::Hash) -> sp_blockchain::Result<RuntimeVersion> {
-		sc_client_api::CallExecutor::runtime_version(&self.inner, at_hash)
+	fn runtime_version(
+		&self,
+		at_hash: Block::Hash,
+		call_context: CallContext,
+	) -> sp_blockchain::Result<RuntimeVersion> {
+		sc_client_api::CallExecutor::runtime_version(&self.inner, at_hash, call_context)
 	}
 
 	fn prove_execution(

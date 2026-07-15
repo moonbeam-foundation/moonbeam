@@ -10,7 +10,7 @@ import {
   expect,
 } from "moonwall";
 import { Wallet } from "ethers";
-import { ConstantStore } from "../../../../helpers";
+import { ConstantStore, sealUntilTxPoolEmpty } from "../../../../helpers";
 
 describeSuite({
   id: "D020301",
@@ -68,6 +68,8 @@ describeSuite({
       id: "T04",
       title: "should not reap on tiny balance",
       test: async function () {
+        // ethers sendTransaction can still be not-ready when a single block is
+        // sealed; drain the pool so the transfer is guaranteed to be included.
         const signer = new Wallet(privateKey, context.ethers().provider);
         await signer.sendTransaction({
           to: baltathar.address,
@@ -76,7 +78,7 @@ describeSuite({
           gasLimit: 21000n,
         });
 
-        await context.createBlock();
+        await sealUntilTxPoolEmpty(context, randomWeb3Account.address);
 
         expect(await context.viem().getBalance({ address: randomWeb3Account.address })).toBe(1n);
         expect(

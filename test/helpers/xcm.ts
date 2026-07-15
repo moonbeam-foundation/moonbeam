@@ -1,5 +1,6 @@
 import type { DevModeContext } from "moonwall";
 import { ALITH_ADDRESS, GLMR, alith, customDevRpcRequest, expect } from "moonwall";
+import type { ApiPromise } from "@polkadot/api";
 import type { DispatchError, XcmpMessageFormat } from "@polkadot/types/interfaces";
 import type {
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
@@ -142,6 +143,76 @@ export async function injectHrmpMessage(
   await customDevRpcRequest("xcm_injectHrmpMessage", [paraId, totalMessage]);
 }
 
+/**
+ * Returns true once the message queue has no remaining work to service.
+ *
+ * `messageQueue.serviceHead` is `None` exactly when every enqueued page has been
+ * fully processed, so it is the authoritative "queue drained" signal.
+ */
+async function isMessageQueueDrained(api: ApiPromise): Promise<boolean> {
+  return (await api.query.messageQueue.serviceHead()).isNone;
+}
+
+/**
+ * Seal blocks until the injected XCM message has been processed (successfully or
+ * not) AND the message queue is fully drained, bounded by `maxBlocks`.
+ *
+ * An injected HRMP/DMP message is processed by the message queue's `on_idle` hook
+ * of the enqueueing block ONLY IF enough block weight remains; otherwise it is
+ * deferred to a later block (see
+ * https://github.com/paritytech/polkadot-sdk/pull/3844). Inspecting the effects
+ * after a single block is therefore racy.
+ *
+ * Waiting for the queue to drain (rather than for the first `Processed` event) is
+ * what makes this deterministic under load: a deferred message is given as many
+ * blocks as needed, and an unrelated/residual message emitting `Processed` first
+ * cannot make us return while ours is still queued.
+ */
+export async function sealUntilXcmProcessed(context: DevModeContext, maxBlocks = 10) {
+  const api = context.polkadotJs();
+  let result: Awaited<ReturnType<typeof context.createBlock>> | undefined;
+  let processedSeen = false;
+
+  for (let i = 0; i < maxBlocks; i++) {
+    result = await context.createBlock();
+
+    if (!processedSeen) {
+      processedSeen = (await api.query.system.events()).some(
+        ({ event }) =>
+          api.events.messageQueue.Processed.is(event) ||
+          api.events.messageQueue.ProcessingFailed.is(event)
+      );
+    }
+
+    if (processedSeen && (await isMessageQueueDrained(api))) {
+      return result;
+    }
+  }
+
+  throw new Error(`Injected XCM was not processed within ${maxBlocks} blocks.`);
+}
+
+/**
+ * Inject a downward message (DMP) and seal blocks until the message queue
+ * actually processes it.
+ *
+ * Like the HRMP path, a downward message is processed in the message queue's
+ * `on_idle` hook of the enqueueing block only if enough block weight remains;
+ * otherwise it is deferred to a later block. Sealing a fixed number of blocks
+ * and immediately inspecting the effects is therefore racy.
+ *
+ * When `message` is omitted (or empty) the mock injects a default downward
+ * token transfer.
+ */
+export async function injectDownwardMessageAndSeal(context: DevModeContext, message?: number[]) {
+  // Send RPC call to inject XCM message. An empty array triggers the mock's
+  // default downward transfer.
+  await customDevRpcRequest("xcm_injectDownwardMessage", [message ?? []]);
+  // Seal until the message queue processes the downward message.
+  const result = await sealUntilXcmProcessed(context, 10);
+  return result?.block;
+}
+
 export async function injectEncodedHrmpMessageAndSeal(
   context: DevModeContext,
   paraId: number,
@@ -149,9 +220,15 @@ export async function injectEncodedHrmpMessageAndSeal(
 ) {
   // Send RPC call to inject XCM message
   await customDevRpcRequest("xcm_injectHrmpMessage", [paraId, message]);
-  // Create a block in which the XCM will be enqueued
+  // NOTE: this path injects raw, hand-crafted bytes that may be intentionally
+  // malformed (e.g. a wrong-size GeneralKey). Such messages are dropped at the
+  // XCMP ingestion layer and never reach the message queue, so they never emit a
+  // `messageQueue.Processed`/`ProcessingFailed` event. We therefore can't seal
+  // until "processed"; keep the original fixed two-block behavior.
+  //
+  // Create a block in which the XCM will be enqueued.
   await context.createBlock();
-  // The next block will process the hrmp message in the message queue
+  // The next block will process the hrmp message in the message queue.
   return context.createBlock();
 }
 
@@ -178,14 +255,19 @@ export async function injectHrmpMessageAndSeal(
   message?: RawXcmMessage
 ) {
   await injectHrmpMessage(context, paraId, message);
-  // Create a block in which the XCM will be enqueued.
-  //
-  // The message will be processed inside on_idle hook of this block
-  // using the remaining weight.
+  if (message == null) {
+    // Nothing to process: preserve the previous single-block behavior.
+    const { block } = await context.createBlock();
+    return block;
+  }
+  // The message is processed inside the message queue's on_idle hook of the
+  // enqueueing block only if enough block weight remains; otherwise it is
+  // deferred to a later block. Seal until it is actually processed so callers
+  // can reliably inspect the resulting events/state.
   //
   // See https://github.com/paritytech/polkadot-sdk/pull/3844 for more context.
-  const { block } = await context.createBlock();
-  return block;
+  const result = await sealUntilXcmProcessed(context, 10);
+  return result?.block;
 }
 
 /**

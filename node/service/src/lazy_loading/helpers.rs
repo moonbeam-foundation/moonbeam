@@ -77,6 +77,7 @@ pub fn produce_first_block<Block: BlockT + sp_runtime::DeserializeOwned>(
 		None,
 		None,
 		NewBlockState::Final,
+		true,
 	);
 
 	backend.commit_operation(op)

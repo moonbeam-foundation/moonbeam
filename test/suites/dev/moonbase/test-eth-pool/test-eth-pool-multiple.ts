@@ -20,6 +20,54 @@ describeSuite({
   testCases: ({ context, it }) => {
     let txHashes: string[];
 
+    async function fetchTransactions() {
+      return Promise.all(
+        txHashes.map((txHash) =>
+          context.viem().getTransaction({
+            hash: txHash as `0x${string}`,
+            cacheTime: 0,
+          })
+        )
+      );
+    }
+
+    async function waitForPendingTransactions() {
+      for (let attempt = 0; attempt < 50; attempt++) {
+        let transactions;
+        try {
+          transactions = await fetchTransactions();
+        } catch {
+          await new Promise((resolve) => setTimeout(resolve, 50));
+          continue;
+        }
+        if (
+          transactions.length === txHashes.length &&
+          transactions.every((transaction) => transaction.blockNumber === null)
+        ) {
+          return transactions;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+      throw new Error("Not all transactions were available as pending");
+    }
+
+    async function waitForIncludedTransactions() {
+      for (let attempt = 0; attempt < 50; attempt++) {
+        let transactions;
+        try {
+          transactions = await fetchTransactions();
+        } catch {
+          await new Promise((resolve) => setTimeout(resolve, 50));
+          continue;
+        }
+        if (transactions.every((transaction) => transaction.blockNumber !== null)) {
+          return transactions;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+      throw new Error("Not all transactions were included in a block");
+    }
+
     beforeAll(async function () {
       const { bytecode, abi } = fetchCompiledContract("MultiplyBy7");
       const callData = encodeDeployData({
@@ -33,15 +81,15 @@ describeSuite({
           return await context.viem().sendTransaction({ nonce: i, data: callData, gas: 200000n });
         })
       );
+
+      await waitForPendingTransactions();
     });
 
     it({
       id: "T01",
       title: "should all be available by hash",
       test: async function () {
-        const transactions = await Promise.all(
-          txHashes.map((txHash) => context.viem().getTransaction({ hash: txHash as `0x${string}` }))
-        );
+        const transactions = await fetchTransactions();
 
         expect(transactions.length).toBe(10);
         expect(
@@ -54,9 +102,7 @@ describeSuite({
       id: "T02",
       title: "should all be marked as pending",
       test: async function () {
-        const transactions = await Promise.all(
-          txHashes.map((txHash) => context.viem().getTransaction({ hash: txHash as `0x${string}` }))
-        );
+        const transactions = await fetchTransactions();
 
         expect(transactions.length).toBe(10);
         expect(transactions.every((transaction) => transaction.blockNumber === null)).toBe(true);
@@ -70,10 +116,9 @@ describeSuite({
       id: "T03",
       title: "should all be populated when included in a block",
       test: async function () {
+        await waitForPendingTransactions();
         await context.createBlock();
-        const transactions = await Promise.all(
-          txHashes.map((txHash) => context.viem().getTransaction({ hash: txHash as `0x${string}` }))
-        );
+        const transactions = await waitForIncludedTransactions();
 
         expect(transactions.length).toBe(10);
         expect(transactions.every((transaction) => transaction.blockNumber === 1n)).toBe(true);

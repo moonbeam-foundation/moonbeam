@@ -259,8 +259,12 @@ parameter_types! {
 	/// `RuntimeBlockWeights` has been pushed to each runtime.
 	pub BlockWeights: frame_system::limits::BlockWeights = RuntimeBlockWeights::get();
 	/// We allow for 5 MB blocks.
-	pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength
-		::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
+	pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength::builder()
+		.max_length(5 * 1024 * 1024)
+		.modify_max_length_for_class(DispatchClass::Normal, |normal| {
+			*normal = NORMAL_DISPATCH_RATIO * (5 * 1024 * 1024)
+		})
+		.build();
 }
 
 impl frame_system::Config for Runtime {

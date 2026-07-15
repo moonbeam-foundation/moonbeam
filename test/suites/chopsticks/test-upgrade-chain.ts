@@ -25,61 +25,21 @@ const upgradeRestrictionSignal = (paraId: u32) => {
   return hash(prefix, paraId.toU8a());
 };
 
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-const isRetriableChopsticksBlockError = (error: unknown): boolean => {
-  const message = error instanceof Error ? error.message : String(error);
-  return (
-    message.includes("Failed to apply inherents") ||
-    message.includes("InvalidNumberOfDescendants") ||
-    message.includes("Unable to verify provided relay parent descendants")
-  );
-};
-
-const createEmptyBlockWithRetry = async (
-  context: ChopsticksContext,
-  api: ApiPromise,
-  options?: { maxAttempts?: number; delayMs?: number }
-) => {
-  const maxAttempts = options?.maxAttempts ?? 5;
-  const delayMs = options?.delayMs ?? 500;
-
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    const currentHeight = (await api.rpc.chain.getHeader()).number.toNumber();
-
-    try {
-      await context.createBlock();
-    } catch (error) {
-      if (attempt < maxAttempts && isRetriableChopsticksBlockError(error)) {
-        await wait(delayMs * attempt);
-        continue;
-      }
-
-      throw error;
-    }
-
-    const newHeight = (await api.rpc.chain.getHeader()).number.toNumber();
-    if (newHeight > currentHeight) {
-      return;
-    }
-
-    if (attempt < maxAttempts) {
-      await wait(delayMs * attempt);
-      continue;
-    }
-
-    expect(newHeight - currentHeight).to.be.equal(1);
-  }
-};
-
-const createEmptyBlocksWithRetry = async (
-  context: ChopsticksContext,
-  api: ApiPromise,
-  count: number
-) => {
-  for (let i = 0; i < count; i++) {
-    await createEmptyBlockWithRetry(context, api);
-  }
+// Chopsticks builds blocks against a mocked relay chain and cannot supply the
+// relay-parent descendant headers that `parachain-system` verifies whenever
+// `RelayParentOffset > 0`. The upgraded runtime enables `pallet_async_backing`,
+// whose `RelayParentOffset` storage value defaults to 1, so the empty descendant
+// set produced by Chopsticks makes block production panic with
+// `InvalidNumberOfDescendants { expected: 2, received: 0 }`.
+//
+// Forcing the offset to 0 in the forked chain skips that check. The real network
+// is unaffected: its collators source the descendants from the live relay chain.
+const disableRelayParentOffset = async (context: ChopsticksContext) => {
+  await context.setStorage({
+    module: "asyncBacking",
+    method: "relayParentOffset",
+    methodParams: "0x00000000", // u32 little-endian 0
+  });
 };
 
 const upgradeRuntime = async (context: ChopsticksContext) => {
@@ -101,7 +61,7 @@ const upgradeRuntime = async (context: ChopsticksContext) => {
     method: "authorizedUpgrade",
     methodParams: `${rtHash}01`, // 01 is for the RT ver check = true
   });
-  await createEmptyBlockWithRetry(context, api);
+  await context.createBlock();
 
   await api.tx.system.applyAuthorizedUpgrade(rtHex).signAndSend(signer);
 
@@ -111,6 +71,10 @@ const upgradeRuntime = async (context: ChopsticksContext) => {
     count: 3,
     relayChainStateOverrides: [[upgradeRestrictionSignal(paraId), null]],
   });
+
+  // The upgraded runtime now enforces relay-parent descendants which Chopsticks
+  // cannot provide; disable the offset before any further blocks are built.
+  await disableRelayParentOffset(context);
 };
 
 describeSuite({
@@ -147,7 +111,7 @@ describeSuite({
       title: "Can create new blocks",
       test: async () => {
         const currentHeight = (await api.rpc.chain.getHeader()).number.toNumber();
-        await createEmptyBlocksWithRetry(context, api, 2);
+        await context.createBlock({ count: 2 });
         const newHeight = (await api.rpc.chain.getHeader()).number.toNumber();
         expect(newHeight - currentHeight).to.be.equal(2);
       },
@@ -166,7 +130,7 @@ describeSuite({
           // Some multi-migration might take a lot of blocks to complete, so we wait for 16 blocks to be safe.
           // Note that we must wait for one block at a time otherwise the request will timeout.
           for (let i = 0; i < 16; i++) {
-            await createEmptyBlockWithRetry(context, api);
+            await context.createBlock();
           }
 
           const balanceBefore = (
@@ -175,7 +139,7 @@ describeSuite({
           await api.tx.balances
             .transferAllowDeath(DUMMY_ACCOUNT, parseEther("1"))
             .signAndSend(alith);
-          await createEmptyBlocksWithRetry(context, api, 2);
+          await context.createBlock({ count: 2 });
           const balanceAfter = (await api.query.system.account(DUMMY_ACCOUNT)).data.free.toBigInt();
           expect(balanceBefore < balanceAfter).to.be.true;
         }
