@@ -27,6 +27,7 @@ use frame_support::traits::{Currency, PalletInfoAccess};
 use moonbase_runtime::{AccountId, Balances};
 use sp_core::U256;
 use xcm::latest::prelude::*;
+use xcm_executor::test_helpers::mock_asset_to_holding;
 use xcm_executor::traits::TransactAsset;
 
 fn alice_account() -> AccountId {
@@ -64,8 +65,11 @@ fn local_transactor_deposits_native_token() {
 			);
 
 			// Deposit native asset to Bob
-			let result =
-				<AssetTransactors as TransactAsset>::deposit_asset(&asset, &destination, None);
+			let result = <AssetTransactors as TransactAsset>::deposit_asset(
+				mock_asset_to_holding(asset),
+				&destination,
+				None,
+			);
 
 			assert!(result.is_ok(), "Deposit should succeed");
 			let final_balance = Balances::free_balance(bob_account());
@@ -174,8 +178,11 @@ fn foreign_asset_transactor_deposits_registered_asset() {
 			);
 
 			// Deposit DOT to Bob
-			let result =
-				<AssetTransactors as TransactAsset>::deposit_asset(&asset, &destination, None);
+			let result = <AssetTransactors as TransactAsset>::deposit_asset(
+				mock_asset_to_holding(asset),
+				&destination,
+				None,
+			);
 
 			assert!(
 				result.is_ok(),
@@ -210,8 +217,11 @@ fn transactor_fails_for_unregistered_asset() {
 			}],
 		);
 
-		let result =
-			<AssetTransactors as TransactAsset>::deposit_asset(&unknown_asset, &destination, None);
+		let result = <AssetTransactors as TransactAsset>::deposit_asset(
+			mock_asset_to_holding(unknown_asset),
+			&destination,
+			None,
+		);
 
 		// Should fail - asset not registered
 		assert!(result.is_err(), "Deposit of unregistered asset should fail");
@@ -317,8 +327,11 @@ fn transactor_handles_erc20_bridge_asset() {
 				}],
 			);
 
-			let result =
-				<AssetTransactors as TransactAsset>::deposit_asset(&asset, &destination, None);
+			let result = <AssetTransactors as TransactAsset>::deposit_asset(
+				mock_asset_to_holding(asset),
+				&destination,
+				None,
+			);
 
 			// `Erc20XcmBridge::deposit_asset` needs an XCM holding context to
 			// resolve token origins; a direct call has none, so it must return

@@ -28,8 +28,8 @@ use pallet_xcm_weight_trader::{Pallet as XcmWeightTrader, Trader};
 use sp_weights::Weight;
 use xcm::latest::prelude::*;
 use xcm::VersionedAssetId;
+use xcm_executor::test_helpers::mock_asset_to_holding;
 use xcm_executor::traits::WeightTrader;
-use xcm_executor::AssetsInHolding;
 
 fn native_location() -> Location {
 	Location::new(0, [PalletInstance(Balances::index() as u8)])
@@ -42,14 +42,13 @@ fn trader_accepts_native_token() {
 		let weight_to_buy = Weight::from_parts(1_000_000_000, 64 * 1024);
 
 		// Create payment in native token
-		let mut payment = AssetsInHolding::new();
-		payment.subsume(Asset {
+		let payment = mock_asset_to_holding(Asset {
 			id: AssetId(native_location()),
 			fun: Fungible(ONE_GLMR),
 		});
 
 		let context = XcmContext::with_message_id([0u8; 32]);
-		let result = trader.buy_weight(weight_to_buy, payment.clone(), &context);
+		let result = trader.buy_weight(weight_to_buy, payment, &context);
 
 		// Should succeed - native token is always accepted
 		assert!(result.is_ok(), "Native token should be accepted for fees");
@@ -81,8 +80,7 @@ fn trader_rejects_unsupported_asset() {
 
 		// Try to pay with unsupported asset
 		let unsupported_asset_location = Location::new(1, [Parachain(9999), PalletInstance(99)]);
-		let mut payment = AssetsInHolding::new();
-		payment.subsume(Asset {
+		let payment = mock_asset_to_holding(Asset {
 			id: AssetId(unsupported_asset_location.clone()),
 			fun: Fungible(1_000_000_000_000),
 		});
@@ -92,7 +90,7 @@ fn trader_rejects_unsupported_asset() {
 
 		// Should fail - asset not registered
 		assert!(result.is_err(), "Unsupported asset should be rejected");
-		assert_eq!(result.unwrap_err(), XcmError::AssetNotFound);
+		assert_eq!(result.unwrap_err().1, XcmError::AssetNotFound);
 	});
 }
 
@@ -130,8 +128,7 @@ fn trader_accepts_registered_foreign_asset() {
 
 			// Pay with DOT - need sufficient amount to cover the computed fee
 			let fee = fee_result.unwrap();
-			let mut payment = AssetsInHolding::new();
-			payment.subsume(Asset {
+			let payment = mock_asset_to_holding(Asset {
 				id: AssetId(dot_location.clone()),
 				fun: Fungible(fee * 2), // Double to ensure enough
 			});
@@ -188,8 +185,7 @@ fn trader_cannot_buy_weight_twice() {
 		let context = XcmContext::with_message_id([0u8; 32]);
 
 		// First purchase
-		let mut payment1 = AssetsInHolding::new();
-		payment1.subsume(Asset {
+		let payment1 = mock_asset_to_holding(Asset {
 			id: AssetId(native_location()),
 			fun: Fungible(ONE_GLMR),
 		});
@@ -200,15 +196,14 @@ fn trader_cannot_buy_weight_twice() {
 		);
 
 		// Second purchase should fail
-		let mut payment2 = AssetsInHolding::new();
-		payment2.subsume(Asset {
+		let payment2 = mock_asset_to_holding(Asset {
 			id: AssetId(native_location()),
 			fun: Fungible(ONE_GLMR),
 		});
 		let result = trader.buy_weight(weight_to_buy, payment2, &context);
 
 		assert!(result.is_err(), "Second buy_weight should fail");
-		assert_eq!(result.unwrap_err(), XcmError::NotWithdrawable);
+		assert_eq!(result.unwrap_err().1, XcmError::NotWithdrawable);
 	});
 }
 
@@ -221,8 +216,7 @@ fn trader_refunds_unused_weight() {
 		let context = XcmContext::with_message_id([0u8; 32]);
 
 		// Buy more weight than needed
-		let mut payment = AssetsInHolding::new();
-		payment.subsume(Asset {
+		let payment = mock_asset_to_holding(Asset {
 			id: AssetId(native_location()),
 			fun: Fungible(ONE_GLMR * 10), // Plenty of funds
 		});
@@ -235,7 +229,11 @@ fn trader_refunds_unused_weight() {
 		let refund = trader.refund_weight(unused_weight, &context);
 
 		// Must get a refund
-		let refunded_asset = refund.expect("refund_weight must return Some for unused weight");
+		let refunded = refund.expect("refund_weight must return Some for unused weight");
+		let refunded_asset = refunded
+			.into_assets_iter()
+			.next()
+			.expect("refund holding must contain a single asset");
 		assert_eq!(
 			refunded_asset.id,
 			AssetId(native_location()),
@@ -258,8 +256,7 @@ fn trader_handles_insufficient_payment() {
 		let context = XcmContext::with_message_id([0u8; 32]);
 
 		// Try to pay with very small amount
-		let mut payment = AssetsInHolding::new();
-		payment.subsume(Asset {
+		let payment = mock_asset_to_holding(Asset {
 			id: AssetId(native_location()),
 			fun: Fungible(1), // Tiny amount
 		});
@@ -268,7 +265,7 @@ fn trader_handles_insufficient_payment() {
 
 		// Should fail - insufficient payment
 		assert!(result.is_err(), "Insufficient payment should be rejected");
-		assert_eq!(result.unwrap_err(), XcmError::TooExpensive);
+		assert_eq!(result.unwrap_err().1, XcmError::TooExpensive);
 	});
 }
 
