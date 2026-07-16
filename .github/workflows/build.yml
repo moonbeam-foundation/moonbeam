@@ -516,9 +516,98 @@ jobs:
         run: |
           cargo check --profile rust-tests --workspace --features=runtime-benchmarks
       # Checks are run after uploading artifacts since they are modified by the tests
+      # The xcm-emulator-tests crates are workspace members so the dedicated
+      # `xcm-emulator-test` job can address them with `-p`, but they pull the
+      # heavy Westend + Asset Hub Westend graph. Exclude them here so the
+      # default test job neither builds nor re-runs that suite.
       - name: Unit tests
         run: |
-          cargo test --profile rust-tests --workspace --features=evm-tracing
+          cargo test --profile rust-tests --workspace --features=evm-tracing \
+            --exclude moonbeam-xcm-emulator-tests \
+            --exclude moonriver-xcm-emulator-tests \
+            --exclude moonbase-xcm-emulator-tests
+
+  # Dedicated job for the xcm-emulator integration tests, which live in
+  # their own workspace crates (`runtime/<chain>/xcm-emulator-tests`) so the
+  # Westend + Asset Hub Westend dependency graph doesn't slow down the
+  # default `rust-test` job. Compiles the heavy graph once and runs all
+  # three runtimes' tests in a single job (sccache reuse). Only fires when
+  # Rust source files change.
+  # Opt-in only on PRs: the XCM emulator suite is heavy (Westend + Asset Hub
+  # Westend), so we don't want it on the critical path of every PR. It runs
+  # when:
+  #   - a PR is labelled `XCM`,
+  #   - the workflow is triggered manually (`workflow_dispatch`), or
+  #   - on push to `master`/`perm-*` (so master is at least eventually
+  #     validated, since there's no merge queue to gate pre-merge).
+  xcm-emulator-test:
+    # Keep this heavy job behind the cheap Rust checks so formatting or
+    # repository-rule failures stop the PR before it consumes the larger runner.
+    # always() is required on jobs with needs: otherwise GitHub skips the job before
+    # evaluating this condition when any dependency was skipped.
+    if: |
+      always() &&
+      (
+        github.event_name == 'push'
+        || github.event_name == 'workflow_dispatch'
+        || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'XCM'))
+      ) &&
+      needs.set-tags.outputs.blacksmith_allowed == 'true' &&
+      needs.set-tags.outputs.rust_changed == 'true' &&
+      needs.check-cargo-toml-format.result == 'success' &&
+      needs.check-forbid-evm-reentrancy.result == 'success' &&
+      needs.check-rust-fmt.result == 'success'
+    runs-on: blacksmith-16vcpu-ubuntu-2404
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    needs:
+      [
+        "set-tags",
+        "check-cargo-toml-format",
+        "check-forbid-evm-reentrancy",
+        "check-rust-fmt",
+      ]
+    env:
+      RUSTC_WRAPPER: "sccache"
+      CARGO_INCREMENTAL: "0"
+      SCCACHE_CACHE_SIZE: "100GB"
+      SCCACHE_DIR: ${{ github.workspace }}/.sccache
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+          persist-credentials: false
+      - name: Read Rust toolchain cache key
+        id: rust-toolchain-cache-key
+        uses: ./.github/workflow-templates/rust-toolchain-cache-key
+      - name: Mount Blacksmith sccache disk
+        uses: useblacksmith/stickydisk@13af8883542ca949a717e70fef89d15edbb29d88
+        with:
+          key: ${{ github.repository }}-sccache-xcm-emulator-${{ runner.os }}-${{ steps.rust-toolchain-cache-key.outputs.cache-key }}
+          path: .sccache
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@9e7fa8a12102821edf02ca5dbea1acd0f89a2696
+      - name: Setup Variables
+        shell: bash
+        run: |
+          echo "RUSTFLAGS=-C opt-level=3 -D warnings -C linker=clang -C link-arg=-fuse-ld=$(pwd)/mold/bin/mold" >> $GITHUB_ENV
+      - name: Setup Mold Linker
+        shell: bash
+        run: |
+          mkdir -p mold
+          curl -L --retry 10 --silent --show-error https://github.com/rui314/mold/releases/download/v2.39.0/mold-2.39.0-$(uname -m)-linux.tar.gz | tar -C $(realpath mold) --strip-components=1 -xzf -
+      - name: Install native build dependencies
+        uses: ./.github/workflow-templates/native-build-deps
+      - name: Setup Rust toolchain
+        uses: ./.github/workflow-templates/rust-toolchain
+      - name: xcm-emulator integration tests (moonbeam, moonriver, moonbase)
+        run: |
+          cargo test --profile rust-tests \
+            -p moonbeam-xcm-emulator-tests \
+            -p moonriver-xcm-emulator-tests \
+            -p moonbase-xcm-emulator-tests
 
   # Renable typegen_check when we have a bot in place to update PR for us in case of missing it
 
