@@ -150,4 +150,32 @@ mod benchmarks {
 
 		Ok(())
 	}
+
+	/// Measures the GMP precompile's input-size-dependent native work as a function of the VAA
+	/// length `x`. That work is dominated by ABI-encoding the VAA into subcall calldata (done for
+	/// the `parseVM` and `completeTransferWithPayload` subcalls) and ABI-decoding the up-to-64 KiB
+	/// Wormhole struct payloads, so we measure a representative encode + decode round-trip over an
+	/// `x`-byte buffer. The resulting `base + per_byte * x` weight is what `GmpPrecompile` charges.
+	///
+	/// `x`'s upper bound matches `pallet_evm_precompile_gmp::CALL_DATA_LIMIT` (2^16).
+	#[benchmark]
+	fn gmp(x: Linear<0, 65_536>) -> Result<(), BenchmarkError> {
+		use frame_support::traits::ConstU32;
+		use precompile_utils::{prelude::BoundedBytes, solidity};
+
+		// PARSE_VM_SELECTOR, the first thing the precompile encodes the VAA into.
+		const PARSE_VM_SELECTOR: u32 = 0xa9e11893_u32;
+		type MaxVaa = ConstU32<65_536>;
+
+		let vaa: BoundedBytes<MaxVaa> = vec![1u8; x as usize].into();
+
+		#[block]
+		{
+			let encoded = solidity::encode_with_selector(PARSE_VM_SELECTOR, vaa.clone());
+			let _decoded: BoundedBytes<MaxVaa> = solidity::decode_return_value(&encoded[4..])
+				.expect("must decode the bytes we just encoded");
+		}
+
+		Ok(())
+	}
 }
