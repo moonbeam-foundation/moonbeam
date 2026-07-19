@@ -43,6 +43,7 @@ import type {
   PalletBalancesUnexpectedKind,
   PalletConvictionVotingTally,
   PalletConvictionVotingVoteAccountVote,
+  PalletErc20XcmBridgeTeleportableErc20Status,
   PalletMultisigTimepoint,
   PalletParachainStakingDelegationRequestsCancelledScheduledRequest,
   PalletParachainStakingDelegatorAdded,
@@ -625,6 +626,59 @@ declare module "@polkadot/api-base/types/events" {
        * The XCM incoming execution returned to normal operation
        **/
       NormalXcmOperationResumed: AugmentedEvent<ApiType, []>;
+      /**
+       * Generic event
+       **/
+      [key: string]: AugmentedEvent<ApiType>;
+    };
+    erc20XcmBridge: {
+      /**
+       * An ERC-20 contract was promoted `Registered → Active` by the asset
+       * transactor after its first successful teleport leg in this lifecycle. Not an
+       * admin event; it fires from inside `withdraw_asset`/`deposit_asset`/
+       * `internal_transfer_asset`.
+       **/
+      TeleportableErc20Activated: AugmentedEvent<ApiType, [contract: H160], { contract: H160 }>;
+      /**
+       * An ERC-20 contract was inserted into the teleport whitelist as `Registered`.
+       * Emitted both on a fresh add (`(none) → Registered`) and on revival from
+       * `Deregistered → Registered`; both go through
+       * [`Pallet::add_teleportable_erc20`].
+       **/
+      TeleportableErc20Added: AugmentedEvent<ApiType, [contract: H160], { contract: H160 }>;
+      /**
+       * [`Pallet::force_remove_teleportable_erc20`] deleted the entry regardless of
+       * state. Emits the state and the `LockedSupply` counter at the time of the
+       * call so any orphaned obligation is auditable from chain events.
+       **/
+      TeleportableErc20ForceRemoved: AugmentedEvent<
+        ApiType,
+        [
+          contract: H160,
+          statusBefore: PalletErc20XcmBridgeTeleportableErc20Status,
+          lockedSupply: U256
+        ],
+        {
+          contract: H160;
+          statusBefore: PalletErc20XcmBridgeTeleportableErc20Status;
+          lockedSupply: U256;
+        }
+      >;
+      /**
+       * The whitelist entry for the given contract was deleted from storage via
+       * [`Pallet::remove_teleportable_erc20`] because [`LockedSupply`] reached zero.
+       * The contract no longer participates in teleport semantics.
+       **/
+      TeleportableErc20Purged: AugmentedEvent<ApiType, [contract: H160], { contract: H160 }>;
+      /**
+       * An ERC-20 contract was moved from `Registered`/`Active` to `Deregistered`
+       * because [`LockedSupply`] was non-zero when
+       * [`Pallet::remove_teleportable_erc20`] was called. New outbound teleports for
+       * it are now refused, but inbound teleports from
+       * [`Config::TeleportTrustedLocation`] continue to unwind the counter back to
+       * zero.
+       **/
+      TeleportableErc20Removed: AugmentedEvent<ApiType, [contract: H160], { contract: H160 }>;
       /**
        * Generic event
        **/
