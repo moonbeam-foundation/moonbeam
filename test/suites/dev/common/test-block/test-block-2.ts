@@ -12,7 +12,12 @@ describeSuite({
       await context.createBlock();
       // The eth RPC layer can lag behind freshly sealed blocks. Force fresh
       // reads while waiting for it to catch up before running assertions.
-      await waitFor(async () => (await context.viem().getBlockNumber({ cacheTime: 0 })) >= 2n);
+      const isReady = await waitFor(
+        async () => (await context.viem().getBlockNumber({ cacheTime: 0 })) >= 2n
+      );
+      if (!isReady) {
+        throw new Error("Timed out waiting for RPC layer to catch up to block 2");
+      }
     });
 
     it({
