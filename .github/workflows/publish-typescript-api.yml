@@ -35,7 +35,7 @@ jobs:
           cache: true
           cache_dependency_path: pnpm-lock.yaml
       - name: Install Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version-file: "test/.nvmrc"
           package-manager-cache: false
