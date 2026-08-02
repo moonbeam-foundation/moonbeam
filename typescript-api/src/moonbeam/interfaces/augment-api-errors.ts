@@ -429,6 +429,32 @@ declare module "@polkadot/api-base/types/errors" {
        **/
       [key: string]: AugmentedError<ApiType>;
     };
+    erc20XcmBridge: {
+      /**
+       * The contract is already `Deregistered` and [`LockedSupply`] is still
+       * non-zero, so [`Pallet::remove_teleportable_erc20`] is a no-op. Wait for
+       * users to teleport supply back (which will eventually drive the counter to
+       * zero, allowing the entry to be swept), or use
+       * [`Pallet::force_remove_teleportable_erc20`] to forfeit the obligation.
+       **/
+      Erc20AlreadyRemoved: AugmentedError<ApiType>;
+      /**
+       * The contract is already in the teleport whitelist as `Registered` or
+       * `Active`. ([`Pallet::add_teleportable_erc20`] on a `Deregistered` contract
+       * is the legal revival path and is **not** considered duplicate.)
+       **/
+      Erc20AlreadyTeleportable: AugmentedError<ApiType>;
+      /**
+       * The contract is not in the teleport whitelist (either it was never added or
+       * it was already purged via [`Pallet::remove_teleportable_erc20`] /
+       * [`Pallet::force_remove_teleportable_erc20`]).
+       **/
+      Erc20NotTeleportable: AugmentedError<ApiType>;
+      /**
+       * Generic error
+       **/
+      [key: string]: AugmentedError<ApiType>;
+    };
     ethereum: {
       /**
        * Signature is invalid.

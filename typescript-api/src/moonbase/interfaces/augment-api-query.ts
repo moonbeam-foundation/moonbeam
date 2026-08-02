@@ -67,6 +67,7 @@ import type {
   PalletConvictionVotingVoteVoting,
   PalletCrowdloanRewardsRewardInfo,
   PalletEmergencyParaXcmXcmMode,
+  PalletErc20XcmBridgeTeleportableErc20Status,
   PalletEvmCodeMetadata,
   PalletIdentityAuthorityProperties,
   PalletIdentityProvider,
@@ -388,6 +389,73 @@ declare module "@polkadot/api-base/types/storage" {
        **/
       mode: AugmentedQuery<ApiType, () => Observable<PalletEmergencyParaXcmXcmMode>, []> &
         QueryableStorageEntry<ApiType, []>;
+      /**
+       * Generic query
+       **/
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
+    erc20XcmBridge: {
+      /**
+       * Per-contract counter of ERC-20 supply currently locked in
+       * [`Config::TeleportCheckingAccount`] as a result of teleport-out legs handled by
+       * [`Erc20TeleportTransactor`]. Maintained in lockstep with every teleport leg:
+       *
+       * - `withdraw_asset` (outbound lock leg): saturating-add `amount`.
+       * - `deposit_asset` (inbound unlock leg): saturating-sub `amount`.
+       * - `internal_transfer_asset`: untouched (same-chain hop, never moves the checking
+       * account).
+       *
+       * The counter is **the** authoritative signal for "any outstanding obligation?".
+       * When it is zero, [`Pallet::remove_teleportable_erc20`] purges the storage entry
+       * outright (admin-only from `Registered`/`Active`, permissionless from
+       * `Deregistered`); when it is non-zero, removal flips the contract to
+       * `Deregistered` so users on the trusted counterparty can keep teleporting their
+       * twin back and decrementing the counter.
+       *
+       * Drift modes:
+       * - **Donations.** A direct `ERC20.transfer(checking, amount)` outside XCM raises
+       * the on-chain balance without changing this counter. Such donated supply has
+       * no foreign-asset twin to match, so ignoring it is correct: the counter
+       * intentionally tracks the obligation, not the wallet balance.
+       * - **Off-pallet drains.** A contract that drains the checking account behind our
+       * back lowers the on-chain balance without changing this counter. The counter
+       * then over-reports the obligation, which conservatively keeps the entry
+       * non-purgeable until [`Pallet::force_remove_teleportable_erc20`].
+       * - **Inbound on a fresh `Registered` entry.** If the counterparty already had a
+       * twin balance before the first outbound leg (e.g. seeded externally), an
+       * inbound leg saturating-subs against `0`. The deposit still proceeds — the
+       * counter is a lower bound on the obligation, never a hard cap on inbound.
+       **/
+      lockedSupply: AugmentedQuery<
+        ApiType,
+        (arg: H160 | string | Uint8Array) => Observable<U256>,
+        [H160]
+      > &
+        QueryableStorageEntry<ApiType, [H160]>;
+      /**
+       * Whitelist of ERC-20 contracts that are eligible for teleport semantics, keyed by
+       * EVM address. The stored variant decides what the per-message gates admit; see
+       * [`TeleportableErc20Status`] and the module-level state diagram.
+       *
+       * Storage entries are removed under exactly two paths:
+       * - [`Pallet::remove_teleportable_erc20`] when [`LockedSupply`] is zero (admin
+       * for `Registered` and `Active`, permissionless only for `Deregistered`), and
+       * - [`Pallet::force_remove_teleportable_erc20`] (admin escape hatch).
+       *
+       * While the entry is present, this runtime locks the contract's supply in
+       * `TeleportCheckingAccount` whenever it is sent cross-chain via XCM, and any
+       * counterparty that registered the asset's foreign-asset twin with
+       * `teleportable: true` and `reserve = (1, [Parachain(<this para>)])` will accept
+       * teleport semantics for it.
+       **/
+      teleportableErc20s: AugmentedQuery<
+        ApiType,
+        (
+          arg: H160 | string | Uint8Array
+        ) => Observable<Option<PalletErc20XcmBridgeTeleportableErc20Status>>,
+        [H160]
+      > &
+        QueryableStorageEntry<ApiType, [H160]>;
       /**
        * Generic query
        **/
