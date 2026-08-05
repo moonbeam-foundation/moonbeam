@@ -33,11 +33,13 @@ runs:
         path: .sccache
     - name: Setup Variables
       shell: bash
+      env:
+        BLACKSMITH_STICKY_SCCACHE: ${{ inputs.blacksmith-sticky-sccache }}
       run: |
         echo "CARGO_INCREMENTAL=0" >> $GITHUB_ENV
         echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
         echo "SCCACHE_CACHE_SIZE=100GB" >> $GITHUB_ENV
-        if [ "${{ inputs.blacksmith-sticky-sccache }}" = "true" ]; then
+        if [ "$BLACKSMITH_STICKY_SCCACHE" = "true" ]; then
           echo "SCCACHE_DIR=$GITHUB_WORKSPACE/.sccache" >> $GITHUB_ENV
         else
           echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
@@ -62,10 +64,11 @@ runs:
         # Keep the native node in target/debug while still asking substrate-wasm-builder
         # to compact and compress runtime artifacts for CI consumers.
         WASM_BUILD_TYPE: release
+        FEATURES: ${{ inputs.features }}
       run: |
         params=" --locked -p moonbeam"
-        if [ -n "${{ inputs.features }}" ]; then
-          params="$params --features ${{ inputs.features }}"
+        if [ -n "$FEATURES" ]; then
+          params="$params --features $FEATURES"
         fi
         echo "cargo build $params"
         cargo build $params
