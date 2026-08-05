@@ -20,6 +20,10 @@ runs:
   steps:
     - name: Setup Rust toolchain
       shell: bash
+      env:
+        TOOLCHAIN: ${{ inputs.toolchain }}
+        COMPONENTS: ${{ inputs.components }}
+        TARGETS: ${{ inputs.targets }}
       run: |
         if ! which "rustup" > /dev/null; then
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -29,21 +33,21 @@ runs:
 
         rustup override unset
 
-        if [ -n "${{ inputs.toolchain }}" ]; then
-          rustup toolchain install "${{ inputs.toolchain }}" --profile minimal --no-self-update
-          if [ -n "${{ inputs.components }}" ]; then
-            IFS=',' read -ra components <<< "${{ inputs.components }}"
-            rustup component add --toolchain "${{ inputs.toolchain }}" "${components[@]}"
+        if [ -n "$TOOLCHAIN" ]; then
+          rustup toolchain install "$TOOLCHAIN" --profile minimal --no-self-update
+          if [ -n "$COMPONENTS" ]; then
+            IFS=',' read -ra components <<< "$COMPONENTS"
+            rustup component add --toolchain "$TOOLCHAIN" "${components[@]}"
           fi
-          configured_targets="${{ inputs.targets }}"
+          configured_targets="$TARGETS"
           if [ -z "$configured_targets" ]; then
             configured_targets="$(awk -F '[' '/^targets =/ { print $2; exit }' rust-toolchain | tr -d '[] "')"
           fi
           if [ -n "$configured_targets" ]; then
             IFS=',' read -ra targets <<< "$configured_targets"
-            rustup target add --toolchain "${{ inputs.toolchain }}" "${targets[@]}"
+            rustup target add --toolchain "$TOOLCHAIN" "${targets[@]}"
           fi
-          rustup override set "${{ inputs.toolchain }}"
+          rustup override set "$TOOLCHAIN"
         else
           rustup show
         fi
