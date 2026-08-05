@@ -66,12 +66,12 @@ runs:
         WASM_BUILD_TYPE: release
         FEATURES: ${{ inputs.features }}
       run: |
-        params=" --locked -p moonbeam"
+        params=(--locked -p moonbeam)
         if [ -n "$FEATURES" ]; then
-          params="$params --features $FEATURES"
+          params+=(--features "$FEATURES")
         fi
-        echo "cargo build $params"
-        cargo build $params
+        echo "cargo build ${params[*]}"
+        cargo build "${params[@]}"
     - name: Display binary comments
       shell: bash
       run: |
