@@ -355,7 +355,7 @@ jobs:
         id: rust-toolchain-cache-key
         uses: ./.github/workflow-templates/rust-toolchain-cache-key
       - name: Mount Blacksmith sccache disk
-        uses: useblacksmith/stickydisk@13af8883542ca949a717e70fef89d15edbb29d88
+        uses: useblacksmith/stickydisk@74f3f01ab1392726dd6ee06904f0452b0ec1e151
         with:
           key: ${{ github.repository }}-sccache-clippy-${{ runner.os }}-${{ steps.rust-toolchain-cache-key.outputs.cache-key }}
           path: .sccache
@@ -490,7 +490,7 @@ jobs:
         id: rust-toolchain-cache-key
         uses: ./.github/workflow-templates/rust-toolchain-cache-key
       - name: Mount Blacksmith sccache disk
-        uses: useblacksmith/stickydisk@13af8883542ca949a717e70fef89d15edbb29d88
+        uses: useblacksmith/stickydisk@74f3f01ab1392726dd6ee06904f0452b0ec1e151
         with:
           key: ${{ github.repository }}-sccache-rust-test-${{ runner.os }}-${{ steps.rust-toolchain-cache-key.outputs.cache-key }}
           path: .sccache
@@ -583,7 +583,7 @@ jobs:
         id: rust-toolchain-cache-key
         uses: ./.github/workflow-templates/rust-toolchain-cache-key
       - name: Mount Blacksmith sccache disk
-        uses: useblacksmith/stickydisk@13af8883542ca949a717e70fef89d15edbb29d88
+        uses: useblacksmith/stickydisk@74f3f01ab1392726dd6ee06904f0452b0ec1e151
         with:
           key: ${{ github.repository }}-sccache-xcm-emulator-${{ runner.os }}-${{ steps.rust-toolchain-cache-key.outputs.cache-key }}
           path: .sccache
