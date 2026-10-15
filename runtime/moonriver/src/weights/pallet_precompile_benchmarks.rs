@@ -82,4 +82,17 @@ impl<T: frame_system::Config> pallet_precompile_benchmarks::WeightInfo for Weigh
 			// takes longer to verify
 			.saturating_mul(1u64)
 	}
+	// LOCAL (non-reference) WEIGHTS — measured on Apple M3 Max, NOT reference hardware.
+	// Regenerate on reference hardware before release with
+	// `--pallet=pallet_precompile_benchmarks --extrinsic=gmp`.
+	/// The range of component `x` is `[0, 65536]`.
+	fn gmp(x: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 0_000 picoseconds.
+		Weight::from_parts(1_910_804, 0)
+			// Standard Error: 0
+			.saturating_add(Weight::from_parts(532, 0).saturating_mul(x.into()))
+	}
 }
