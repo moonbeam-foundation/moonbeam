@@ -588,6 +588,112 @@ declare module "@polkadot/api-base/types/submittable" {
        **/
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
+    erc20XcmBridge: {
+      /**
+       * Insert (or revive) an ERC-20 contract in the teleport whitelist as
+       * `Registered`. Callable only by [`Config::TeleportAdminOrigin`].
+       *
+       * **Operator warning — this is NOT a narrow "teleport-on" flag.** Once a
+       * contract is in [`TeleportableErc20s`], the runtime's asset transactor
+       * tuple routes EVERY XCM `TransactAsset` operation for it (`withdraw_asset`,
+       * `deposit_asset`, `internal_transfer_asset`) through
+       * [`Erc20TeleportTransactor`] before falling back to the legacy reserve
+       * adapter. The transactor cannot tell teleport-driven flows apart from
+       * reserve-driven or `pallet_xcm::execute`-driven flows, so the
+       * lock/unlock-against-[`Config::TeleportCheckingAccount`] semantics apply
+       * uniformly. Whitelisted ERC-20s used in the wrong path
+       * (e.g. `pallet_xcm::limited_reserve_transfer_assets` to the trusted
+       * counterparty) are rejected with `Filtered` by `pallet_xcm` itself, but
+       * for non-counterparty destinations the failure surface lives inside
+       * `xcm-executor`. **Only whitelist contracts intended exclusively for the
+       * trusted teleport flow** (per [`Config::TeleportTrustedLocation`]).
+       *
+       * Behaviour by current state:
+       * - **No entry** (`(none) → Registered`): fresh add. The first subsequent
+       * teleport leg auto-promotes to `Active`.
+       * - **`Deregistered` → `Registered`**: revival. Any [`LockedSupply`] from the
+       * pre-deregistration lifetime is preserved verbatim; the next teleport leg
+       * auto-promotes to `Active`. Use this to undo an in-error
+       * `remove_teleportable_erc20`, or to reopen outbound after a planned
+       * maintenance window.
+       * - **`Registered`**: rejected with [`Error::Erc20AlreadyTeleportable`] — the
+       * entry is already in the pre-flow state, no-op.
+       * - **`Active`**: rejected with [`Error::Erc20AlreadyTeleportable`] — the
+       * entry is already fully whitelisted, no-op.
+       *
+       * Emits [`Event::TeleportableErc20Added`] on success.
+       **/
+      addTeleportableErc20: AugmentedSubmittable<
+        (contract: H160 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [H160]
+      >;
+      /**
+       * Admin escape hatch: delete the whitelist entry and its [`LockedSupply`]
+       * counter regardless of state and counter value. Callable only by
+       * [`Config::TeleportAdminOrigin`].
+       *
+       * This is a destructive operation. If `LockedSupply > 0` at call time, any
+       * supply still parked in [`Config::TeleportCheckingAccount`] is effectively
+       * stranded from this pallet's bookkeeping perspective — inbound teleport-back
+       * messages will be rejected by the gates as the entry is gone, and users that
+       * still hold the foreign-asset twin on the trusted counterparty cannot redeem
+       * it through this pallet without a subsequent
+       * [`Pallet::add_teleportable_erc20`] revival.
+       *
+       * Emits [`Event::TeleportableErc20ForceRemoved`] with `status_before` and
+       * `locked_supply` so the act is auditable on-chain.
+       *
+       * Errors:
+       * - [`Error::Erc20NotTeleportable`] when the contract has no whitelist entry.
+       **/
+      forceRemoveTeleportableErc20: AugmentedSubmittable<
+        (contract: H160 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [H160]
+      >;
+      /**
+       * Dual-purpose retirement extrinsic for a whitelisted ERC-20.
+       *
+       * Behaviour depends on [`LockedSupply`] at call time:
+       *
+       * - **`LockedSupply == 0`** (no outstanding obligation): the entry is purged
+       * from storage outright. `LockedSupply` is also removed.
+       * - Origin: [`Config::TeleportAdminOrigin`] is required when the current
+       * status is `Registered` or `Active`. Admin-only on `Registered` so a
+       * freshly added entry can't be erased by a third party racing the
+       * admin's intent. Admin-only on `Active` so a third party cannot snipe
+       * a live operational entry the moment its counter momentarily hits zero
+       * between in/out flows — the operator stays in control of when an
+       * active contract leaves the whitelist.
+       * - Origin: any **signed** origin (or root) is accepted when the current
+       * status is `Deregistered` — admin already opted into wind-down by
+       * flipping the entry, so the public sweep just finalizes that intent
+       * once the obligation is fully discharged. This is the "permissionless
+       * purge" path and is what gives a deregistered entry a natural
+       * terminus without further admin intervention.
+       * - Emits [`Event::TeleportableErc20Purged`].
+       *
+       * - **`LockedSupply > 0`** (outstanding obligation): the entry is flipped to
+       * `Deregistered`. New outbound teleports are refused; inbound teleports keep
+       * unwinding the counter. Once the counter reaches zero, the entry can be
+       * swept permissionlessly via this same extrinsic.
+       * - Origin: [`Config::TeleportAdminOrigin`] is required.
+       * - Already-`Deregistered` entries return [`Error::Erc20AlreadyRemoved`].
+       * - Emits [`Event::TeleportableErc20Removed`].
+       *
+       * Errors:
+       * - [`Error::Erc20NotTeleportable`] when the contract has no whitelist entry.
+       * - [`Error::Erc20AlreadyRemoved`] when the contract is already
+       * `Deregistered` and `LockedSupply > 0`.
+       **/
+      removeTeleportableErc20: AugmentedSubmittable<
+        (contract: H160 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [H160]
+      >;
+      /**
+       * Generic tx
+       **/
+      [key: string]: SubmittableExtrinsicFunction<ApiType>;
+    };
     ethereum: {
       /**
        * Transact an Ethereum transaction.
