@@ -16,9 +16,11 @@ runs:
   steps:
     - name: Validate mode input
       shell: bash
+      env:
+        MODE: ${{ inputs.mode }}
       run: |
-        if [[ "${{ inputs.mode }}" != "publish" && "${{ inputs.mode }}" != "restore" ]]; then
-          echo "Invalid mode '${{ inputs.mode }}'. Must be 'publish' or 'restore'." >&2
+        if [[ "$MODE" != "publish" && "$MODE" != "restore" ]]; then
+          echo "Invalid mode '$MODE'. Must be 'publish' or 'restore'." >&2
           exit 1
         fi
     - name: Mount Blacksmith CI moonbeam disk
