@@ -206,6 +206,9 @@ import type {
   PalletEmergencyParaXcmError,
   PalletEmergencyParaXcmEvent,
   PalletEmergencyParaXcmXcmMode,
+  PalletErc20XcmBridgeError,
+  PalletErc20XcmBridgeEvent,
+  PalletErc20XcmBridgeTeleportableErc20Status,
   PalletEthereumCall,
   PalletEthereumError,
   PalletEthereumEvent,
@@ -679,6 +682,9 @@ declare module "@polkadot/types/types/registry" {
     PalletEmergencyParaXcmError: PalletEmergencyParaXcmError;
     PalletEmergencyParaXcmEvent: PalletEmergencyParaXcmEvent;
     PalletEmergencyParaXcmXcmMode: PalletEmergencyParaXcmXcmMode;
+    PalletErc20XcmBridgeError: PalletErc20XcmBridgeError;
+    PalletErc20XcmBridgeEvent: PalletErc20XcmBridgeEvent;
+    PalletErc20XcmBridgeTeleportableErc20Status: PalletErc20XcmBridgeTeleportableErc20Status;
     PalletEthereumCall: PalletEthereumCall;
     PalletEthereumError: PalletEthereumError;
     PalletEthereumEvent: PalletEthereumEvent;
