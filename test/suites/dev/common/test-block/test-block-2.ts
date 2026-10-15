@@ -1,5 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "moonwall";
+import { waitFor } from "../../../../helpers";
 
 describeSuite({
   id: "D010102",
@@ -9,25 +10,21 @@ describeSuite({
     beforeAll(async () => {
       await context.createBlock();
       await context.createBlock();
+      // The eth RPC layer can lag behind freshly sealed blocks. Force fresh
+      // reads while waiting for it to catch up before running assertions.
+      const isReady = await waitFor(
+        async () => (await context.viem().getBlockNumber({ cacheTime: 0 })) >= 2n
+      );
+      if (!isReady) {
+        throw new Error("Timed out waiting for RPC layer to catch up to block 2");
+      }
     });
 
     it({
       id: "T01",
       title: "should be at block 2",
       test: async function () {
-        // viem caches the block number for `cacheTime` (defaults to the 4s
-        // polling interval), so a plain `getBlockNumber()` can return a stale
-        // height right after the blocks were sealed. Force a fresh read and
-        // poll briefly to absorb any eth-layer import lag.
-        let blockNumber = 0n;
-        for (let i = 0; i < 20; i++) {
-          blockNumber = await context.viem().getBlockNumber({ cacheTime: 0 });
-          if (blockNumber === 2n) {
-            break;
-          }
-          await new Promise((resolve) => setTimeout(resolve, 50));
-        }
-        expect(blockNumber).toBe(2n);
+        expect(await context.viem().getBlockNumber({ cacheTime: 0 })).toBe(2n);
       },
     });
 
